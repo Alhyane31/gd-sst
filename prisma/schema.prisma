@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(USER)
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Formation {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  libelle   String
+
+  services  Service[]
+  personnels Personnel[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Service {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  libelle      String
+
+  formationId  String
+  formation    Formation @relation(fields: [formationId], references: [id])
+
+  personnels   Personnel[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  
+}
+model Poste {
+  id        String      @id @default(uuid())
+  code      String      @unique
+  libelle   String
+
+  personnels Personnel[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+enum PersonnelCategorie {
+  SMR
+  VP
+}
+
+model Personnel {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String?  @unique
+  isActive     Boolean  @default(true)
+
+  posteId      String
+  poste        Poste    @relation(fields: [posteId], references: [id])
+
+  serviceId    String
+  service      Service  @relation(fields: [serviceId], references: [id])
+
+  formationId  String
+  formation    Formation @relation(fields: [formationId], references: [id])
+
+  // ✅ nouveaux champs
+  categorie    PersonnelCategorie @default(VP)
+  tags         String[]           @default([])
+
+  visites      Visite[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+
+
+model Visite {
+  id              String          @id @default(uuid())
+
+  
+  datePrevue       DateTime  
+  dateRealisee     DateTime?
+
+  type            VisiteType
+
+  statut          VisiteStatut    @default(A_CONVOQUER)
+
+  convocationType ConvocationType @default(INITIALE)
+
+  dateConvocation DateTime?
+
+  // ✅ texte libre
+  commentaire     String?
+
+  personnelId     String
+  personnel       Personnel       @relation(fields: [personnelId], references: [id])
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([personnelId, datePrevue])
+  @@index([statut])
+  @@index([type])
+}
+
+enum VisiteType {
+  ANNUELLE
+  RAPPROCHEE
+}
+
+enum VisiteStatut {
+  A_CONVOQUER            // pas encore traité
+  CONVOCATION_GENEREE    // convocation générée (pdf/email prêt)
+  A_TRAITER              // retour/présence à vérifier, ou action attendue
+  A_RELANCER             // échec/no-show => doit être relancé
+  RELANCEE               // relance envoyée
+  REALISEE               // visite effectuée
+}
+
+enum ConvocationType {
+  INITIALE
+  RELANCE_1
+  RELANCE_2
+  RELANCE_3
+}
+
