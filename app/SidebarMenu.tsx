@@ -59,6 +59,11 @@ const router = useRouter();
             <ListItemButton onClick={() => router.push("/personnel")}>
               <ListItemText primary="Personnel" />
             </ListItemButton>
+<ListItemButton onClick={() => router.push("/convocations")}>
+              <ListItemText primary="Gérer les convocations" />
+            </ListItemButton>
+
+            
             <ListItemButton>
               <ListItemText primary="Créer un nouveau dossier" />
             </ListItemButton>

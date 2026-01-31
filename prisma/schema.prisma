@@ -88,7 +88,7 @@ model Personnel {
   categorie    PersonnelCategorie @default(VP)
   tags         String[]           @default([])
 
-  visites      Visite[]
+  convocations      Convocation[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -97,16 +97,16 @@ model Personnel {
 
 
 
-model Visite {
+model Convocation {
   id              String          @id @default(uuid())
 
   
   datePrevue       DateTime  
   dateRealisee     DateTime?
 
-  type            VisiteType
+  
 
-  statut          VisiteStatut    @default(A_CONVOQUER)
+  statut          ConvocationStatut    @default(A_CONVOQUER)
 
   convocationType ConvocationType @default(INITIALE)
 
@@ -123,7 +123,16 @@ model Visite {
 
   @@index([personnelId, datePrevue])
   @@index([statut])
-  @@index([type])
+  
+}
+model JourFerie {
+  id        String   @id @default(uuid())
+  date      DateTime @unique
+  label     String?  // ex: "Fête du Travail", "Aid Al Adha"
+  
+  createdAt DateTime @default(now())
+
+  @@index([date])
 }
 
 enum VisiteType {
@@ -131,13 +140,14 @@ enum VisiteType {
   RAPPROCHEE
 }
 
-enum VisiteStatut {
+enum ConvocationStatut {
   A_CONVOQUER            // pas encore traité
   CONVOCATION_GENEREE    // convocation générée (pdf/email prêt)
   A_TRAITER              // retour/présence à vérifier, ou action attendue
   A_RELANCER             // échec/no-show => doit être relancé
   RELANCEE               // relance envoyée
-  REALISEE               // visite effectuée
+  REALISEE   
+  ANNULEE            // convocation effectuée
 }
 
 enum ConvocationType {

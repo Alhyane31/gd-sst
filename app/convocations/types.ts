@@ -2,7 +2,7 @@ export type PersonnelCategorie = "SMR" | "VP";
 
 export type VisiteType = "ANNUELLE" | "RAPPROCHEE";
 
-export type VisiteStatut =
+export type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
   | "A_TRAITER"
@@ -28,14 +28,14 @@ export interface PersonnelMini {
   tags?: string[];
 }
 
-export interface VisiteRow {
+export interface ConvocationRow {
   id: string;
   datePrevue: string; // ISO
   dateRealisee?: string | null; // ISO
   dateConvocation?: string | null; // ISO
 
   type: VisiteType;
-  statut: VisiteStatut;
+  statut: ConvocationStatut;
   convocationType: ConvocationType;
 
   presence?: PresenceStatut; // si tu ajoutes plus tard en DB
@@ -56,7 +56,7 @@ export interface Poste { id: string; libelle: string }
 export interface Formation { id: string; libelle: string }
 export interface Service { id: string; libelle: string }
 
-export type VisitesFilters = {
+export type ConvocationsFilters = {
   // filtres personnel
   nom: string;
   prenom: string;
@@ -68,7 +68,7 @@ export type VisitesFilters = {
 
   // filtres visite
   visiteType: "" | VisiteType;
-  statut: "" | VisiteStatut;
+  statut: "" | ConvocationStatut;
   convocationType: "" | ConvocationType;
   presence: "" | PresenceStatut;
   etat: "" | EtatWorkflow;
@@ -76,6 +76,5 @@ export type VisitesFilters = {
   // dates (format YYYY-MM-DD)
   dateConvocFrom: string;
   dateConvocTo: string;
-  dateVisiteFrom: string;
-  dateVisiteTo: string;
+  
 };

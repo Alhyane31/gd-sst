@@ -19,6 +19,24 @@ function asDateRange(from?: string | null, to?: string | null) {
 
   return Object.keys(range).length ? range : undefined;
 }
+async function getJourFerie(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+
+  return await prisma.jourFerie.findFirst({
+    where: {
+      date: { gte: start, lte: end },
+    },
+    select: {
+      label: true,
+      date: true,
+    },
+  });
+}
+
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -40,7 +58,7 @@ export async function GET(request: Request) {
   const categorie = (searchParams.get("categorie") ?? "").trim(); // "SMR" | "VP"
   const tag = (searchParams.get("tag") ?? "").trim(); // exact (tags.has)
 
-  // ===== filtres visite
+  // ===== filtres convocation
   const visiteType = (searchParams.get("visiteType") ?? "").trim(); // "ANNUELLE" | "RAPPROCHEE"
   const statut = (searchParams.get("statut") ?? "").trim(); // enum VisiteStatut
   const convocationType = (searchParams.get("convocationType") ?? "").trim(); // INITIALE, RELANCE_1...
@@ -50,16 +68,16 @@ export async function GET(request: Request) {
   // ===== dates (YYYY-MM-DD)
   const dateConvocFrom = (searchParams.get("dateConvocFrom") ?? "").trim();
   const dateConvocTo = (searchParams.get("dateConvocTo") ?? "").trim();
-  const dateVisiteFrom = (searchParams.get("dateVisiteFrom") ?? "").trim();
-  const dateVisiteTo = (searchParams.get("dateVisiteTo") ?? "").trim();
+ // const dateVisiteFrom = (searchParams.get("dateVisiteFrom") ?? "").trim();
+ // const dateVisiteTo = (searchParams.get("dateVisiteTo") ?? "").trim();
 
   const dateConvocationRange = asDateRange(dateConvocFrom || null, dateConvocTo || null);
-  const datePrevueRange = asDateRange(dateVisiteFrom || null, dateVisiteTo || null);
+  //const datePrevueRange = asDateRange(dateVisiteFrom || null, dateVisiteTo || null);
 
   // ===== construction WHERE
   const where: any = { AND: [] };
 
-  // --- filtres visite
+  // --- filtres convocation
   if (visiteType) where.AND.push({ type: visiteType });
   if (statut) where.AND.push({ statut });
   if (convocationType) where.AND.push({ convocationType });
@@ -69,7 +87,7 @@ export async function GET(request: Request) {
   if (etat) where.AND.push({ etat });
 
   if (dateConvocationRange) where.AND.push({ dateConvocation: dateConvocationRange });
-  if (datePrevueRange) where.AND.push({ datePrevue: datePrevueRange });
+  //if (datePrevueRange) where.AND.push({ datePrevue: datePrevueRange });
 
   // --- filtres sur PERSONNEL (relation)
   const personnelAND: any[] = [];
@@ -102,8 +120,8 @@ export async function GET(request: Request) {
 
   // ===== requêtes
   const [total, items] = await Promise.all([
-    prisma.visite.count({ where }),
-    prisma.visite.findMany({
+    prisma.convocation.count({ where }),
+    prisma.convocation.findMany({
       where,
       orderBy: [
         { datePrevue: "desc" }, // ou asc selon ton usage
@@ -153,24 +171,40 @@ export async function POST(req: NextRequest) {
     const commentaire = body.commentaire ? String(body.commentaire).trim() : null;
 
     if (!personnelId) return badRequest("personnelId obligatoire");
-    if (!type) return badRequest("type obligatoire");
+    //if (!type) return badRequest("type obligatoire");
     if (!datePrevue) return badRequest("datePrevue invalide ou manquante");
 
     // Optionnel: empêcher doublon (même personnel + même datePrevue + même type)
     // (recommandé si tu veux)
-    // const exists = await prisma.visite.findFirst({
+    // const exists = await prisma.convocation.findFirst({
     //   where: { personnelId, type, datePrevue },
     // });
-    // if (exists) return badRequest("Une visite existe déjà pour ce personnel à cette date.");
+    // if (exists) return badRequest("Une convocation existe déjà pour ce personnel à cette date.");
 
     // Vérifier que le personnel existe
     const pers = await prisma.personnel.findUnique({ where: { id: personnelId } });
     if (!pers) return NextResponse.json({ error: "Personnel introuvable" }, { status: 404 });
+if (!datePrevue) return badRequest("datePrevue obligatoire");
 
-    const created = await prisma.visite.create({
+const d = new Date(datePrevue);
+if (Number.isNaN(d.getTime()))
+  return badRequest("datePrevue invalide");
+
+// week-end
+const day = d.getDay();
+if (day === 0 || day === 6)
+  return badRequest("Date Prévue tombe sur un week-end");
+
+// jour férié
+const jf = await getJourFerie(d);
+if (jf)
+  return badRequest(
+    `Date Prévue tombe sur un jour férié : ${jf.label ?? "jour férié"}`
+  );
+    const created = await prisma.convocation.create({
       data: {
         personnelId,
-        type,
+        
         statut,
         convocationType,
         datePrevue,
@@ -186,7 +220,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
-    console.error("POST /api/visites error:", error);
+    console.error("POST /api/convocations error:", error);
 
     // Prisma errors courantes
     if (error?.code === "P2002") {

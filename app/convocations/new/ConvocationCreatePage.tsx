@@ -39,8 +39,8 @@ type PersonnelMini = {
   formation?: { libelle: string };
 };
 
-type VisiteType = "ANNUELLE" | "RAPPROCHEE";
-type VisiteStatut =
+
+type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
   | "A_TRAITER"
@@ -49,9 +49,15 @@ type VisiteStatut =
   | "REALISEE";
 type ConvocationType = "INITIALE" | "RELANCE_1" | "RELANCE_2" | "RELANCE_3";
 
+const toDatetimeLocal = (date: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, "0");
 
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
-export default function VisiteCreatePage() {
+export default function ConvocationCreatePage() {
     const [personnels, setPersonnels] = useState<PersonnelMini[]>([]);
 const [total, setTotal] = useState(0);
 const [loadingPersonnels, setLoadingPersonnels] = useState(false);
@@ -103,14 +109,14 @@ const [rowsPerPage, setRowsPerPage] = useState(5);
   // ===== form state
   const [selectedPersonnel, setSelectedPersonnel] = useState<PersonnelMini | null>(null);
 
-  const [form, setForm] = useState({
-    type: "ANNUELLE" as VisiteType,
-    datePrevue: "",
-    statut: "A_CONVOQUER" as VisiteStatut,
-    convocationType: "INITIALE" as ConvocationType,
-    dateConvocation: "",
-    commentaire: "",
-  });
+const [form, setForm] = useState({
+  datePrevue: "",          // sera un datetime-local
+  dateConvocation: "",     // sera un datetime-local
+  statut: "A_CONVOQUER" as ConvocationStatut,
+  convocationType: "INITIALE" as ConvocationType,
+  commentaire: "",
+});
+
 
   // ===== dialog state
   const [open, setOpen] = useState(false);
@@ -122,6 +128,19 @@ const [rowsPerPage, setRowsPerPage] = useState(5);
   });
 
   
+useEffect(() => {
+  const now = new Date();
+
+  const datePrevue = new Date();
+  datePrevue.setDate(datePrevue.getDate() + 14);
+  datePrevue.setHours(9, 0, 0, 0); // ⏰ 09:00 pile
+
+  setForm((prev) => ({
+    ...prev,
+    dateConvocation: toDatetimeLocal(now),
+    datePrevue: toDatetimeLocal(datePrevue),
+  }));
+}, []);
 
 useEffect(() => {
   if (!open) return; // 🔑 fetch seulement quand popup ouverte
@@ -144,17 +163,18 @@ useEffect(() => {
       return;
     }
 
-   const res = await fetch("/api/visites", {
+   const res = await fetch("/api/convocations", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    personnelId: selectedPersonnel.id,
-    type: form.type,
-    datePrevue: form.datePrevue,
-    statut: form.statut,
-    convocationType: form.convocationType,
-    commentaire: form.commentaire,
-  }),
+ body: JSON.stringify({
+  personnelId: selectedPersonnel.id,
+  datePrevue: form.datePrevue,             // datetime
+  dateConvocation: form.dateConvocation,   // datetime
+  statut: form.statut,
+  convocationType: form.convocationType,
+  commentaire: form.commentaire,
+}),
+
 });
 
 if (!res.ok) {
@@ -163,7 +183,7 @@ if (!res.ok) {
   return;
 }
 
-router.push("/visites");
+router.push("/convocations");
 
 
    
@@ -172,7 +192,7 @@ router.push("/visites");
   return (
     <Box p={4}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Créer une visite</Typography>
+        <Typography variant="h4">Créer une convocation</Typography>
         <Button variant="outlined" onClick={() => router.back()}>
           Retour
         </Button>
@@ -183,7 +203,7 @@ router.push("/visites");
  
 
   {/* ================= Personnel (ligne 1) ================= */}
-  <Grid item xs={12}>
+ 
     <Typography variant="subtitle1" sx={{ mb: 1 }}>
       Personnel
     </Typography>
@@ -252,12 +272,13 @@ router.push("/visites");
   </Grid>
 
   <Grid item xs={12}>
-  <Box sx={{ height: 16 }} /> {/* espace visuel clair */}
+  <Box sx={{ height: 30
+   }} /> {/* espace visuel clair */}
 </Grid>
 
   {/* ================= Formulaire (ligne 3+) : container séparé ================= */}
-  <Grid item xs={12}>
-    <Grid container spacing={2}>
+ 
+    
       {/* Ligne champs principaux */}
     <Grid item xs={12}>
   <Stack
@@ -268,31 +289,30 @@ router.push("/visites");
       flexWrap: { xs: "wrap", md: "nowrap" }, // ✅ 1 seule ligne en desktop
     }}
   >
-    <TextField
-      select
-      size="small"
-      label="Type de visite"
-      name="type"
-      value={form.type}
-      onChange={handleChange}
-      sx={{ flex: { md: "0 0 20%" }, minWidth: 200 }}
-      fullWidth
-    >
-      <MenuItem value="ANNUELLE">Annuelle</MenuItem>
-      <MenuItem value="RAPPROCHEE">Rapprochée</MenuItem>
-    </TextField>
+   
 
     <TextField
-      size="small"
-      type="date"
-      label="Date prévue"
-      name="datePrevue"
-      InputLabelProps={{ shrink: true }}
-      value={form.datePrevue}
-      onChange={handleChange}
-      sx={{ flex: { md: "0 0 20%" }, minWidth: 200 }}
-      fullWidth
-    />
+  size="small"
+  type="datetime-local"
+  label="Date prévue"
+  name="datePrevue"
+  InputLabelProps={{ shrink: true }}
+  value={form.datePrevue}
+  onChange={handleChange}
+  sx={{ flex: { md: "0 0 20%" }, minWidth: 220 }}
+  fullWidth
+/>
+<TextField
+  size="small"
+  type="datetime-local"
+  label="Date convocation"
+  name="dateConvocation"
+  InputLabelProps={{ shrink: true }}
+  value={form.dateConvocation}
+  onChange={handleChange}
+  sx={{ flex: { md: "0 0 20%" }, minWidth: 220 }}
+  fullWidth
+/>
 
     <TextField
       select
@@ -330,6 +350,16 @@ router.push("/visites");
   </Stack>
 </Grid>
 
+
+
+
+
+   <Grid item xs={12}>
+  <Box sx={{ height: 30
+   }} /> {/* espace visuel clair */}
+</Grid>
+ 
+
 <Grid item xs={12}>
   <Box
     sx={{
@@ -341,13 +371,16 @@ router.push("/visites");
   >
     {/* Commentaire */}
     <TextField
-      size="small"
-      label="Commentaire"
-      multiline
-      minRows={2}
-      sx={{ flex: "0 0 70%" }}
-      fullWidth
-    />
+  size="small"
+  label="Commentaire"
+  name="commentaire"
+  value={form.commentaire}
+  onChange={handleChange}
+  multiline
+  minRows={2}
+  sx={{ flex: "0 0 70%" }}
+  fullWidth
+/>
 
     {/* Actions */}
     <Box
@@ -359,7 +392,7 @@ router.push("/visites");
         pt: "6px", // alignement vertical avec textarea
       }}
     >
-      <Button variant="outlined" size="small"  onClick={() => router.push("/visites")} sx={{ minWidth: 140 }}>
+      <Button variant="outlined" size="small"  onClick={() => router.push("/convocations")} sx={{ minWidth: 140 }}>
         Annuler
       </Button>
       <Button variant="contained"  onClick={handleSave} size="small" sx={{ minWidth: 140 }}>
@@ -368,13 +401,6 @@ router.push("/visites");
     </Box>
   </Box>
 </Grid>
-
-
-
-    </Grid>
-  </Grid>
-</Grid>
-
 </Paper>
 
       {/* =======================

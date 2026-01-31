@@ -4,18 +4,18 @@ import { Box, Paper, TablePagination, Typography } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 
-import VisitesFiltersBar from "./components/VisitesFiltersBar";
-import VisitesTable from "./components/VisitesTable";
-import { ApiResponse, Formation, Poste, Service, VisiteRow, VisitesFilters } from "./types";
+import ConvocationsFiltersBar from "./components/ConvocationsFiltersBar";
+import ConvocationsTable from "./components/ConvocationsTable";
+import { ApiResponse, Formation, Poste, Service, ConvocationRow, ConvocationsFilters } from "./types";
 
-export default function VisitesSearchPage() {
+export default function ConvocationsSearchPage() {
   const { status } = useSession();
 
   const [postes, setPostes] = useState<Poste[]>([]);
   const [formations, setFormations] = useState<Formation[]>([]);
   const [services, setServices] = useState<Service[]>([]);
 
-  const empty: VisitesFilters = {
+  const empty: ConvocationsFilters = {
     nom: "",
     prenom: "",
     posteId: "",
@@ -31,18 +31,18 @@ export default function VisitesSearchPage() {
     etat: "",
 
     dateConvocFrom: "",
-    dateConvocTo: "",
-    dateVisiteFrom: "",
-    dateVisiteTo: "",
+    dateConvocTo: ""
+    
+    
   };
 
-  const [draft, setDraft] = useState<VisitesFilters>(empty);
-  const [applied, setApplied] = useState<VisitesFilters>(empty);
+  const [draft, setDraft] = useState<ConvocationsFilters>(empty);
+  const [applied, setApplied] = useState<ConvocationsFilters>(empty);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const [rows, setRows] = useState<VisiteRow[]>([]);
+  const [rows, setRows] = useState<ConvocationRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -66,7 +66,7 @@ export default function VisitesSearchPage() {
       .catch(() => setServices([]));
   }, [draft.formationId]);
 
-  const fetchVisites = useCallback(async (f: VisitesFilters, p: number, size: number) => {
+  const fetchConvocations = useCallback(async (f: ConvocationsFilters, p: number, size: number) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -80,8 +80,8 @@ export default function VisitesSearchPage() {
       if (f.categorie) params.set("categorie", f.categorie);
       if (f.tag) params.set("tag", f.tag);
 
-      // visite
-      if (f.visiteType) params.set("visiteType", f.visiteType);
+      // convocation
+      if (f.convocationType) params.set("convocationType", f.convocationType);
       if (f.statut) params.set("statut", f.statut);
       if (f.convocationType) params.set("convocationType", f.convocationType);
       if (f.presence) params.set("presence", f.presence);
@@ -89,13 +89,12 @@ export default function VisitesSearchPage() {
 
       if (f.dateConvocFrom) params.set("dateConvocFrom", f.dateConvocFrom);
       if (f.dateConvocTo) params.set("dateConvocTo", f.dateConvocTo);
-      if (f.dateVisiteFrom) params.set("dateVisiteFrom", f.dateVisiteFrom);
-      if (f.dateVisiteTo) params.set("dateVisiteTo", f.dateVisiteTo);
+     
 
       params.set("page", String(p));
       params.set("pageSize", String(size));
 
-      const res = await fetch(`/api/visites?${params.toString()}`);
+      const res = await fetch(`/api/convocations?${params.toString()}`);
 
       if (res.status === 401) {
         signIn();
@@ -107,11 +106,11 @@ export default function VisitesSearchPage() {
         return;
       }
 
-      const data: ApiResponse<VisiteRow> = await res.json();
+      const data: ApiResponse<ConvocationRow> = await res.json();
       setRows(data.items);
       setTotal(data.total);
     } catch (e) {
-      console.error("fetchVisites error:", e);
+      console.error("fetchConvocations error:", e);
       setRows([]);
       setTotal(0);
     } finally {
@@ -121,8 +120,8 @@ export default function VisitesSearchPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    fetchVisites(applied, page, rowsPerPage);
-  }, [status, applied, page, rowsPerPage, fetchVisites]);
+    fetchConvocations(applied, page, rowsPerPage);
+  }, [status, applied, page, rowsPerPage, fetchConvocations]);
 
   const onSearch = () => {
     setApplied(draft);
@@ -139,10 +138,10 @@ export default function VisitesSearchPage() {
   return (
     <Box p={4}>
       <Typography variant="h4" mb={3}>
-        Recherche des visites
+        Recherche des convocations
       </Typography>
 
-      <VisitesFiltersBar
+      <ConvocationsFiltersBar
         postes={postes}
         formations={formations}
         services={services}
@@ -156,9 +155,9 @@ export default function VisitesSearchPage() {
         {loading ? (
           <Box p={3}>Chargement...</Box>
         ) : rows.length === 0 ? (
-          <Box p={3}>Aucune visite trouvée</Box>
+          <Box p={3}>Aucune convocation trouvée</Box>
         ) : (
-          <VisitesTable rows={rows} />
+          <ConvocationsTable rows={rows} />
         )}
 
         <TablePagination

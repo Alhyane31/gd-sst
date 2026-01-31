@@ -1,19 +1,20 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import SidebarMenu from "../SidebarMenu";
-import RecherchePersonnelPage from "./VisitesSearchPage";
+import SidebarMenu from "../../SidebarMenu";
+import ConvocationViewPage from "./ConvocationViewPage";
 
-export default async function PersonnelPage() {
+export default async function NewConvocationPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-if (session.user.role == "") redirect("/403")
+  if (session.user.role === "") redirect("/403");
+
   return (
     <SidebarMenu
       userName={session.user?.name || session.user?.email || "Nom"}
       userSurname={session.user?.surname || ""}
     >
-      <RecherchePersonnelPage />
+      <ConvocationViewPage />
     </SidebarMenu>
   );
 }

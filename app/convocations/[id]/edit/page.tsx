@@ -1,10 +1,10 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import SidebarMenu from "../../SidebarMenu";
-import VisiteCreatePage from "./VisiteCreatePage";
+import SidebarMenu from "../../../SidebarMenu";
+import ConvocationEditPage from "./ConvocationEditPage";
 
-export default async function NewVisitePage() {
+export default async function NewConvocationPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   if (session.user.role === "") redirect("/403");
@@ -14,7 +14,7 @@ export default async function NewVisitePage() {
       userName={session.user?.name || session.user?.email || "Nom"}
       userSurname={session.user?.surname || ""}
     >
-      <VisiteCreatePage />
+      <ConvocationEditPage />
     </SidebarMenu>
   );
 }

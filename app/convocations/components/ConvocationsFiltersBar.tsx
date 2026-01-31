@@ -3,21 +3,21 @@
 import { Box, Button, MenuItem, Paper, Stack, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import { Formation, Poste, Service, VisitesFilters } from "../types";
+import { Formation, Poste, Service, ConvocationsFilters } from "../types";
 
 type Props = {
   postes: Poste[];
   formations: Formation[];
   services: Service[];
 
-  draft: VisitesFilters;
-  onDraftChange: (patch: Partial<VisitesFilters>) => void;
+  draft: ConvocationsFilters;
+  onDraftChange: (patch: Partial<ConvocationsFilters>) => void;
 
   onSearch: () => void;
   onReset: () => void;
 };
 
-export default function VisitesFiltersBar({
+export default function ConvocationsFiltersBar({
   postes,
   formations,
   services,
@@ -118,16 +118,9 @@ export default function VisitesFiltersBar({
           <MenuItem value="SMR">SMR</MenuItem>
         </TextField>
 
-        <TextField
-          size="small"
-          label="Tag (exact)"
-          value={draft.tag}
-          placeholder='Ex: "Femme enceinte"'
-          sx={field20}
-          onChange={(e) => onDraftChange({ tag: e.target.value })}
-        />
+        
 
-        {/* Visite */}
+        {/* Convocation */}
         <TextField
           select
           size="small"
@@ -144,7 +137,7 @@ export default function VisitesFiltersBar({
         <TextField
           select
           size="small"
-          label="Statut visite"
+          label="Statut convocation"
           value={draft.statut}
           sx={field20}
           onChange={(e) => onDraftChange({ statut: e.target.value as any })}
@@ -156,6 +149,7 @@ export default function VisitesFiltersBar({
           <MenuItem value="A_RELANCER">À relancer</MenuItem>
           <MenuItem value="RELANCEE">Relancé</MenuItem>
           <MenuItem value="REALISEE">Réalisé</MenuItem>
+          <MenuItem value="ANNULEE">Annulée</MenuItem>
         </TextField>
 
         <TextField
@@ -173,20 +167,7 @@ export default function VisitesFiltersBar({
           <MenuItem value="RELANCE_3">Relance 3</MenuItem>
         </TextField>
 
-        <TextField
-          select
-          size="small"
-          label="Présence"
-          value={draft.presence}
-          sx={field20}
-          onChange={(e) => onDraftChange({ presence: e.target.value as any })}
-        >
-          <MenuItem value="">Tous</MenuItem>
-          <MenuItem value="PRESENT">Présent</MenuItem>
-          <MenuItem value="ABSENT">Absent</MenuItem>
-          <MenuItem value="EXCUSE">Excusé</MenuItem>
-          <MenuItem value="INCONNU">Inconnu</MenuItem>
-        </TextField>
+       
 
         <TextField
           select
@@ -221,24 +202,7 @@ export default function VisitesFiltersBar({
           sx={field20}
           onChange={(e) => onDraftChange({ dateConvocTo: e.target.value })}
         />
-        <TextField
-          size="small"
-          type="date"
-          label="Visite du"
-          InputLabelProps={{ shrink: true }}
-          value={draft.dateVisiteFrom}
-          sx={field20}
-          onChange={(e) => onDraftChange({ dateVisiteFrom: e.target.value })}
-        />
-        <TextField
-          size="small"
-          type="date"
-          label="Visite au"
-          InputLabelProps={{ shrink: true }}
-          value={draft.dateVisiteTo}
-          sx={field20}
-          onChange={(e) => onDraftChange({ dateVisiteTo: e.target.value })}
-        />
+        
 
         {/* Actions */}
         <Box
