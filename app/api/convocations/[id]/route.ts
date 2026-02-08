@@ -234,3 +234,4 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+

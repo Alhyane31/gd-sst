@@ -23,6 +23,14 @@ export default async function HomePage() {
   userName={session.user?.name || session.user?.email || "Nom"}
   userSurname={session.user?.surname || ""}
 >
+
+  {/* Deuxième Box */}
+  <Box display="flex" gap={4} p={4} bgcolor="#e0e0e0">
+  <Paper sx={{ p: 4, flex: 1 }} elevation={3}>
+    <CalendarWithTags events={events} />
+  </Paper>
+</Box>
+
   <Box display="flex" gap={4} p={4} bgcolor="#e0e0e0">
   {/* Premier Box */}
   <Paper sx={{ p: 4, flex: 1 }} elevation={3}>
@@ -32,12 +40,8 @@ export default async function HomePage() {
     <Typography variant="body2" mb={2}>Session complète:</Typography>
     <pre>{JSON.stringify(session, null, 2)}</pre>
   </Paper>
-
-  {/* Deuxième Box */}
-  <Paper sx={{ p: 4, flex: 1 }} elevation={3}>
-    <CalendarWithTags events={events} />
-  </Paper>
 </Box>
+  
 </SidebarMenu>
   )
 }

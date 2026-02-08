@@ -47,7 +47,7 @@ model Service {
   formation    Formation @relation(fields: [formationId], references: [id])
 
   personnels   Personnel[]
-
+   bordereaux Bordereau[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -112,6 +112,11 @@ model Convocation {
 
   dateConvocation DateTime?
 
+
+    // ✅ lien vers bordereau (1 convocation ∈ 0..1 bordereau)
+  bordereauId   String?
+  bordereau     Bordereau? @relation(fields: [bordereauId], references: [id])
+
   // ✅ texte libre
   commentaire     String?
 
@@ -157,3 +162,23 @@ enum ConvocationType {
   RELANCE_3
 }
 
+enum BordereauStatut {
+  NOUVEAU
+  GENERE
+}
+
+model Bordereau {
+  id           String          @id @default(uuid())
+  serviceId    String
+  service      Service         @relation(fields: [serviceId], references: [id])
+
+  dateEdition  DateTime        @default(now()) // date d’édition du bordereau
+  serialNumber String          @unique          // numéro auto
+
+  statut       BordereauStatut @default(NOUVEAU)
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  convocations Convocation[]   // via convocation.bordereauId
+}
