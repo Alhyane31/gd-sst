@@ -7,26 +7,72 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 type Props = {
   total: number;
   loading?: boolean;
-  onExport: () => void;
-  onOpenBulk: () => void;
+
+  selectedCount: number;
+
+  onExport: () => void | Promise<void>;
+  onOpenBulkAll: () => void;
+  onOpenBulkSelected: () => void;
 };
 
-export default function RechercheActionsBar({ total, loading, onExport, onOpenBulk }: Props) {
+export default function RechercheActionsBar({
+  total,
+  loading,
+  selectedCount,
+  onExport,
+  onOpenBulkAll,
+  onOpenBulkSelected,
+}: Props) {
   const disabled = loading || total === 0;
+  const disableSelected = loading || selectedCount === 0;
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: 2,
+        flexWrap: "wrap",
+        gap: 2,
+      }}
+    >
       <Typography variant="body2" color="text.secondary">
-        {loading ? "Chargement..." : `${total} résultat(s)`}
+        {loading
+          ? "Chargement..."
+          : `${total} résultat(s)${
+              selectedCount > 0 ? ` — ${selectedCount} sélectionné(s)` : ""
+            }`}
       </Typography>
 
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", justifyContent: "flex-end" }}>
-        <Button variant="outlined" startIcon={<DownloadIcon />} disabled={disabled} onClick={onExport}>
-          Exporter le résultat
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+        <Button
+          variant="outlined"
+          startIcon={<DownloadIcon />}
+          disabled={disabled}
+          onClick={onExport}
+        >
+          Exporter
         </Button>
 
-        <Button variant="contained" color="secondary" startIcon={<EventAvailableIcon />} disabled={disabled} onClick={onOpenBulk}>
-          Générer convocations (tout)
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={<EventAvailableIcon />}
+          disabled={disabled}
+          onClick={onOpenBulkAll}
+        >
+          Convocations (tout)
+        </Button>
+
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<EventAvailableIcon />}
+          disabled={disableSelected}
+          onClick={onOpenBulkSelected}
+        >
+          Convocations (sélection)
         </Button>
       </Box>
     </Box>

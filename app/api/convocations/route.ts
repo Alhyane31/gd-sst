@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
 
+import { NextRequest } from "next/server";
 function asDateRangeYMD(from?: string | null, to?: string | null) {
   const range: { gte?: Date; lte?: Date } = {};
 
@@ -33,6 +34,25 @@ function asIsoRange(from?: string | null, to?: string | null) {
   }
 
   return Object.keys(range).length ? range : undefined;
+}
+
+
+async function getJourFerie(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+
+  return await prisma.jourFerie.findFirst({
+    where: {
+      date: { gte: start, lte: end },
+    },
+    select: {
+      label: true,
+      date: true,
+    },
+  });
 }
 
 export async function GET(request: Request) {
@@ -127,4 +147,92 @@ prisma.convocation.findMany({
   ]);
 
   return NextResponse.json({ items, total, page, pageSize });
+}
+
+
+function toDateOrNull(v: unknown): Date | null {
+  if (!v) return null;
+  const d = new Date(String(v));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function badRequest(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const body = await req.json();
+
+    const personnelId = String(body.personnelId ?? "").trim();
+    const type = body.type; // "ANNUELLE" | "RAPPROCHEE"
+    const statut = body.statut ?? "A_CONVOQUER";
+    const convocationType = body.convocationType ?? "INITIALE";
+
+    const datePrevue = toDateOrNull(body.datePrevue);
+    const dateConvocation = toDateOrNull(body.dateConvocation);
+    const commentaire = body.commentaire ? String(body.commentaire).trim() : null;
+
+    if (!personnelId) return badRequest("personnelId obligatoire");
+    //if (!type) return badRequest("type obligatoire");
+    if (!datePrevue) return badRequest("datePrevue invalide ou manquante");
+
+    // Optionnel: empêcher doublon (même personnel + même datePrevue + même type)
+    // (recommandé si tu veux)
+    // const exists = await prisma.convocation.findFirst({
+    //   where: { personnelId, type, datePrevue },
+    // });
+    // if (exists) return badRequest("Une convocation existe déjà pour ce personnel à cette date.");
+
+    // Vérifier que le personnel existe
+    const pers = await prisma.personnel.findUnique({ where: { id: personnelId } });
+    if (!pers) return NextResponse.json({ error: "Personnel introuvable" }, { status: 404 });
+if (!datePrevue) return badRequest("datePrevue obligatoire");
+
+const d = new Date(datePrevue);
+if (Number.isNaN(d.getTime()))
+  return badRequest("datePrevue invalide");
+
+// week-end
+const day = d.getDay();
+if (day === 0 || day === 6)
+  return badRequest("Date Prévue tombe sur un week-end");
+
+// jour férié
+const jf = await getJourFerie(d);
+if (jf)
+  return badRequest(
+    `Date Prévue tombe sur un jour férié : ${jf.label ?? "jour férié"}`
+  );
+    const created = await prisma.convocation.create({
+      data: {
+        personnelId,
+        
+        statut,
+        convocationType,
+        datePrevue,
+        dateConvocation,
+        commentaire,
+      },
+      include: {
+        personnel: {
+          include: { poste: true, service: true, formation: true },
+        },
+      },
+    });
+
+    return NextResponse.json(created, { status: 201 });
+  } catch (error: any) {
+    console.error("POST /api/convocations error:", error);
+
+    // Prisma errors courantes
+    if (error?.code === "P2002") {
+      return NextResponse.json({ error: "Conflit (doublon)" }, { status: 409 });
+    }
+
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }

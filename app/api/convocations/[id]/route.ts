@@ -75,7 +75,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     const convocation = await prisma.convocation.findUnique({
       where: { id },
       include: {
-        personnel: { include: { poste: true, service: true, formation: true } },
+        personnel: { include: { poste: true, service: true, formation: true } },visite: { include: { formulaire: true } }
       },
     });
 

@@ -17,13 +17,13 @@ import {
   TablePagination,
   Stack,
 } from "@mui/material";
-
+import dayjs from "dayjs";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
-
+import Checkbox from "@mui/material/Checkbox";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
@@ -42,6 +42,14 @@ interface Personnel {
   isActive: boolean;
   categorie?: PersonnelCategorie;
   tags?: string[];
+
+  // ✅ nouveau : dernière convocation
+  convocations?: Array<{
+  id: string;
+  datePrevue: string | null;
+  statut: string;
+}>;
+
 }
 
 interface Poste {
@@ -63,16 +71,32 @@ type ApiResponse = {
   page: number;
   pageSize: number;
 };
+const STATUT_LABELS: Record<string, string> = {
+  A_CONVOQUER: "À convoquer",
+  CONVOCATION_GENEREE: "Convocation générée",
+  A_TRAITER: "À traiter",
+  A_RELANCER: "À relancer",
+  RELANCEE: "Relancée",
+  REALISEE: "Réalisée",
+  ANNULEE: "Annulée",
+};
 
 export default function RecherchePersonnelPage() {
   const { status } = useSession();
   const router = useRouter();
 
   const [openBulk, setOpenBulk] = useState(false);
+const [bulkMode, setBulkMode] = useState<"ALL" | "SELECTED">("ALL");
+
+const setOpenBulkMode = (m: "ALL" | "SELECTED") => {
+  setBulkMode(m);
+  setOpenBulk(true);
+};
 
   const [postes, setPostes] = useState<Poste[]>([]);
   const [formations, setFormations] = useState<Formation[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+const [openBulkSelected, setOpenBulkSelected] = useState(false);
 
   const empty: Filters = {
     nom: "",
@@ -82,6 +106,9 @@ export default function RecherchePersonnelPage() {
     formation: "",
     categorie: "",
     tag: "",
+    convStatut: "",
+    datePrevueFrom: "",
+    datePrevueTo: "",
   };
 
   const [filtersDraft, setFiltersDraft] = useState<Filters>(empty);
@@ -94,6 +121,32 @@ export default function RecherchePersonnelPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+useEffect(() => {
+  setSelectedIds([]);
+}, [appliedFilters, page, rowsPerPage]);
+
+//Debut helper===============================================================
+const toggleOne = (id: string) => {
+  setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+};
+
+const toggleAllOnPage = () => {
+  const idsOnPage = personnels.map((p) => p.id);
+  const allSelected = idsOnPage.length > 0 && idsOnPage.every((id) => selectedIds.includes(id));
+
+  setSelectedIds((prev) => {
+    if (allSelected) return prev.filter((id) => !idsOnPage.includes(id));
+    const set = new Set(prev);
+    idsOnPage.forEach((id) => set.add(id));
+    return Array.from(set);
+  });
+};
+
+const selectedTotal = selectedIds.length;
+
+//fin helper============================================================
   // fetch listes
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -303,7 +356,44 @@ export default function RecherchePersonnelPage() {
           </TextField>
 
           <TextField size="small" label="Tag (exact)" name="tag" value={filtersDraft.tag} onChange={handleDraftChange} placeholder='Ex: "Femme enceinte"' sx={field20} />
+          <TextField
+  select
+  size="small"
+  label="Statut convocation"
+  name="convStatut"
+  value={filtersDraft.convStatut}
+  onChange={handleDraftChange}
+  sx={field20}
+>
+  <MenuItem value="">Tous</MenuItem>
+  {Object.keys(STATUT_LABELS).map((k) => (
+    <MenuItem key={k} value={k}>
+      {STATUT_LABELS[k] ?? k}
+    </MenuItem>
+  ))}
+</TextField>
 
+<TextField
+  size="small"
+  type="date"
+  label="Date prévue (du)"
+  name="datePrevueFrom"
+  value={filtersDraft.datePrevueFrom}
+  onChange={handleDraftChange}
+  sx={field20}
+  InputLabelProps={{ shrink: true }}
+/>
+
+<TextField
+  size="small"
+  type="date"
+  label="Date prévue (au)"
+  name="datePrevueTo"
+  value={filtersDraft.datePrevueTo}
+  onChange={handleDraftChange}
+  sx={field20}
+  InputLabelProps={{ shrink: true }}
+/>
           <Box sx={{ flexBasis: { xs: "100%", md: "20%" }, flexGrow: 1, minWidth: 200, display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button variant="contained" startIcon={<SearchIcon />} onClick={handleSearchClick}>
               Rechercher
@@ -316,23 +406,38 @@ export default function RecherchePersonnelPage() {
       </Paper>
 
       {/* ✅ Boutons au-dessus du tableau */}
-      <RechercheActionsBar
-        total={total}
-        loading={loading}
-        onExport={exportCsv}
-        onOpenBulk={() => setOpenBulk(true)}
-      />
-
+ 
+<RechercheActionsBar
+  total={total}
+  loading={loading}
+  selectedCount={selectedIds.length}
+  onExport={exportCsv}
+  onOpenBulkAll={() => setOpenBulkMode("ALL")}
+  onOpenBulkSelected={() => setOpenBulkMode("SELECTED")}
+/>
       <Paper elevation={3}>
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={personnels.length > 0 && personnels.every((p) => selectedIds.includes(p.id))}
+                  indeterminate={
+                    personnels.some((p) => selectedIds.includes(p.id)) &&
+                    !personnels.every((p) => selectedIds.includes(p.id))
+                  }
+                  onChange={toggleAllOnPage}
+                />
+              </TableCell>
               <TableCell>Nom et Prénom</TableCell>
               <TableCell>Poste</TableCell>
               <TableCell>Service</TableCell>
               <TableCell>Formation</TableCell>
               <TableCell>Catégorie</TableCell>
               <TableCell>Tags</TableCell>
+                {/* ✅ nouveaux */}
+              <TableCell>Dernière convocation (date prévue)</TableCell>
+              <TableCell>Statut dernière convocation</TableCell>
               <TableCell>Statut</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
@@ -350,6 +455,9 @@ export default function RecherchePersonnelPage() {
             ) : (
               personnels.map((p) => (
                 <TableRow key={p.id} hover>
+                    <TableCell padding="checkbox">
+                      <Checkbox checked={selectedIds.includes(p.id)} onChange={() => toggleOne(p.id)} />
+                    </TableCell>
                   <TableCell>{`${p.lastName} ${p.firstName}`}</TableCell>
                   <TableCell>{p.poste?.libelle ?? "-"}</TableCell>
                   <TableCell>{p.service?.libelle ?? "-"}</TableCell>
@@ -371,7 +479,25 @@ export default function RecherchePersonnelPage() {
                       <Chip size="small" label="-" variant="outlined" />
                     )}
                   </TableCell>
+<TableCell>
+    {p.convocations?.[0]?.datePrevue
+      ?dayjs( p.convocations?.[0].datePrevue).format("YYYY-MM-DD")
+      : "-"}
+  </TableCell>
 
+  {/* ✅ Dernier statut convocation */}
+ <TableCell>
+  {(() => {
+    const statut = p.convocations?.[0]?.statut;
+    const label = statut ? STATUT_LABELS[statut] ?? statut : null;
+
+    return label ? (
+      <Chip size="small" label={label} variant="outlined" />
+    ) : (
+      <Chip size="small" label="-" variant="outlined" />
+    );
+  })()}
+</TableCell>
                   <TableCell>
                     <Chip label={p.isActive ? "Actif" : "Inactif"} color={p.isActive ? "success" : "default"} size="small" />
                   </TableCell>
@@ -408,15 +534,13 @@ export default function RecherchePersonnelPage() {
       </Paper>
 
       <BulkConvocationDialog
-        open={openBulk}
-        onClose={() => setOpenBulk(false)}
-        appliedFilters={appliedFilters}
-        total={total}
-        onSuccess={() => {
-          // refresh si besoin
-          fetchPersonnels(appliedFilters, page, rowsPerPage);
-        }}
-      />
+  open={openBulk}
+  onClose={() => setOpenBulk(false)}
+  appliedFilters={appliedFilters}
+  total={bulkMode === "ALL" ? total : selectedIds.length}
+   personnelIds={selectedIds}
+  onSuccess={() => fetchPersonnels(appliedFilters, page, rowsPerPage)}
+/>
     </Box>
   );
 }

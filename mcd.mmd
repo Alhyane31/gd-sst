@@ -1,0 +1,219 @@
+```mermaid
+erDiagram
+  User {
+    string id PK
+    string email UK
+    string password
+    string firstName
+    string lastName
+    enum:Role role
+    boolean isActive
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Formation {
+    string id PK
+    string code UK
+    string libelle
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Service {
+    string id PK
+    string code UK
+    string libelle
+    string formationId
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Poste {
+    string id PK
+    string code UK
+    string libelle
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Personnel {
+    string id PK
+    string firstName
+    string lastName
+    string? email UK
+    string? matricule UK
+    datetime? dateNaissance
+    enum:StatutSocial? statutSocial
+    boolean isActive
+    string posteId
+    string serviceId
+    string formationId
+    datetime? dateAffectation
+    enum:PersonnelCategorie categorie
+    string[] tags
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  PersonnelAffectationHistory {
+    string id PK
+    string personnelId
+    string formationId
+    string serviceId
+    datetime dateAffectation
+    string? formulaireId
+    string? note
+    datetime createdAt
+  }
+
+  Convocation {
+    string id PK
+    datetime datePrevue
+    datetime? dateRealisee
+    enum:ConvocationStatut statut
+    enum:ConvocationType convocationType
+    datetime? dateConvocation
+    string? bordereauId
+    string? commentaire
+    string personnelId
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Visite {
+    string id PK
+    enum:VisiteType type
+    enum:VisiteStatut statut
+    datetime dateDebut
+    datetime? dateFin
+    string personnelId
+    string? convocationId UK
+    string createdById
+    string? updatedById
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Formulaire {
+    string id PK
+    string? visiteId UK
+    string personnelId
+    enum:FormulaireStatut statut
+    int schemaVersion
+    enum:FormSectionKey[] sectionsEnabled
+    string? snapshotFirstName
+    string? snapshotLastName
+    string? snapshotMatricule
+    datetime? dateNaissance
+    enum:StatutSocial? statutSocial
+    boolean? aTravailleHorsCHUIR
+    string? autreLieuTravail
+    int? autreDureeAnnees
+    string? autreHoraires
+    string? serviceId
+    datetime? dateAffectation
+    json? data
+    datetime? propagatedToPersonnelAt
+    string createdById
+    string? filledById
+    string? submittedById
+    datetime? submittedAt
+    string? verifiedById
+    datetime? verifiedAt
+    datetime createdAt
+    datetime updatedAt
+    string? formationId
+  }
+
+  JourFerie {
+    string id PK
+    datetime date UK
+    string? label
+    datetime createdAt
+  }
+
+  Bordereau {
+    string id PK
+    string serviceId
+    datetime dateEdition
+    string serialNumber UK
+    enum:BordereauStatut statut
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Cim11Node {
+    string id PK
+    string code UK
+    string libelle
+    enum:Cim11Level level
+    string? parentId
+    boolean isLeaf
+    string[] pathCodes
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  PersonnelPathologie {
+    string id PK
+    string personnelId
+    string cim11NodeId
+    string? formulaireId
+    datetime date
+    string? commentaire
+    string? source
+    string createdById
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  User }o--|| Visite : "VisiteCreatedBy"
+  User }o--|o Visite : "VisiteUpdatedBy"
+  User }o--|| Formulaire : "FormCreatedBy"
+  User }o--|o Formulaire : "FormFilledBy"
+  User }o--|o Formulaire : "FormSubmittedBy"
+  User }o--|o Formulaire : "FormVerifiedBy"
+  User }o--|| PersonnelPathologie : "PersonnelPathologieCreatedBy"
+  Formation }o--|| Service : "Formation_Service"
+  Formation }o--|| Personnel : "Formation_Personnel"
+  Formation }o--|| PersonnelAffectationHistory : "Formation_PersonnelAffectationHistory"
+  Formation }o--|o Formulaire : "Formation_Formulaire"
+  Service ||--}o Formation : "Service_Formation"
+  Service }o--|| Personnel : "Service_Personnel"
+  Service }o--|| Bordereau : "Service_Bordereau"
+  Service }o--|| PersonnelAffectationHistory : "Service_PersonnelAffectationHistory"
+  Service }o--|o Formulaire : "Service_Formulaire"
+  Poste }o--|| Personnel : "Poste_Personnel"
+  Personnel ||--}o Poste : "Personnel_Poste"
+  Personnel ||--}o Service : "Personnel_Service"
+  Personnel ||--}o Formation : "Personnel_Formation"
+  Personnel }o--|| Visite : "Personnel_Visite"
+  Personnel }o--|| Formulaire : "Personnel_Formulaire"
+  Personnel }o--|| PersonnelAffectationHistory : "Personnel_PersonnelAffectationHistory"
+  Personnel }o--|| Convocation : "Personnel_Convocation"
+  Personnel }o--|| PersonnelPathologie : "Personnel_PersonnelPathologie"
+  PersonnelAffectationHistory ||--}o Personnel : "PersonnelAffectationHistory_Personnel"
+  PersonnelAffectationHistory ||--}o Formation : "PersonnelAffectationHistory_Formation"
+  PersonnelAffectationHistory ||--}o Service : "PersonnelAffectationHistory_Service"
+  PersonnelAffectationHistory |o--}o Formulaire : "PersonnelAffectationHistory_Formulaire"
+  Convocation |o--}o Bordereau : "Convocation_Bordereau"
+  Convocation ||--}o Personnel : "Convocation_Personnel"
+  Convocation |o--|o Visite : "Convocation_Visite"
+  Visite ||--}o Personnel : "Visite_Personnel"
+  Visite |o--|o Convocation : "Visite_Convocation"
+  Visite |o--|o Formulaire : "Visite_Formulaire"
+  Formulaire |o--|o Visite : "Formulaire_Visite"
+  Formulaire ||--}o Personnel : "Formulaire_Personnel"
+  Formulaire |o--}o Service : "Formulaire_Service"
+  Formulaire }o--|o PersonnelPathologie : "Formulaire_PersonnelPathologie"
+  Formulaire }o--|o PersonnelAffectationHistory : "Formulaire_PersonnelAffectationHistory"
+  Formulaire |o--}o Formation : "Formulaire_Formation"
+  Bordereau ||--}o Service : "Bordereau_Service"
+  Bordereau }o--|o Convocation : "Bordereau_Convocation"
+  Cim11Node |o--|o Cim11Node : "Cim11Parent"
+  Cim11Node }o--|| PersonnelPathologie : "Cim11Node_PersonnelPathologie"
+  PersonnelPathologie ||--}o Personnel : "PersonnelPathologie_Personnel"
+  PersonnelPathologie ||--}o Cim11Node : "PersonnelPathologie_Cim11Node"
+  PersonnelPathologie |o--}o Formulaire : "PersonnelPathologie_Formulaire"
+```

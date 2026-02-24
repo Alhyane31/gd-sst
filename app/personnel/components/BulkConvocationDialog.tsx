@@ -31,6 +31,7 @@ type Props = {
   onClose: () => void;
   appliedFilters: Filters;
   total: number; // total résultat recherche
+  personnelIds?: string[]; 
   onSuccess?: () => void;
 };
 
@@ -130,7 +131,15 @@ function buildSlotsForDay(day: string, n: number): string[] {
   return slots;
 }
 
-export default function BulkConvocationDialog({ open, onClose, appliedFilters, total, onSuccess }: Props) {
+
+export default function BulkConvocationDialog({
+  open,
+  onClose,
+  appliedFilters,
+  total,
+  personnelIds,        // ✅ récupéré depuis props
+  onSuccess,
+}: Props) {
   const defaultDateConvoc = useMemo(() => toDatetimeLocalValue(new Date()), []);
 
   const [saving, setSaving] = useState(false);
@@ -234,6 +243,7 @@ export default function BulkConvocationDialog({ open, onClose, appliedFilters, t
 
   const canCreate = useMemo(() => {
     if (total === 0) return false;
+      if (totalPlanned !== total) return false;
     if (totalPlanned <= 0) return false;
     if (totalPlanned > total) return false;
 
@@ -250,7 +260,12 @@ export default function BulkConvocationDialog({ open, onClose, appliedFilters, t
     setProgressMsg("Récupération des IDs du personnel…");
 
     try {
-      const ids = await fetchAllPersonnelIds(appliedFilters);
+
+      const ids =
+       Array.isArray(personnelIds) && personnelIds.length > 0
+    ? personnelIds
+    : await fetchAllPersonnelIds(appliedFilters);
+
 
       console.log("🧾 Bulk plan =", plan);
       console.log("🧾 Bulk total IDs récupérés =", ids.length);
