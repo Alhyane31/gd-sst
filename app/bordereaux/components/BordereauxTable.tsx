@@ -21,9 +21,15 @@ export type BordereauRow = {
   id: string;
   serialNumber: string;
   dateEdition: string | null;
-  statut: "NOUVEAU" | "GENERE";
+  statut: "NOUVEAU" | "GENERE" | "ENVOYE";
   nbConvocations: number;
   service: { id: string; libelle: string } | null;
+};
+
+const STATUT_CONFIG: Record<string, { label: string; color: "warning" | "primary" | "success" }> = {
+  NOUVEAU: { label: "Nouveau", color: "warning" },
+  GENERE:  { label: "Généré",  color: "primary" },
+  ENVOYE:  { label: "Envoyé",  color: "success" },
 };
 
 function formatDate(d?: string | null) {
@@ -90,8 +96,8 @@ export default function BordereauxTable({
                 <TableCell>
                   <Chip
                     size="small"
-                    label={b.statut === "NOUVEAU" ? "Nouveau" : "Généré"}
-                    color={b.statut === "NOUVEAU" ? "warning" : "success"}
+                    label={STATUT_CONFIG[b.statut]?.label ?? b.statut}
+                    color={STATUT_CONFIG[b.statut]?.color ?? "default"}
                   />
                 </TableCell>
                 <TableCell align="right">{b.nbConvocations}</TableCell>

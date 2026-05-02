@@ -5,7 +5,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useEffect, useState } from "react";
 
-export type BordereauStatut = "" | "NOUVEAU" | "GENERE";
+export type BordereauStatut = "" | "NOUVEAU" | "GENERE" | "ENVOYE";
 
 export type BordereauxFilters = {
   formationId: string;
@@ -119,6 +119,7 @@ export default function BordereauxSearchFilters({
           <MenuItem value="">Tous</MenuItem>
           <MenuItem value="NOUVEAU">Nouveau</MenuItem>
           <MenuItem value="GENERE">Généré</MenuItem>
+          <MenuItem value="ENVOYE">Envoyé</MenuItem>
         </TextField>
 
         <TextField

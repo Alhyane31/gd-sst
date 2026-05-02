@@ -38,11 +38,12 @@ export interface ConvocationRow {
   statut: ConvocationStatut;
   convocationType: ConvocationType;
 
-  presence?: PresenceStatut; // si tu ajoutes plus tard en DB
-  etat?: EtatWorkflow;       // optionnel (si tu le gardes séparé de statut)
+  presence?: PresenceStatut;
+  etat?: EtatWorkflow;
   commentaire?: string | null;
 
   personnel: PersonnelMini;
+  visite?: { dateDebut?: string | null } | null;
 }
 
 export type ApiResponse<T> = {

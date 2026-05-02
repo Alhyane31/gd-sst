@@ -3,7 +3,13 @@
 import { Box, Button, Chip, Typography } from "@mui/material";
 import dayjs from "dayjs";
 
-type BordereauStatut = "NOUVEAU" | "GENERE";
+type BordereauStatut = "NOUVEAU" | "GENERE" | "ENVOYE";
+
+const BORDEREAU_STATUT: Record<BordereauStatut, { label: string; color: "default" | "warning" | "primary" | "success" }> = {
+  NOUVEAU: { label: "Nouveau",  color: "warning"  },
+  GENERE:  { label: "Généré",   color: "primary"  },
+  ENVOYE:  { label: "Envoyé",   color: "success"  },
+};
 
 export default function BordereauHeader({
   bordereau,
@@ -37,8 +43,8 @@ export default function BordereauHeader({
 
         <Chip
           size="small"
-          label={bordereau.statut === "NOUVEAU" ? "Nouveau" : "Généré"}
-          color={bordereau.statut === "NOUVEAU" ? "default" : "success"}
+          label={BORDEREAU_STATUT[bordereau.statut]?.label ?? bordereau.statut}
+          color={BORDEREAU_STATUT[bordereau.statut]?.color ?? "default"}
           variant="outlined"
         />
 

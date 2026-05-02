@@ -6,9 +6,11 @@ import { Grid, TextField, MenuItem } from "@mui/material";
 export default function InformationsGeneralesSection({
   data,
   onChange,
+  categoriePersonnel
 }: {
   data: FormData;
   onChange: ChangeHandler;
+  categoriePersonnel: string; 
 }) {
   return (
     <Grid container spacing={2}>
@@ -74,7 +76,7 @@ export default function InformationsGeneralesSection({
 </Grid>
 <Grid >
       
-    {data.typeVisite === "RAPPROCHEE" && (
+    {categoriePersonnel === "SMR" && (
   <>
   
   

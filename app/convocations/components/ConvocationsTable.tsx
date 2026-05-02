@@ -49,6 +49,7 @@ const STATUT_LABELS: Record<string, string> = {
   RELANCEE: "Relancée",
   REALISEE: "Réalisée",
   ANNULEE: "Annulée",
+   ENVOYEE: "Envoyée",
 };
 
 const CONVOCATION_TYPE_LABELS: Record<string, string> = {

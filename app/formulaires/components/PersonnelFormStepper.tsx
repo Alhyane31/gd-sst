@@ -5,29 +5,22 @@ import {
   Button, Typography, LinearProgress,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import type { FormData, FormSectionKey, ChangeHandler } from "./types";
+import type { FormData, ChangeHandler } from "./types";
 
 import InformationsGeneralesSection from "./sections/InformationsGeneralesSection";
 import InformationsProfessionnellesSection from "./sections/InformationsProfessionnellesSection";
 import RenseignementsProfessionnelsSection from "./sections/RenseignementsProfessionnelsSection";
 import AntecedentsSection from "./sections/AntecedentsSection";
 import SuiviRapprocheSection from "./sections/SuiviRapprocheSection";
-
-const ALL_STEPS: { key: FormSectionKey; label: string }[] = [
-  { key: "INFORMATIONS_GENERALES",        label: "Informations générales" },
-  { key: "INFORMATIONS_PROFESSIONNELLES", label: "Informations professionnelles" },
-  { key: "RENSEIGNEMENTS_PROFESSIONNELS", label: "Renseignements professionnels" },
-  { key: "ANTECEDENTS",                   label: "Antécédents" },
-  { key: "SUIVI_RAPPROCHE",               label: "Suivi rapproché" },
-];
+import { getSectionsForVisiteType } from "../visiteSectionsConfig";
 
 type Props = {
   mode: "create" | "edit";
   initialData: FormData;
-  typeVisite: string; // ✅ reçu depuis la visite parente
-  title?: string;
+   title?: string;
   saving?: boolean;
   submitLabel?: string;
+  categoriePersonnel: string;
   formulaireStatut?: "DRAFT" | "SUBMITTED" | "VERIFIED" | "";
   onSubmit: (data: FormData) => Promise<void> | void;
 };
@@ -35,7 +28,7 @@ type Props = {
 export default function PersonnelFormStepper({
   mode,
   initialData,
-  typeVisite,
+  categoriePersonnel,
   title,
   saving = false,
   formulaireStatut = "",
@@ -47,11 +40,13 @@ export default function PersonnelFormStepper({
 
   useEffect(() => {
     setFormData(initialData);
+    setActiveStep(0);
   }, [initialData]);
 
-  // SUIVI_RAPPROCHE toujours affiché — la section gère elle-même
-  // ce qui est visible selon typeVisite
-  const steps = ALL_STEPS;
+  const steps = useMemo(
+    () => getSectionsForVisiteType(formData.typeVisite),
+    [formData.typeVisite]
+  );
 
   const stepKey = useMemo(() => steps[activeStep]?.key, [activeStep, steps]);
 
@@ -81,7 +76,7 @@ export default function PersonnelFormStepper({
 
       <Paper sx={{ p: 4 }}>
         {stepKey === "INFORMATIONS_GENERALES" && (
-          <InformationsGeneralesSection data={formData} onChange={onFieldChange} />
+          <InformationsGeneralesSection data={formData} onChange={onFieldChange} categoriePersonnel={categoriePersonnel}/>
         )}
         {stepKey === "INFORMATIONS_PROFESSIONNELLES" && (
           <InformationsProfessionnellesSection data={formData} onChange={onFieldChange} />
@@ -96,8 +91,17 @@ export default function PersonnelFormStepper({
           <SuiviRapprocheSection
             data={formData}
             onChange={onFieldChange}
-            typeVisite={typeVisite} // ✅
+            categoriePersonnel={categoriePersonnel}
           />
+        )}
+        {stepKey === "CERTIFICAT_MEDICALE" && (
+          <Typography color="text.secondary">Section Certificat médical — à implémenter</Typography>
+        )}
+        {stepKey === "IDENTIFICATION_EXPERTISE" && (
+          <Typography color="text.secondary">Section Identification expertise — à implémenter</Typography>
+        )}
+        {stepKey === "RESULTAT_EXPERTISE" && (
+          <Typography color="text.secondary">Section Résultat de l'expertise — à implémenter</Typography>
         )}
 
         <Box mt={4} display="flex" justifyContent="space-between">

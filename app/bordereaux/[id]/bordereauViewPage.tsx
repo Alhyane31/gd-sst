@@ -1,6 +1,11 @@
 "use client";
 
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import {
+  Box, Divider, Paper, Typography, Button,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Alert,
+} from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -28,6 +33,8 @@ type ConvocationStatut =
   | "REALISEE"
   | "ANNULEE";
 
+
+  
 type ConvocationRow = {
   id: string;
   statut: ConvocationStatut;
@@ -45,6 +52,11 @@ export default function BordereauDetailPage() {
   const [loading, setLoading] = useState(true);
   const [bordereau, setBordereau] = useState<BordereauDetail | null>(null);
   const [convocations, setConvocations] = useState<ConvocationRow[]>([]);
+
+  const [openEnvoyer, setOpenEnvoyer] = useState(false);
+  const [dateAccuse, setDateAccuse] = useState("");
+  const [envoyerLoading, setEnvoyerLoading] = useState(false);
+  const [envoyerError, setEnvoyerError] = useState("");
 
   const serviceId = useMemo(() => bordereau?.service?.id ?? "", [bordereau]);
 
@@ -81,6 +93,29 @@ export default function BordereauDetailPage() {
   if (!bordereau) return <Box p={4}>Bordereau introuvable</Box>;
 
   const isNouveau = bordereau.statut === "NOUVEAU";
+  const isGenere  = bordereau.statut === "GENERE";
+
+  const handleEnvoyer = async () => {
+    if (!dateAccuse) { setEnvoyerError("Veuillez renseigner la date d'accusé de réception."); return; }
+    setEnvoyerLoading(true);
+    setEnvoyerError("");
+    try {
+      const res = await fetch(`/api/bordereaux/${id}/envoyer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dateAccuseReception: dateAccuse }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? "Erreur serveur");
+      setOpenEnvoyer(false);
+      setDateAccuse("");
+      await refresh();
+    } catch (e: any) {
+      setEnvoyerError(e?.message ?? "Erreur inconnue");
+    } finally {
+      setEnvoyerLoading(false);
+    }
+  };
 
   return (
     <Box p={4}>
@@ -88,21 +123,48 @@ export default function BordereauDetailPage() {
 
       <Box display="flex" justifyContent="flex-end" gap={2} mb={2}>
         <DeleteBordereauButton
-  bordereauId={bordereau.id}
-  disabled={!isNouveau}
-  onDeleted={async () => {
-    await refresh();
-    router.push("/bordereaux")// optionnel:  si tu veux revenir à la liste après suppression
-  }}
-/>
+          bordereauId={bordereau.id}
+          disabled={!isNouveau}
+          onDeleted={async () => { await refresh(); router.push("/bordereaux"); }}
+        />
         <GenerateBordereauButton
           bordereauId={bordereau.id}
           disabled={!isNouveau}
-          onGenerated={async () => {
-            await refresh();
-          }}
+          onGenerated={async () => { await refresh(); }}
         />
+        <Button
+          variant="contained"
+          color="success"
+          startIcon={<SendIcon />}
+          disabled={!isGenere}
+          onClick={() => { setEnvoyerError(""); setOpenEnvoyer(true); }}
+        >
+          Envoyé
+        </Button>
       </Box>
+
+      {/* Dialog accusé de réception */}
+      <Dialog open={openEnvoyer} onClose={() => setOpenEnvoyer(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Marquer comme envoyé</DialogTitle>
+        <DialogContent>
+          {envoyerError && <Alert severity="error" sx={{ mb: 2 }}>{envoyerError}</Alert>}
+          <TextField
+            fullWidth
+            type="date"
+            label="Date d'accusé de réception"
+            value={dateAccuse}
+            onChange={(e) => setDateAccuse(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEnvoyer(false)} disabled={envoyerLoading}>Annuler</Button>
+          <Button variant="contained" color="success" onClick={handleEnvoyer} disabled={envoyerLoading}>
+            {envoyerLoading ? "Enregistrement..." : "Confirmer"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Paper elevation={3} sx={{ p: 2 }}>
         <Typography variant="h6" sx={{ mb: 1 }}>
@@ -119,7 +181,7 @@ export default function BordereauDetailPage() {
         <Divider sx={{ my: 3 }} />
 
         <Typography variant="h6" sx={{ mb: 1 }}>
-          Convocations disponibles (A_CONVOQUER)
+          Convocations disponibles (À convoquer)
         </Typography>
 
         <AvailableConvocationsTable

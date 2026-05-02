@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -329,11 +328,16 @@ enum VisiteType {
   RAPPROCHEE
   SPONTANNE
   EXPERTISE
+  CM
+  ETUDEP
+  LD
+  MD
   AUTRE
 }
 enum ConvocationStatut {
   A_CONVOQUER // pas encore traité
   CONVOCATION_GENEREE // convocation générée (pdf/email prêt)
+  ENVOYEE // convocation physiquement envoyée au personnel
   A_TRAITER // retour/présence à vérifier, ou action attendue
   A_RELANCER // échec/no-show => doit être relancé
   RELANCEE // relance envoyée
@@ -351,6 +355,7 @@ enum ConvocationType {
 enum BordereauStatut {
   NOUVEAU
   GENERE
+  ENVOYE
 }
 
 model Bordereau {
@@ -358,8 +363,9 @@ model Bordereau {
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id])
 
-  dateEdition  DateTime @default(now()) // date d’édition du bordereau
-  serialNumber String   @unique // numéro auto
+  dateEdition         DateTime @default(now())
+  serialNumber        String   @unique
+  dateAccuseReception DateTime?
 
   statut BordereauStatut @default(NOUVEAU)
 

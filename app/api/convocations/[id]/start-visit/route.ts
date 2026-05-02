@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
           statut: "EN_COURS",
           dateDebut: new Date(dateDebut),
           type: type,
-          autreType : autreType,
+          typeAutre : autreType,
           personnelId: convocation.personnelId,
           convocationId: convocation.id,
           createdById: userId,

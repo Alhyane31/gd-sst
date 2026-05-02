@@ -22,6 +22,24 @@ type ConvocationStatut =
   | "REALISEE"
   | "ANNULEE";
 
+
+  const STATUT_LABELS: Record<string, string> = {
+  A_CONVOQUER: "À convoquer",
+  CONVOCATION_GENEREE: "Convocation générée",
+  A_TRAITER: "À traiter",
+  A_RELANCER: "À relancer",
+  RELANCEE: "Relancée",
+  REALISEE: "Réalisée",
+  ANNULEE: "Annulée",
+   ENVOYEE: "Envoyée",
+};
+
+const CONVOCATION_TYPE_LABELS: Record<string, string> = {
+  INITIALE: "Initiale",
+  RELANCE_1: "Relance 1",
+  RELANCE_2: "Relance 2",
+  RELANCE_3: "Relance 3",
+};
 type Row = {
   id: string;
   statut: ConvocationStatut;
@@ -114,9 +132,9 @@ export default function BordereauConvocationsTable({
                     <TableRow key={r.id} hover>
                       <TableCell>{`${last} ${first}`.trim() || "-"}</TableCell>
                       <TableCell>
-                        <Chip size="small" label={r.statut} variant="outlined" />
+                        <Chip size="small" label={STATUT_LABELS[r.statut] ?? r.statut}  variant="outlined" />
                       </TableCell>
-                      <TableCell>{r.convocationType ?? "-"}</TableCell>
+                      <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType] ?? r.convocationType}</TableCell>
                       <TableCell align="right">
                         <Button
                           size="small"

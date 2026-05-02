@@ -52,13 +52,14 @@ export default function ConvocationViewPage() {
   };
 
   const STATUT_LABELS: Record<string, string> = {
-    A_CONVOQUER: "À convoquer",
+    A_CONVOQUER:         "À convoquer",
     CONVOCATION_GENEREE: "Convocation générée",
-    A_TRAITER: "À traiter",
-    A_RELANCER: "À relancer",
-    RELANCEE: "Relancée",
-    REALISEE: "Réalisée",
-    ANNULEE: "Annulée",
+    ENVOYEE:             "Envoyée",
+    A_TRAITER:           "À traiter",
+    A_RELANCER:          "À relancer",
+    RELANCEE:            "Relancée",
+    REALISEE:            "Réalisée",
+    ANNULEE:             "Annulée",
   };
 
   const CONVOCATION_TYPE_LABELS: Record<string, string> = {
@@ -66,6 +67,10 @@ export default function ConvocationViewPage() {
     RELANCE_1: "Relance 1",
     RELANCE_2: "Relance 2",
     RELANCE_3: "Relance 3",
+  };
+  const STATUT_VISITE_LABELS: Record<string, string> = {
+    EN_COURS: "En cours",
+   
   };
 
   useEffect(() => {
@@ -164,7 +169,7 @@ const [autreType, setAutreType] = useState("");
       const ref = await fetch(`/api/convocations/${id}`);
       if (ref.ok) setC(await ref.json());
 
-      router.push(`/formulaires/${visiteID}/edit`);
+      router.push(`/formulaires/${payload.visiteId}/edit`);
     } catch (e: any) {
       setActionError(e?.message ?? "Erreur inconnue");
     } finally {
@@ -186,9 +191,13 @@ const [autreType, setAutreType] = useState("");
           </Button>
 
           {/* ✅ bouton visite */}
-          <Button variant="contained" onClick={primaryVisitButtonAction}>
-            {primaryVisitButtonLabel}
-          </Button>
+          <Button
+  variant="contained"
+  onClick={primaryVisitButtonAction}
+  disabled={c?.statut != "ENVOYEE"}
+>
+  {primaryVisitButtonLabel}
+</Button>
 
           <Button variant="outlined" onClick={() => router.push(`/convocations/${id}/edit`)}>
             Modifier
@@ -226,7 +235,7 @@ const [autreType, setAutreType] = useState("");
               Visite liée
             </Typography>
             <Typography>
-              <b>Statut visite :</b> {visite?.statut ?? "-"}
+              <b>Statut visite :</b> {STATUT_VISITE_LABELS[visite?.statut] ?? visite?.statut ?? "-"}
             </Typography>
             <Typography>
               <b>Début :</b> {formatDateTime(visite?.dateDebut)}

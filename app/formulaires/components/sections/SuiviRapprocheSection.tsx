@@ -19,22 +19,23 @@ const MOTIFS = [
 export default function SuiviRapprocheSection({
   data,
   onChange,
-  typeVisite,
+  categoriePersonnel,
 }: {
   data: FormData;
   onChange: ChangeHandler;
-  typeVisite: string;
+  categoriePersonnel: string; // "SMR" | "VP"
 }) {
-  const isRapprochee  = typeVisite === "RAPPROCHEE";
-  const showQuestion  = !isRapprochee;
-  const showQuestionNePlus = isRapprochee;
-  const showMotifs    = isRapprochee
-  ? data.nePlusNecessiterSuivi !== true   // masqué si "ne nécessite plus"
-  : data.necessitatSuiviRapproche === true;
+  const isSMR = categoriePersonnel === "SMR";
+  const showQuestion       = !isSMR;
+  const showQuestionNePlus = isSMR;
+  const showMotifs    = !isSMR
+    ? data.nePlusNecessiterSuivi !== true
+    : data.necessitatSuiviRapproche === true;
+  const showProchaine = isSMR
+    ? data.nePlusNecessiterSuivi !== true
+    : data.necessitatSuiviRapproche === true;
 
-const showProchaine = isRapprochee
-  ? data.nePlusNecessiterSuivi !== true
-  : data.necessitatSuiviRapproche === true;
+
   const toggleMotif = (value: string) => {
     const current = data.motifsSuiviRapproche ?? [];
     onChange(
@@ -44,7 +45,7 @@ const showProchaine = isRapprochee
   };
 
  return (
-  <Grid container spacing={2}>
+  <Grid container spacing={2} direction="column">
 
     {/* Question 1 : nécessite suivi — seulement si pas RAPPROCHEE */}
     {showQuestion && (

@@ -6,7 +6,10 @@ export type FormSectionKey =
   | "INFORMATIONS_PROFESSIONNELLES"
   | "RENSEIGNEMENTS_PROFESSIONNELS"
   | "ANTECEDENTS"
-  | "SUIVI_RAPPROCHE";
+  | "SUIVI_RAPPROCHE"
+  | "CERTIFICAT_MEDICALE"
+  | "IDENTIFICATION_EXPERTISE"
+  | "RESULTAT_EXPERTISE";
 
 export type Cim11Option = {
   id: string;
@@ -28,7 +31,7 @@ export type FormData = {
   statutSocial: string;
   matricule: string;
   motifConsultation?: string;
-  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "";
+  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "AUTRE" | "";
 
   // INFORMATIONS_PROFESSIONNELLES
    formation: string;

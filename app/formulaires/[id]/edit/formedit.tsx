@@ -44,7 +44,7 @@ export default function VisiteEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<FormData>(emptyData);
-
+  const [categoriePersonnel, setCategoriePersonnel] = useState<string>("VP");
   useEffect(() => {
     const run = async () => {
       setLoading(true);
@@ -56,7 +56,7 @@ export default function VisiteEditPage() {
 
         setData(mapApiToFormData(payload));
         setFormulaireStatut(payload?.formulaire?.statut ?? "");
-        
+        setCategoriePersonnel(payload?.personnel?.categorie ?? "VP"); // ✅
       } catch (e: any) {
         setError(e?.message ?? "Erreur");
       } finally {
@@ -100,14 +100,15 @@ const submitLabel = formulaireStatut === "SUBMITTED" ? "Valider" : "Enregistrer"
       ) : null}
 
       <PersonnelFormStepper
-        mode="edit"
-        title="Éditer le formulaire de visite"
-        initialData={data}
-        saving={saving}
-        submitLabel= {submitLabel}
-        formulaireStatut = {formulaireStatut}
-        onSubmit={handleSave}
-      />
+  mode="edit"
+  title="Éditer le formulaire de visite"
+  initialData={data}
+  saving={saving}
+  submitLabel={submitLabel}
+  formulaireStatut={formulaireStatut}
+  categoriePersonnel={categoriePersonnel} // ✅
+  onSubmit={handleSave}
+/>
     </Box>
   );
 }
