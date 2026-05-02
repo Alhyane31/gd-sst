@@ -68,17 +68,43 @@ model Service {
   updatedAt DateTime @updatedAt
 }
 
+enum CategorieForm {
+  A
+  B
+  C
+  D
+}
+
 model Poste {
   id      String @id @default(uuid())
   code    String @unique
   libelle String
 
+  categorieForm CategorieForm?
+  isActive      Boolean       @default(true)
+
   personnels Personnel[]
+  details    PosteDetail[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model PosteDetail {
+  id      String @id @default(uuid())
+  code    String @unique
+  libelle String
+  isActive Boolean @default(true)
+
+  posteId String
+  poste   Poste @relation(fields: [posteId], references: [id])
+
+ personnels Personnel[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([posteId])
+}
 enum PersonnelCategorie {
   SMR
   VP
@@ -97,12 +123,18 @@ model Personnel {
   posteId String
   poste   Poste  @relation(fields: [posteId], references: [id])
 
+posteDetailId String?
+  posteDetail   PosteDetail? @relation(fields: [posteDetailId], references: [id])
+
+
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id])
 
   formationId     String
   formation       Formation @relation(fields: [formationId], references: [id])
   dateAffectation DateTime?
+  dateProchainVisite DateTime?
+
 
   categorie    PersonnelCategorie            @default(VP)
   tags         String[]                      @default([])
@@ -141,7 +173,7 @@ model PersonnelAffectationHistory {
 
   createdAt DateTime @default(now())
 
-  @@index([personnelId, dateAffectation])
+@@unique([personnelId, formationId, serviceId, dateAffectation])
 }
 
 model Convocation {
@@ -177,6 +209,7 @@ model Convocation {
 model Visite {
   id     String       @id @default(uuid())
   type   VisiteType
+  typeAutre String?
   statut VisiteStatut @default(BROUILLON)
 
   dateDebut DateTime  @default(now())
@@ -294,8 +327,10 @@ model JourFerie {
 enum VisiteType {
   ANNUELLE
   RAPPROCHEE
+  SPONTANNE
+  EXPERTISE
+  AUTRE
 }
-
 enum ConvocationStatut {
   A_CONVOQUER // pas encore traité
   CONVOCATION_GENEREE // convocation générée (pdf/email prêt)
@@ -382,7 +417,7 @@ model PersonnelPathologie {
   // métadonnées demandées
   date        DateTime @default(now())
   commentaire String?
-  source      String? // champ libre (ex: "certificat Dr X", "dossier médical", etc.)
+  source      String? // champ libre (ex: "cert ificat Dr X", "dossier médical", etc.)
 
   // audit
   createdById String

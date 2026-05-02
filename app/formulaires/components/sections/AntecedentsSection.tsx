@@ -1,47 +1,27 @@
 "use client";
 
 import {
-  Box,
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  Autocomplete,
+  Box, Button, CircularProgress, IconButton, Paper, Stack,
+  Table, TableBody, TableCell, TableHead, TableRow,
+  TextField, Typography, Autocomplete,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import { useEffect, useState } from "react";
 
 import type { ChangeHandler, Cim11Option, FormData, PathologieItem } from "../types";
-
-// ✅ Exemples (mock) depuis ton référentiel CIM11 (tu remplaceras par fetch API)
-// Idéalement: autocomplete via /api/cim11/search?q=...
-const CIM11_EXAMPLES: Cim11Option[] = [
-  { id: "1", code: "2A00.10", libelle: "Médulloblastome du cerveau" },
-  { id: "2", code: "2A00.0", libelle: "Gliomes du cerveau" },
-  { id: "3", code: "BlockL2-1B1", libelle: "Tuberculose" },
-  { id: "4", code: "BlockL2-1A6", libelle: "Syphilis" },
-  { id: "5", code: "BlockL1-1D2", libelle: "Dengue" },
-];
 
 function optionLabel(o: Cim11Option) {
   return `${o.code} — ${o.libelle}`;
 }
 
 function emptyRow(): PathologieItem {
-  return {
-    cim11Code: "",
-    cim11Libelle: "",
-    date: "",
-    commentaire: "",
-  };
+  return { cim11Code: "", cim11Libelle: "", date: "", commentaire: "" };
 }
+
+const LEVEL_INDENT: Record<string, number> = {
+  L1: 8, L2: 16, L3: 24, L4: 32, L5: 40,
+};
 
 export default function AntecedentsSection({
   data,
@@ -53,30 +33,73 @@ export default function AntecedentsSection({
   const history = data.pathologiesHistory ?? [];
   const toAdd = data.pathologiesToAdd ?? [];
 
+  // ✅ options et search par index de ligne
+  const [cim11Options, setCim11Options] = useState<Record<number, Cim11Option[]>>({});
+  const [loading, setLoading] = useState<Record<number, boolean>>({});
+  const [searchTexts, setSearchTexts] = useState<Record<number, string>>({});
+
   const addRow = () => {
     onChange("pathologiesToAdd", [...toAdd, emptyRow()]);
   };
 
   const removeRow = (idx: number) => {
-    onChange(
-      "pathologiesToAdd",
-      toAdd.filter((_, i) => i !== idx)
-    );
+    onChange("pathologiesToAdd", toAdd.filter((_, i) => i !== idx));
+    // nettoyage du state local
+    setSearchTexts((prev) => { const n = { ...prev }; delete n[idx]; return n; });
+    setCim11Options((prev) => { const n = { ...prev }; delete n[idx]; return n; });
+    setLoading((prev) => { const n = { ...prev }; delete n[idx]; return n; });
   };
 
   const updateRow = (idx: number, patch: Partial<PathologieItem>) => {
-    const next = toAdd.map((row, i) => (i === idx ? { ...row, ...patch } : row));
-    onChange("pathologiesToAdd", next);
+    onChange("pathologiesToAdd", toAdd.map((row, i) => (i === idx ? { ...row, ...patch } : row)));
   };
+
+  useEffect(() => {
+    const controllers: AbortController[] = [];
+
+    const fetches = Object.entries(searchTexts).map(async ([idxStr, q]) => {
+      const idx = Number(idxStr);
+      const controller = new AbortController();
+      controllers.push(controller);
+
+      setLoading((prev) => ({ ...prev, [idx]: true }));
+
+      try {
+        const params = new URLSearchParams({ pageSize: "20" });
+        if (q.trim()) params.set("q", q.trim());
+
+        const res = await fetch(`/api/cim11?${params}`, { signal: controller.signal });
+        const payload = await res.json().catch(() => ({}));
+
+        if (!res.ok) throw new Error(payload?.message ?? "Erreur chargement CIM-11");
+
+        const items: Cim11Option[] = (payload?.items ?? []).map((item: any) => ({
+          id: item.id,
+          code: item.code,
+          libelle: item.libelle,
+          isLeaf: item.isLeaf,
+          level: item.level,
+        }));
+
+        setCim11Options((prev) => ({ ...prev, [idx]: items }));
+      } catch (e: any) {
+        if (e?.name !== "AbortError") {
+          console.error("Erreur CIM-11:", e);
+          setCim11Options((prev) => ({ ...prev, [idx]: [] }));
+        }
+      } finally {
+        setLoading((prev) => ({ ...prev, [idx]: false }));
+      }
+    });
+
+    return () => controllers.forEach((c) => c.abort());
+  }, [searchTexts]);
 
   return (
     <Stack spacing={3}>
-      {/* ===== TABLE 1: Historique ===== */}
+      {/* Historique */}
       <Box>
-        <Typography variant="h6" mb={1}>
-          Historique des pathologies
-        </Typography>
-
+        <Typography variant="h6" mb={1}>Historique des pathologies</Typography>
         <Paper variant="outlined">
           <Table size="small">
             <TableHead>
@@ -111,7 +134,7 @@ export default function AntecedentsSection({
         </Paper>
       </Box>
 
-      {/* ===== TABLE 2: Ajout ===== */}
+      {/* Ajout */}
       <Box>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
           <Typography variant="h6">Ajouter des pathologies</Typography>
@@ -135,7 +158,7 @@ export default function AntecedentsSection({
                 <TableRow>
                   <TableCell colSpan={4}>
                     <Typography variant="body2" color="text.secondary">
-                      Clique sur “Ajouter” pour insérer une pathologie depuis le référentiel CIM-11.
+                      Cliquez sur "Ajouter" pour insérer une pathologie depuis le référentiel CIM-11.
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -144,28 +167,65 @@ export default function AntecedentsSection({
                   <TableRow key={idx}>
                     <TableCell>
                       <Autocomplete<Cim11Option, false, false, false>
-                        options={CIM11_EXAMPLES}
+                        options={cim11Options[idx] ?? []}
+                        loading={loading[idx] ?? false}
+                        filterOptions={(x) => x}
                         getOptionLabel={optionLabel}
+                        isOptionEqualToValue={(opt, val) => opt.code === val.code}
+                        
+
+                        renderOption={(props, option) => (
+  <li
+    {...props}
+    key={option.id}
+    style={{
+      paddingLeft: LEVEL_INDENT[option.level] ?? 8,
+      opacity: option.isLeaf ? 1 : 0.85,
+      pointerEvents: option.isLeaf ? "auto" : "none", // non-cliquable mais visible
+      fontSize: option.isLeaf ? "0.875rem" : "0.78rem",
+      fontWeight: option.isLeaf ? 400 : 600,
+      color: option.isLeaf ? "inherit" : "#666",
+      borderTop: option.level === "L1" ? "1px solid #eee" : "none",
+    }}
+  >
+    {option.code} — {option.libelle}
+  </li>
+)}
+
+
+
                         value={
                           row.cim11Code
-                            ? {
-                                id: `${row.cim11Code}`,
-                                code: row.cim11Code,
-                                libelle: row.cim11Libelle,
-                              }
+                            ? { id: row.cim11Code, code: row.cim11Code, libelle: row.cim11Libelle, isLeaf: true, level: "" }
                             : null
                         }
+
+                        onInputChange={(_, value) =>
+                          setSearchTexts((prev) => ({ ...prev, [idx]: value }))
+                        }
+
                         onChange={(_, opt) => {
-                          updateRow(idx, {
-                            cim11Code: opt?.code ?? "",
-                            cim11Libelle: opt?.libelle ?? "",
-                          });
+                          if (!opt?.isLeaf) return;
+                          updateRow(idx, { cim11Code: opt.code, cim11Libelle: opt.libelle });
                         }}
+
+                        noOptionsText="Aucune pathologie trouvée"
+                        loadingText="Chargement..."
+
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            placeholder="Ex: 2A00.10 — Médulloblastome du cerveau"
+                            placeholder="Rechercher une pathologie CIM-11"
                             size="small"
+                            InputProps={{
+                              ...params.InputProps,
+                              endAdornment: (
+                                <>
+                                  {loading[idx] ? <CircularProgress size={16} /> : null}
+                                  {params.InputProps.endAdornment}
+                                </>
+                              ),
+                            }}
                           />
                         )}
                       />
@@ -173,8 +233,7 @@ export default function AntecedentsSection({
 
                     <TableCell>
                       <TextField
-                        size="small"
-                        type="date"
+                        size="small" type="date"
                         value={row.date || ""}
                         onChange={(e) => updateRow(idx, { date: e.target.value })}
                         InputLabelProps={{ shrink: true }}
@@ -205,15 +264,12 @@ export default function AntecedentsSection({
         </Paper>
 
         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-          (Les options CIM-11 sont des exemples. Tu remplaceras par une recherche API sur ton référentiel.)
+          Seules les entrées terminales (feuilles) du référentiel CIM-11 sont sélectionnables.
         </Typography>
       </Box>
 
-      {/* ===== Champ texte ===== */}
       <TextField
-        fullWidth
-        multiline
-        rows={6}
+        fullWidth multiline rows={6}
         label="Antécédents (médicaux, chirurgicaux, allergies, traitements...)"
         value={data.antecedents}
         onChange={(e) => onChange("antecedents", e.target.value)}

@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  MenuItem,
   Alert,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
@@ -86,6 +87,9 @@ export default function ConvocationViewPage() {
   const visite = c?.visite ?? null; // <-- Assure-toi que ton API inclut `visite`
   const visiteStatut: VisiteStatut | null = visite?.statut ?? null;
 
+  const [typeVisite, setTypeVisite] = useState<"ANNUELLE" | "RAPPROCHEE" | "AUTRE">("ANNUELLE");
+const [autreType, setAutreType] = useState("");
+
   const hasVisite = !!visite?.id;
  const formulaire = visite?.formulaire ?? null; // nécessite include API
   const hasFormulaire = !!formulaire?.id;
@@ -141,7 +145,8 @@ export default function ConvocationViewPage() {
       const res = await fetch(`/api/convocations/${id}/start-visit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dateDebut: startAt }),
+        body: JSON.stringify({ dateDebut: startAt,
+  type: typeVisite === "AUTRE" ? autreType : typeVisite, }),
       });
 
       const payload = await res.json().catch(() => ({}));
@@ -159,7 +164,7 @@ export default function ConvocationViewPage() {
       const ref = await fetch(`/api/convocations/${id}`);
       if (ref.ok) setC(await ref.json());
 
-      router.push(`/formulaires/${formulaireId}/edit`);
+      router.push(`/formulaires/${visiteID}/edit`);
     } catch (e: any) {
       setActionError(e?.message ?? "Erreur inconnue");
     } finally {
@@ -252,7 +257,28 @@ export default function ConvocationViewPage() {
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
             />
+<TextField
+  select
+  fullWidth
+  label="Type de visite"
+  value={typeVisite}
+  onChange={(e) => setTypeVisite(e.target.value as any)}
+  sx={{ mt: 2 }}
+>
+  <MenuItem value="ANNUELLE">Visite annuelle</MenuItem>
+  <MenuItem value="RAPPROCHEE">Visite rapprochée</MenuItem>
+  <MenuItem value="AUTRE">Autre</MenuItem>
+</TextField>
 
+{typeVisite === "AUTRE" && (
+  <TextField
+    fullWidth
+    label="Préciser le type de visite"
+    value={autreType}
+    onChange={(e) => setAutreType(e.target.value)}
+    sx={{ mt: 2 }}
+  />
+)}
             <Typography variant="body2" color="text.secondary" mt={1}>
               La visite et le formulaire seront créés et initialisés avec les données actuelles du personnel.
             </Typography>

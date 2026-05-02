@@ -1,0 +1,305 @@
+code;libelle;level;parentCode;isLeaf;pathCodes
+N1;Certaines maladies infectieuses ou parasitaires;L1;;False;N1
+N2;Tumeurs;L1;;False;N2
+N3;Maladies du sang ou des organes hématopoïétiques;L1;;False;N3
+N4;Maladies du système immunitaire;L1;;False;N4
+N5;Maladies endocriniennes, nutritionnelles ou métaboliques;L1;;False;N5
+N6;Troubles mentaux, comportementaux ou neurodéveloppementaux;L1;;False;N6
+N7;Troubles du cycle veille-sommeil;L1;;False;N7
+N8;Maladies du système nerveux;L1;;False;N8
+N9;Maladies de l'appareil visuel;L1;;False;N9
+N10;Maladies de l'oreille ou de l'apophyse mastoïde;L1;;False;N10
+N11;Maladies de l'appareil circulatoire;L1;;False;N11
+N12;Maladies de l'appareil respiratoire;L1;;False;N12
+N13;Maladies de l'appareil digestif;L1;;False;N13
+N14;Maladies de la peau;L1;;False;N14
+N15;Maladies du système musculosquelettique ou du tissu conjonctif;L1;;False;N15
+N16;Maladies de l'appareil génito-urinaire;L1;;False;N16
+N17;Affections liées à la santé sexuelle;L1;;False;N17
+N18;Grossesse, accouchement ou puerpéralité;L1;;False;N18
+N19;Certaines affections dont l'origine se situe dans la période périnatale;L1;;False;N19
+N20;Anomalies du développement;L1;;False;N20
+N21;Symptômes, signes ou résultats d'examen clinique, non classés ailleurs;L1;;False;N21
+BlockL1-1A0;Gastroentérite ou colite d'origine infectieuse;L2;N1;TRUE;N1 | BlockL1-1A0
+BlockL1-1A6;Infections transmissibles principalement par voie sexuelle;L2;N1;FALSE;N1 | BlockL1-1A6
+BlockL1-1B1;Maladies mycobactériennes;L2;N1;FALSE;N1 | BlockL1-1B1
+BlockL1-1B4;Certaines maladies à staphylocoques ou à streptocoques;L2;N1;FALSE;N1 | BlockL1-1B4
+BlockL1-1B7;Infections bactériennes pyogènes de la peau ou des tissus souscutanés;L2;N1;TRUE;N1 | BlockL1-1B7
+BlockL1-1B9;Certaines anthropozoonoses bactériennes précisées;L2;N1;TRUE;N1 | BlockL1-1B9
+BlockL1-1C1;Autres maladies bactériennes;L2;N1;FALSE;N1 | BlockL1-1C1
+BlockL1-1C6;Maladie du virus de l'immunodéficience humaine;L2;N1;TRUE;N1 | BlockL1-1C6
+BlockL1-1C8;Infections virales du système nerveux central;L2;N1;TRUE;N1 | BlockL1-1C8
+BlockL1-1D0;Infections non-virales et non précisées du système nerveux central;L2;N1;TRUE;N1 | BlockL1-1D0
+BlockL1-1D2;Dengue;L2;N1;TRUE;N1 | BlockL1-1D2
+BlockL1-1D4;Certaines fièvres virales transmises par des arthropodes;L2;N1;TRUE;N1 | BlockL1-1D4
+BlockL1-1D6;Certaines maladies zoonotiques virales;L2;N1;TRUE;N1 | BlockL1-1D6
+BlockL1-1D8;Certaines autres maladies virales;L2;N1;FALSE;N1 | BlockL1-1D8
+BlockL1-1E3;Grippe;L2;N1;TRUE;N1 | BlockL1-1E3
+BlockL1-1E5;Hépatite virale;L2;N1;TRUE;N1 | BlockL1-1E5
+BlockL1-1E7;Infections virales caractérisées par des lésions cutanées ou muqueuses;L2;N1;FALSE;N1 | BlockL1-1E7
+BlockL1-1F2;Mycoses;L2;N1;TRUE;N1 | BlockL1-1F2
+BlockL1-1F4;Maladies parasitaires;L2;N1;FALSE;N1 | BlockL1-1F4
+BlockL1-1G4;Sepsis;L2;N1;TRUE;N1 | BlockL1-1G4
+BlockL1-1G8;Séquelles de maladies infectieuses;L2;N1;TRUE;N1 | BlockL1-1G8
+BlockL1-2A0;Tumeurs du système nerveux central ou des structures apparentées;L2;N2;FALSE;N2 | BlockL1-2A0
+BlockL1-2A2;Tumeurs de tissus hématopoïétiques ou lymphoïdes;L2;N2;FALSE;N2 | BlockL1-2A2
+BlockL1-2B5;Tumeurs malignes, à l'exception des tumeurs primitives des tissus lymphoïdes, hématopoïétiques, du système nerveux central ou ses tissus connexes;L2;N2;FALSE;N2 | BlockL1-2B5
+BlockL1-2E6;Tumeurs in situ, à l'exception des tissus lymphoïdes, hématopoïétiques, du système nerveux central ou des tissus apparentés;L2;N2;FALSE;N2 | BlockL1-2E6
+BlockL1-2E8;Tumeurs bénignes, à l'exception des tissus lymphoïdes, hématopoïétiques, du système nerveux central ou des tissus apparentés;L2;N2;FALSE;N2 | BlockL1-2E8
+BlockL1-2F7;Tumeurs à évolution imprévisible, à l'exception des tissus lymphoïdes, hématopoïétiques, du système nerveux central ou des tissus apparentés;L2;N2;TRUE;N2 | BlockL1-2F7
+BlockL1-2F9;Tumeurs à évolution inconnue, à l'exception des tissus lymphoïdes, hématopoïétiques, du système nerveux central ou des tissus apparentés;L2;N2;TRUE;N2 | BlockL1-2F9
+BlockL1-3A0;Anémies ou autres troubles érythrocytaires;L2;N3;FALSE;N3 | BlockL1-3A0
+BlockL1-3B1;Troubles de la coagulation, purpura ou autres affections hémorragiques ou apparentées;L2;N3;FALSE;N3 | BlockL1-3B1
+BlockL1-3B8;Maladies de la rate;L2;N3;FALSE;N3 | BlockL1-3B8
+N3-4;Autres maladies du sang ou des organes hématopoïétiques précisées;L2;N3;TRUE;N3 | N3-4
+N3-5;Maladies du sang ou des organes hématopoïétiques, sans précision;L2;N3;TRUE;N3 | N3-5
+BlockL1-4A0;Déficits immunitaires primitifs;L2;N4;FALSE;N4 | BlockL1-4A0
+N4-2;Déficits immunitaires acquis;L2;N4;FALSE;N4 | N4-2
+BlockL1-4A4;Maladies auto-immunes systémiques non spécifiques d'organe;L2;N4;FALSE;N4 | BlockL1-4A4
+BlockL1-4A6;Troubles auto-inflammatoires;L2;N4;FALSE;N4 | BlockL1-4A6
+BlockL1-4A8;Affections allergiques ou d'hypersensibilité;L2;N4;FALSE;N4 | BlockL1-4A8
+BlockL1-4B0;Troubles du système immunitaire intéressant la lignée blanche;L2;N4;FALSE;N4 | BlockL1-4B0
+BlockL1-4B2;Certains troubles avec atteinte du système immunitaire;L2;N4;FALSE;N4 | BlockL1-4B2
+BlockL1-5A0;Maladies endocriniennes;L2;N5;FALSE;N5 | BlockL1-5A0
+BlockL1-5B5;Troubles nutritionnels;L2;N5;FALSE;N5 | BlockL1-5B5
+BlockL1-5C5;Troubles métaboliques;L2;N5;FALSE;N5 | BlockL1-5C5
+BlockL1-5D4;Affections endocriniennes ou métaboliques après un acte à visée diagnostique|ou thérapeutique;L2;N5;FALSE;N5 | BlockL1-5D4
+BlockL1-6A0;Troubles neurodéveloppementaux;L2;N6;FALSE;N6 | BlockL1-6A0
+BlockL1-6A2;Schizophrénie ou autres troubles psychotiques primaires;L2;N6;FALSE;N6 | BlockL1-6A2
+BlockL1-6A4;Catatonie;L2;N6;FALSE;N6 | BlockL1-6A4
+BlockL1-6A6;Troubles de l'humeur;L2;N6;FALSE;N6 | BlockL1-6A6
+BlockL1-6B0;Troubles anxieux ou liés à la peur;L2;N6;FALSE;N6 | BlockL1-6B0
+BlockL1-6B2;Troubles obsessionnels compulsifs ou apparentés;L2;N6;FALSE;N6 | BlockL1-6B2
+BlockL1-6B4;Troubles spécifiquement associés au stress;L2;N6;FALSE;N6 | BlockL1-6B4
+BlockL1-6B6;Troubles dissociatifs;L2;N6;FALSE;N6 | BlockL1-6B6
+BlockL1-6B8;Troubles de l'alimentation ou de la nutrition;L2;N6;FALSE;N6 | BlockL1-6B8
+BlockL1-6C0;Troubles de l'élimination;L2;N6;FALSE;N6 | BlockL1-6C0
+BlockL1-6C2;Troubles de détresse physique et de l’expérience corporelle;L2;N6;FALSE;N6 | BlockL1-6C2
+BlockL1-6C4;Troubles dus à l'utilisation de substances ou à des conduites addictives;L2;N6;FALSE;N6 | BlockL1-6C4
+BlockL1-6C7;Troubles du contrôle des impulsions;L2;N6;FALSE;N6 | BlockL1-6C7
+BlockL1-6C9;Comportement perturbateur ou troubles dissociaux;L2;N6;FALSE;N6 | BlockL1-6C9
+BlockL1-6D1;Troubles de la personnalité et caractéristiques apparentées;L2;N6;FALSE;N6 | BlockL1-6D1
+BlockL1-6D3;Troubles paraphiliques;L2;N6;FALSE;N6 | BlockL1-6D3
+BlockL1-6D5;Troubles factices;L2;N6;FALSE;N6 | BlockL1-6D5
+BlockL1-6D7;Troubles neurocognitifs;L2;N6;FALSE;N6 | BlockL1-6D7
+BlockL1-6E2;Troubles mentaux ou du comportement associés à la grossesse, à l'accouchement ou à la puerpéralité;L2;N6;FALSE;N6 | BlockL1-6E2
+N6-20;Facteurs psychologiques ou comportementaux agissant sur des troubles ou des maladies classés ailleurs;L2;N6;FALSE;N6 | N6-20
+BlockL1-6E6;Syndromes mentaux ou comportementaux secondaires associés à des troubles ou à des maladies classés ailleurs;L2;N6;FALSE;N6 | BlockL1-6E6
+N6-22;Autres troubles mentaux, comportementaux ou neurodéveloppementaux précisés;L2;N6;TRUE;N6 | N6-22
+N6-23;Troubles mentaux, comportementaux ou neurodéveloppementaux, sans précision;L2;N6;TRUE;N6 | N6-23
+BlockL1-7A0;Insomnie;L2;N7;FALSE;N7 | BlockL1-7A0
+BlockL1-7A2;Hypersomnies;L2;N7;FALSE;N7 | BlockL1-7A2
+BlockL1-7A4;Troubles respiratoires liés au sommeil;L2;N7;FALSE;N7 | BlockL1-7A4
+BlockL1-7A6;Troubles du rythme circadien veille-sommeil;L2;N7;FALSE;N7 | BlockL1-7A6
+BlockL1-7A8;Troubles du mouvement liés au sommeil;L2;N7;FALSE;N7 | BlockL1-7A8
+BlockL1-7B0;Parasomnies;L2;N7;FALSE;N7 | BlockL1-7B0
+N7-7;Autres troubles précisés du cycle veille-sommeil;L2;N7;TRUE;N7 | N7-7
+N7-8;Troubles du cycle veille-sommeil, sans précision;L2;N7;TRUE;N7 | N7-8
+BlockL1-8A0;Troubles du mouvement;L2;N8;FALSE;N8 | BlockL1-8A0
+BlockL1-8A2;Troubles avec déficience neurocognitive comme caractéristique majeure;L2;N8;FALSE;N8 | BlockL1-8A2
+BlockL1-8A4;Sclérose en plaques ou autres troubles de la substance blanche;L2;N8;FALSE;N8 | BlockL1-8A4
+BlockL1-8A6;Épilepsie ou crises d'épilepsie;L2;N8;FALSE;N8 | BlockL1-8A6
+BlockL1-8A8;Céphalées;L2;N8;FALSE;N8 | BlockL1-8A8
+BlockL1-8B0;Maladies cérébrovasculaires;L2;N8;FALSE;N8 | BlockL1-8B0
+BlockL1-8B4;Affections non traumatiques de la moelle épinière;L2;N8;FALSE;N8 | BlockL1-8B4
+BlockL1-8B6;Maladies du neurone moteur ou troubles apparentés;L2;N8;FALSE;N8 | BlockL1-8B6
+BlockL1-8B8;Affections des nerfs, des racines ou des plexus;L2;N8;FALSE;N8 | BlockL1-8B8
+BlockL1-8C6;Maladies de la jonction neuromusculaire ou du muscle;L2;N8;FALSE;N8 | BlockL1-8C6
+BlockL1-8D2;Paralysie cérébrale;L2;N8;FALSE;N8 | BlockL1-8D2
+BlockL1-8D4;Troubles nutritionnels ou toxiques du système nerveux;L2;N8;FALSE;N8 | BlockL1-8D4
+BlockL1-8D6;Troubles de la pression ou du débit du liquide cérébrospinal;L2;N8;FALSE;N8 | BlockL1-8D6
+BlockL1-8D8;Affections du système nerveux autonome;L2;N8;FALSE;N8 | BlockL1-8D8
+BlockL1-8E0;Maladies humaines à prions;L2;N8;FALSE;N8 | BlockL1-8E0
+BlockL1-8E2;Troubles de la conscience;L2;N8;FALSE;N8 | BlockL1-8E2
+BlockL1-8E4;Certaines affections du système nerveux;L2;N8;FALSE;N8 | BlockL1-8E4
+BlockL1-8E6;Affections du système nerveux après un acte à visée diagnostique ou thérapeutique;L2;N8;FALSE;N8 | BlockL1-8E6
+N8-19;Autres maladies précisées du système nerveux;L2;N8;TRUE;N8 | N8-19
+N8-20;Maladies du système nerveux, sans précision;L2;N8;TRUE;N8 | N8-20
+BlockL1-9A0;Affections des annexes de l'œil ou de l'orbite oculaire;L2;N9;FALSE;N9 | BlockL1-9A0
+BlockL1-9A6;Affections du globe oculaire - segment antérieur;L2;N9;FALSE;N9 | BlockL1-9A6
+BlockL1-9A6;#REF!;L2;N9;FALSE;N9 | BlockL1-9A6
+BlockL1-9B5;Affections du globe oculaire - segment postérieur;L2;N9;FALSE;N9 | BlockL1-9B5
+BlockL1-9B5;#REF!;L2;N9;FALSE;N9 | BlockL1-9B5
+BlockL1-9C2;Affections du globe oculaire affectant les segments antérieur et postérieur;L2;N9;FALSE;N9 | BlockL1-9C2
+BlockL1-9C4;Affections des voies ou des centres optiques;L2;N9;FALSE;N9 | BlockL1-9C4
+BlockL1-9C6;Glaucome ou glaucome limite;L2;N9;FALSE;N9 | BlockL1-9C6
+BlockL1-9C8;Strabisme ou troubles de la motilité oculaire;L2;N9;FALSE;N9 | BlockL1-9C8
+BlockL1-9D0;Troubles de la réfraction ou de l'accommodation;L2;N9;FALSE;N9 | BlockL1-9D0
+BlockL1-9D2;Affections de l'œil ou des annexes de l'œil après un acte à visée diagnostique|ou thérapeutique;L2;N9;FALSE;N9 | BlockL1-9D2
+BlockL1-9D4;Déficience des fonctions visuelles;L2;N9;FALSE;N9 | BlockL1-9D4
+BlockL1-9D9;Déficience visuelle;L2;N9;FALSE;N9 | BlockL1-9D9
+N9-14;Autres maladies précisées de l'appareil visuel;L2;N9;TRUE;N9 | N9-14
+N9-15;Maladies de l'appareil visuel sans précision;L2;N9;TRUE;N9 | N9-15
+BlockL1-AA0;Maladies de l'oreille externe;L2;N10;FALSE;N10 | BlockL1-AA0
+BlockL1-AA8;Maladies de l'oreille moyenne ou de la mastoïde;L2;N10;FALSE;N10 | BlockL1-AA8
+BlockL1-AB3;Maladies de l'oreille interne;L2;N10;FALSE;N10 | BlockL1-AB3
+BlockL1-AB5;Troubles de l'audition;L2;N10;FALSE;N10 | BlockL1-AB5
+BlockL1-AB7;Troubles de l'oreille, non classés ailleurs;L2;N10;FALSE;N10 | BlockL1-AB7
+BlockL1-AB9;Affections de l'oreille ou de l'apophyse mastoïde après un acte à visée diagnostique ou thérapeutique;L2;N10;FALSE;N10 | BlockL1-AB9
+N10-7;Autres maladies de l'oreille ou de l'apophyse mastoïde;L2;N10;TRUE;N10 | N10-7
+N10-8;Maladies de l'oreille ou de l'apophyse mastoïde, sans précision;L2;N10;TRUE;N10 | N10-8
+BlockL1-BA0;Maladies hypertensives;L2;N11;FALSE;N11 | BlockL1-BA0
+BlockL1-BA2;Hypotension;L2;N11;FALSE;N11 | BlockL1-BA2
+BlockL1-BA4;Cardiopathies ischémiques;L2;N11;FALSE;N11 | BlockL1-BA4
+BlockL1-BA8;Maladies de l'artère coronaire;L2;N11;FALSE;N11 | BlockL1-BA8
+BlockL1-BB0;Cardiopathie pulmonaire ou maladies de la circulation pulmonaire;L2;N11;FALSE;N11 | BlockL1-BB0
+BlockL1-BB2;Péricardite;L2;N11;FALSE;N11 | BlockL1-BB2
+BlockL1-BB4;Endocardite aigüe ou subaigüe;L2;N11;FALSE;N11 | BlockL1-BB4
+BlockL1-BB6;Maladies des valves cardiaques;L2;N11;FALSE;N11 | BlockL1-BB6
+N11-9;Cardiopathies rhumatismales chroniques, non classées ailleurs;L2;N11;FALSE;N11 | N11-9
+BlockL1-BC4;Maladies du myocarde ou des cavités cardiaques;L2;N11;FALSE;N11 | BlockL1-BC4
+BlockL1-BC6;Arythmie cardiaque;L2;N11;FALSE;N11 | BlockL1-BC6
+BlockL1-BD1;Insuffisance cardiaque;L2;N11;FALSE;N11 | BlockL1-BD1
+BlockL1-BD3;Maladies des artères ou des artérioles;L2;N11;FALSE;N11 | BlockL1-BD3
+BlockL1-BD7;Maladies des veines;L2;N11;FALSE;N11 | BlockL1-BD7
+BlockL1-BD9;Troubles des vaisseaux lymphatiques ou des nœuds lymphatiques;L2;N11;FALSE;N11 | BlockL1-BD9
+BlockL1-BE1;Affections du système circulatoire après un acte à visée diagnostique ou thérapeutique;L2;N11;FALSE;N11 | BlockL1-BE1
+BlockL1-CA0;Affections des voies respiratoires supérieures;L2;N12;FALSE;N12 | BlockL1-CA0
+BlockL1-CA2;Certaines affections des voies respiratoires inférieures;L2;N12;FALSE;N12 | BlockL1-CA2
+BlockL1-CA4;Infections pulmonaires;L2;N12;FALSE;N12 | BlockL1-CA4
+BlockL1-CA6;Maladies pulmonaires dues à des agents externes;L2;N12;FALSE;N12 | BlockL1-CA6
+BlockL1-CB0;Maladies respiratoires affectant principalement l'interstitium pulmonaire;L2;N12;FALSE;N12 | BlockL1-CB0
+BlockL1-CB2;Affections de la plèvre, du diaphragme ou du médiastin;L2;N12;FALSE;N12 | BlockL1-CB2
+N12-7;Certaines maladies du système respiratoire;L2;N12;FALSE;N12 | N12-7
+N12-8;Arrêt respiratoire;L2;N12;FALSE;N12 | N12-8
+BlockL1-CB6;Affections du système respiratoire après un acte à visée diagnostique|ou thérapeutique;L2;N12;FALSE;N12 | BlockL1-CB6
+N12-10;Maladies de l'appareil respiratoire, sans précision;L2;N12;TRUE;N12 | N12-10
+BlockL1-DA0;Maladies ou affections du complexe orofacial;L2;N13;FALSE;N13 | BlockL1-DA0
+BlockL1-DA2;Maladies de l'œsophage;L2;N13;FALSE;N13 | BlockL1-DA2
+BlockL1-DA4;Maladies de l'estomac ou du duodénum;L2;N13;FALSE;N13 | BlockL1-DA4
+BlockL1-DA9;Maladies de l'intestin grêle;L2;N13;FALSE;N13 | BlockL1-DA9
+BlockL1-DB1;Maladies de l'appendice;L2;N13;FALSE;N13 | BlockL1-DB1
+BlockL1-DB3;Affections du gros intestin;L2;N13;FALSE;N13 | BlockL1-DB3
+BlockL1-DB5;Maladies du canal anal;L2;N13;FALSE;N13 | BlockL1-DB5
+BlockL1-DB9;Maladies du foie;L2;N13;FALSE;N13 | BlockL1-DB9
+BlockL1-DC1;Maladies de la vésicule biliaire ou des voies biliaires;L2;N13;FALSE;N13 | BlockL1-DC1
+BlockL1-DC3;Maladies du pancréas;L2;N13;FALSE;N13 | BlockL1-DC3
+BlockL1-DC5;Maladies du péritoine;L2;N13;FALSE;N13 | BlockL1-DC5
+BlockL1-DC7;Maladie diverticulaire de l'intestin;L2;N13;FALSE;N13 | BlockL1-DC7
+BlockL1-DD3;Troubles vasculaires ischémiques de l'intestin;L2;N13;FALSE;N13 | BlockL1-DD3
+BlockL1-DD5;Hernies;L2;N13;FALSE;N13 | BlockL1-DD5
+BlockL1-DD7;Maladies inflammatoires de l'intestin;L2;N13;FALSE;N13 | BlockL1-DD7
+BlockL1-DD9;Troubles gastro-intestinaux fonctionnels;L2;N13;FALSE;N13 | BlockL1-DD9
+BlockL1-DE1;Affections de l'appareil digestif après un acte à visée diagnostique ou thérapeutique;L2;N13;FALSE;N13 | BlockL1-DE1
+BlockL1-EA0;Certaines affections cutanées imputables à une infection ou à une infestation;L2;N14;FALSE;N14 | BlockL1-EA0
+BlockL1-EA8;Dermatoses inflammatoires;L2;N14;FALSE;N14 | BlockL1-EA8
+BlockL1-EB9;Affections métaboliques ou nutritionnelles affectant la peau;L2;N14;FALSE;N14 | BlockL1-EB9
+BlockL1-EC1;Affections génétiques ou troubles du développement affectant la peau;L2;N14;FALSE;N14 | BlockL1-EC1
+BlockL1-EC9;Troubles sensoriels ou psychologiques affectant la peau;L2;N14;FALSE;N14 | BlockL1-EC9
+BlockL1-ED5;Affections cutanées intéressant des structures cutanées spécifiques;L2;N14;FALSE;N14 | BlockL1-ED5
+BlockL1-EG3;Affections cutanés intéressant certaines régions spécifiques du corps;L2;N14;FALSE;N14 | BlockL1-EG3
+BlockL1-EH1;Affections cutanées associées à la grossesse, à la période néonatale ou à la petite enfance;L2;N14;FALSE;N14 | BlockL1-EH1
+BlockL1-EH6;Réactions cutanées indésirables aux médicaments;L2;N14;FALSE;N14 | BlockL1-EH6
+BlockL1-EH9;Affections cutanés provoquées par des facteurs externes;L2;N14;FALSE;N14 | BlockL1-EH9
+BlockL1-EK7;Proliférations bénignes, tumeurs et kystes de la peau;L2;N14;FALSE;N14 | BlockL1-EK7
+BlockL1-EK9;Affections de la peau à potentiel malin incertain ou imprévisible;L2;N14;FALSE;N14 | BlockL1-EK9
+BlockL1-EL1;Marqueurs cutanés de troubles internes;L2;N14;FALSE;N14 | BlockL1-EL1
+BlockL1-EL5;Affections cutanées après un acte à visée diagnostique ou thérapeutique;L2;N14;FALSE;N14 | BlockL1-EL5
+N14-15;Autres maladies de la peau;L2;N14;TRUE;N14 | N14-15
+N14-16;Maladies de la peau, sans précision;L2;N14;TRUE;N14 | N14-16
+BlockL1-FA0;Arthropathies;L2;N15;FALSE;N15 | BlockL1-FA0
+BlockL1-FA7;Affections associées à la colonne vertébrale;L2;N15;FALSE;N15 | BlockL1-FA7
+BlockL1-FB3;Atteintes des tissus mous;L2;N15;FALSE;N15 | BlockL1-FB3
+BlockL1-FB8;Ostéopathies ou chondropathies;L2;N15;FALSE;N15 | BlockL1-FB8
+N15-5;Certaines déformations acquises précisées du système musculosquelettique ou du tissu conjonctif, non classées ailleurs;L2;N15;FALSE;N15 | N15-5
+N15-6;Affections du système musculosquelettique après un acte à visée diagnostique ou thérapeutique;L2;N15;FALSE;N15 | N15-6
+N15-7;Autres maladies du système musculosquelettique ou du tissu conjonctif;L2;N15;TRUE;N15 | N15-7
+N15-8;Maladies du système musculosquelettique ou du tissu conjonctif, sans précision;L2;N15;TRUE;N15 | N15-8
+BlockL1-GA0;Maladies de l'appareil génital féminin;L2;N16;FALSE;N16 | BlockL1-GA0
+BlockL1-GA8;Maladies de l'appareil génital masculin;L2;N16;FALSE;N16 | BlockL1-GA8
+BlockL1-GB2;Affections du sein;L2;N16;FALSE;N16 | BlockL1-GB2
+BlockL1-GB4;Maladies de l'appareil urinaire;L2;N16;FALSE;N16 | BlockL1-GB4
+BlockL1-GC4;Autres affections de l'appareil génito-urinaire;L2;N16;FALSE;N16 | BlockL1-GC4
+BlockL1-GC7;Affections du système génito-urinaire après un acte à visée diagnostique ou thérapeutique;L2;N16;FALSE;N16 | BlockL1-GC7
+N16-7;Autres maladies de l'appareil génito-urinaire;L2;N16;TRUE;N16 | N16-7
+N16-8;Maladies de l'appareil génito-urinaire, sans précision;L2;N16;TRUE;N16 | N16-8
+BlockL1-HA2;Troubles sexuels avec douleurs;L2;N17;FALSE;N17 | BlockL1-HA2
+N17-2;Facteurs étiologiques dans les dysfonctionnements sexuels et les troubles sexuels avec douleurs;L2;N17;FALSE;N17 | N17-2
+BlockL1-HA6;Incongruence de genre;L2;N17;FALSE;N17 | BlockL1-HA6
+N17-4;Autres affections liées à la santé sexuelle;L2;N17;TRUE;N17 | N17-4
+N17-5;Affections liées à la santé sexuelle, sans précision;L2;N17;TRUE;N17 | N17-5
+BlockL1-JA0;Interruption de la grossesse;L2;N18;FALSE;N18 | BlockL1-JA0
+BlockL1-JA2;Œdème, protéinurie ou troubles hypertensifs au cours de la grossesse, de l'accouchement ou de la puerpéralité;L2;N18;FALSE;N18 | BlockL1-JA2
+BlockL1-JA4;Hémorragie obstétricale;L2;N18;FALSE;N18 | BlockL1-JA4
+BlockL1-JA6;Certaines affections maternelles précisées liées principalement à la grossesse;L2;N18;FALSE;N18 | BlockL1-JA6
+BlockL1-JA8;Soins maternels liés au fœtus, à la cavité amniotique ou à d'éventuels problèmes liés à l'accouchement;L2;N18;FALSE;N18 | BlockL1-JA8
+BlockL1-JB0;Complications lors du travail ou de l'accouchement;L2;N18;FALSE;N18 | BlockL1-JB0
+BlockL1-JB2;Accouchement;L2;N18;FALSE;N18 | BlockL1-JB2
+BlockL1-JB4;Complications principalement liées à la puerpéralité;L2;N18;FALSE;N18 | BlockL1-JB4
+BlockL1-JB6;Certains problèmes obstétricaux, non classées ailleurs;L2;N18;FALSE;N18 | BlockL1-JB6
+BlockL1-KA0;Fœtus ou nouveau-né affecté par des facteurs maternels ou par des complications de la grossesse, du travail ou de l'accouchement;L2;N19;FALSE;N19 | BlockL1-KA0
+BlockL1-KA2;Affections du nouveau-né liées à la durée de la gestation ou à la croissance du fœtus;L2;N19;FALSE;N19 | BlockL1-KA2
+BlockL1-KA4;Traumatismes obstétricaux;L2;N19;FALSE;N19 | BlockL1-KA4
+BlockL1-KA6;Infections du fœtus ou du nouveau-né;L2;N19;FALSE;N19 | BlockL1-KA6
+BlockL1-KA8;Troubles hémorragiques ou hématologiques du fœtus ou du nouveau-né;L2;N19;FALSE;N19 | BlockL1-KA8
+BlockL1-KB0;Troubles neurologiques spécifiques à la période périnatale ou néonatale;L2;N19;FALSE;N19 | BlockL1-KB0
+BlockL1-KB2;Troubles respiratoires spécifiques à la période périnatale ou néonatale;L2;N19;FALSE;N19 | BlockL1-KB2
+BlockL1-KB4;Troubles cardiovasculaires présents au cours de la période périnatale ou néonatale;L2;N19;FALSE;N19 | BlockL1-KB4
+BlockL1-KB6;Troubles endocriniens ou métaboliques transitoires spécifiques au fœtus ou au nouveau-né;L2;N19;FALSE;N19 | BlockL1-KB6
+BlockL1-KB8;Affections du système digestif du fœtus ou du nouveau-né;L2;N19;FALSE;N19 | BlockL1-KB8
+BlockL1-KC0;Troubles du système génitourinaire spécifiques à la période périnatale ou néonatale;L2;N19;FALSE;N19 | BlockL1-KC0
+BlockL1-KC2;Troubles intéressant les téguments du fœtus ou du nouveau-né;L2;N19;FALSE;N19 | BlockL1-KC2
+BlockL1-KD1;Troubles de la régulation de la température du nouveau-né;L2;N19;FALSE;N19 | BlockL1-KD1
+N19-14;Certaines affections dont l'origine se situe dans la période périnatale;L2;N19;FALSE;N19 | N19-14
+N19-15;Certaines affections dont l'origine se situe dans la période périnatale, sans précision;L2;N19;TRUE;N19 | N19-15
+BlockL1-LA0;Anomalies structurelles du développement affectant principalement un système corporel;L2;N20;FALSE;N20 | BlockL1-LA0
+BlockL1-LD2;Anomalies ou syndromes multiples du développement;L2;N20;FALSE;N20 | BlockL1-LD2
+BlockL1-LD4;Anomalies chromosomiques, excluant les mutations géniques;L2;N20;FALSE;N20 | BlockL1-LD4
+N20-4;Affections présentant des troubles du développement intellectuel comme caractéristique clinique pertinente;L2;N20;FALSE;N20 | N20-4
+N20-5;Autres anomalies du développement;L2;N20;TRUE;N20 | N20-5
+N20-6;Anomalies du développement, sans précision;L2;N20;TRUE;N20 | N20-6
+BlockL1-MA0;Symptômes, signes et résultats d'examens cliniques des maladies du sang, des organes hématopoïétiques ou du système immunitaire;L2;N21;FALSE;N21 | BlockL1-MA0
+BlockL1-MA5;Symptômes, signes ou résultats cliniques relatifs aux maladies endocriniennes, nutritionnelles ou métaboliques;L2;N21;FALSE;N21 | BlockL1-MA5
+BlockL1-MA8;Symptômes, signes ou résultats cliniques de la parole, du langage ou de la voix;L2;N21;FALSE;N21 | BlockL1-MA8
+BlockL1-MB2;Symptômes, signes ou résultats cliniques mentaux ou du comportement;L2;N21;FALSE;N21 | BlockL1-MB2
+BlockL1-MB4;Symptômes, signes ou résultats cliniques relatifs au système nerveux;L2;N21;FALSE;N21 | BlockL1-MB4
+BlockL1-MC1;Symptômes, signes ou résultats cliniques du système visuel;L2;N21;FALSE;N21 | BlockL1-MC1
+BlockL1-MC4;Symptômes, signes ou résultats cliniques relatifs à l'oreille ou à l'apophyse mastoïde;L2;N21;FALSE;N21 | BlockL1-MC4
+BlockL1-MC8;Symptômes, signes ou résultats cliniques relatifs au système circulatoire;L2;N21;FALSE;N21 | BlockL1-MC8
+BlockL1-MD1;Symptômes, signes ou résultats cliniques relatifs au système respiratoire;L2;N21;FALSE;N21 | BlockL1-MD1
+BlockL1-MD8;Symptômes, signes ou résultats cliniques relatifs au système digestif ou à l'abdomen;L2;N21;FALSE;N21 | BlockL1-MD8
+BlockL1-ME6;Symptômes, signes ou résultats cliniques intéressant la peau;L2;N21;FALSE;N21 | BlockL1-ME6
+BlockL1-ME8;Symptômes, signes ou résultats cliniques relatifs au système musculosquelettique;L2;N21;FALSE;N21 | BlockL1-ME8
+BlockL1-MF3;Symptômes, signes ou résultats cliniques relatifs au système génitourinaire;L2;N21;FALSE;N21 | BlockL1-MF3
+BlockL1-MG2;Symptômes généraux, signes ou résultats cliniques;L2;N21;FALSE;N21 | BlockL1-MG2
+BlockL1-MH1;Causes de mortalité mal définies et inconnues;L2;N21;FALSE;N21 | BlockL1-MH1
+N21-16;Autres symptômes, signes ou résultats d'examen clinique précisés, non classés ailleurs;L2;N21;TRUE;N21 | N21-16
+BlockL1-NA0;Lésions traumatiques de la tête;L2;N21;FALSE;N21 | BlockL1-NA0
+BlockL1-NA2;Lésions traumatiques du cou;L2;N21;FALSE;N21 | BlockL1-NA2
+BlockL1-NA8;Lésions traumatiques du thorax;L2;N21;FALSE;N21 | BlockL1-NA8
+BlockL1-NB5;Lésions traumatiques de l'abdomen, des lombes, du rachis lombaire ou du bassin;L2;N21;FALSE;N21 | BlockL1-NB5
+BlockL1-NC1;Lésions traumatiques de l'épaule ou du bras;L2;N21;FALSE;N21 | BlockL1-NC1
+BlockL1-NC3;Lésions traumatiques du coude ou de l'avant-bras;L2;N21;FALSE;N21 | BlockL1-NC3
+BlockL1-NC5;Lésions traumatiques du poignet ou de la main;L2;N21;FALSE;N21 | BlockL1-NC5
+BlockL1-NC7;Lésions traumatiques de la hanche ou de la cuisse;L2;N21;FALSE;N21 | BlockL1-NC7
+BlockL1-NC9;Lésions traumatiques du genou ou de la jambe;L2;N21;FALSE;N21 | BlockL1-NC9
+BlockL1-ND1;Lésions traumatiques à la cheville ou au pied;L2;N21;FALSE;N21 | BlockL1-ND1
+BlockL1-ND3;Lésions traumatiques de plusieurs parties du corps;L2;N21;FALSE;N21 | BlockL1-ND3
+BlockL1-ND5;Lésions traumatiques de siège non précisé du tronc, membre ou partie du corps;L2;N21;FALSE;N21 | BlockL1-ND5
+BlockL1-ND7;Effets dus à un corps étranger ayant pénétré dans un orifice naturel;L2;N21;FALSE;N21 | BlockL1-ND7
+BlockL1-ND9;Brulures;L2;N21;FALSE;N21 | BlockL1-ND9
+BlockL1-NE4;Gelure;L2;N21;FALSE;N21 | BlockL1-NE4
+BlockL1-NE6;Effets nocifs de substances;L2;N21;FALSE;N21 | BlockL1-NE6
+BlockL1-NE8;Lésion ou préjudice provoqués par des soins chirurgicaux ou médicaux, non classés ailleurs;L2;N21;FALSE;N21 | BlockL1-NE8
+BlockL1-NF0;Effets autres ou non précisés de causes externes;L2;N21;FALSE;N21 | BlockL1-NF0
+N21-35;Autres lésions traumatiques, intoxications ou certaines autres conséquences de causes externes;L2;N21;TRUE;N21 | N21-35
+N21-36;Lésions traumatiques, intoxications ou certaines autres conséquences de causes externes, sans précision;L2;N21;TRUE;N21 | N21-36
+BlockL1-PA0;Causes non intentionnelles;L2;N21;FALSE;N21 | BlockL1-PA0
+BlockL1-PB8;Lésion auto-infligée;L2;N21;FALSE;N21 | BlockL1-PB8
+BlockL1-PD5;Agression;L2;N21;FALSE;N21 | BlockL1-PD5
+BlockL1-PF4;Intention indéterminée;L2;N21;FALSE;N21 | BlockL1-PF4
+BlockL1-PJ0;Exposition à des forces extrêmes de la nature;L2;N21;FALSE;N21 | BlockL1-PJ0
+BlockL1-PJ2;Mauvais traitement;L2;N21;FALSE;N21 | BlockL1-PJ2
+BlockL1-PJ4;Intervention de la force publique;L2;N21;FALSE;N21 | BlockL1-PJ4
+BlockL1-PJ6;Conflit armé;L2;N21;FALSE;N21 | BlockL1-PJ6
+BlockL1-PK8;Causes de lésions ou de préjudices liés aux soins;L2;N21;FALSE;N21 | BlockL1-PK8
+N21-46;Autres causes externes de morbidité ou de mortalité;L2;N21;TRUE;N21 | N21-46
+N21-47;Causes externes de morbidité ou de mortalité, sans précision;L2;N21;TRUE;N21 | N21-47
+BlockL1-QA0;Motifs de recours aux services de santé;L2;N21;FALSE;N21 | BlockL1-QA0
+BlockL1-QD5;Facteurs influant sur l'état de santé;L2;N21;FALSE;N21 | BlockL1-QD5
+N21-50;Autres facteurs précisés influant sur l'état de santé ou motifs de recours aux services de santé;L2;N21;TRUE;N21 | N21-50
+N21-51;Facteurs influant sur l'état de santé ou motifs de recours aux services de santé, sans précision;L2;N21;TRUE;N21 | N21-51
+BlockL1-RA0;Attribution internationale provisoire de nouvelles maladies d'étiologie incertaine et à usage urgent;L2;N21;FALSE;N21 | BlockL1-RA0
+BlockL1-RA2;Attribution nationale provisoire de nouvelles maladies d'étiologie incertaine;L2;N21;FALSE;N21 | BlockL1-RA2
+BlockL1-SA0;Module I;L2;N21;FALSE;N21 | BlockL1-SA0
+BlockL1-SK0;Module II;L2;N21;TRUE;N21 | BlockL1-SK0

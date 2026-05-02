@@ -59,8 +59,14 @@ const router = useRouter();
             <ListItemButton onClick={() => router.push("/personnel")}>
               <ListItemText primary="Personnel" />
             </ListItemButton>
-<ListItemButton onClick={() => router.push("/convocations")}>
+            <ListItemButton onClick={() => router.push("/referentiels/cim11")}>
+              <ListItemText primary="Référentiel CIM-11" />
+            </ListItemButton>
+            <ListItemButton onClick={() => router.push("/convocations")}>
               <ListItemText primary="Gérer les convocations" />
+            </ListItemButton>
+            <ListItemButton onClick={() => router.push("/bordereaux")}>
+              <ListItemText primary="Gérer les bordereaux" />
             </ListItemButton>
 
             

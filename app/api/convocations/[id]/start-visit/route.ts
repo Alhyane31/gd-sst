@@ -20,9 +20,14 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const dateDebut = body?.dateDebut;
+    const type = body?.type;
+    const autreType =body?.autreType;
 
     if (!dateDebut) {
-      return NextResponse.json({ message: "dateDebut requis" }, { status: 400 });
+      return NextResponse.json({ message: "Date Debut requise" }, { status: 400 });
+    }
+    if (!type) {
+      return NextResponse.json({ message: "Type requis" }, { status: 400 });
     }
 
     // ⚠️ remplace par l'id user connecté
@@ -47,9 +52,11 @@ export async function POST(req: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       const visite = await tx.visite.create({
         data: {
-          type: "ANNUELLE", // adapte si besoin
+          
           statut: "EN_COURS",
           dateDebut: new Date(dateDebut),
+          type: type,
+          autreType : autreType,
           personnelId: convocation.personnelId,
           convocationId: convocation.id,
           createdById: userId,

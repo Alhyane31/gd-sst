@@ -51,12 +51,34 @@ export async function GET(req: NextRequest, ctx: Ctx) {
   if (!id) return NextResponse.json({ error: "ID manquant ou invalide" }, { status: 400 });
 
   try {
-    const personnel = await prisma.personnel.findUnique({
-      where: { id },
-      include: { poste: true, service: true, formation: true },
-      // ✅ categorie et tags sont scalaires => renvoyés automatiquement
-    });
-
+ const personnel = await prisma.personnel.findUnique({
+  where: { id },
+  include: {
+    poste: {
+      include: {
+        details: {
+          where: { isActive: true },
+          orderBy: { libelle: "asc" },
+        },
+      },
+    },
+    posteDetail: true,
+    service: true,
+    formation: true,
+    pathologies: {
+      include: { cim11: true },
+      orderBy: { date: "desc" },
+    },
+    // ✅ au niveau personnel, pas dans poste
+    affectations: {
+      include: { formation: true, service: true },
+      orderBy: { dateAffectation: "desc" },
+    },
+    visites: {
+      orderBy: { dateDebut: "desc" },
+    },
+  },
+});
     if (!personnel) return NextResponse.json({ error: "Personnel introuvable" }, { status: 404 });
 
     return NextResponse.json(personnel);
