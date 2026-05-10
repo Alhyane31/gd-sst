@@ -3,7 +3,7 @@
 import {
   Box, Paper, Typography, Chip, Button, Divider, Stack, Grid,
   CircularProgress, Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions,
+  DialogContentText, DialogActions, IconButton, TextField, Tooltip,
 } from "@mui/material";
 import dayjs from "dayjs";
 import { useRouter, useParams } from "next/navigation";
@@ -14,6 +14,9 @@ import AddIcon from "@mui/icons-material/Add";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import EventIcon from "@mui/icons-material/Event";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
+import WorkIcon from "@mui/icons-material/Work";
+import DeleteIcon from "@mui/icons-material/Delete";
+import RateReviewIcon from "@mui/icons-material/RateReview";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,6 +57,7 @@ interface VisiteDetail {
     filledBy?: { firstName: string; lastName: string } | null;
     submittedBy?: { firstName: string; lastName: string } | null;
   } | null;
+  etudeDePoste?: { id: string; createdAt: string } | null;
   createdBy: { firstName: string; lastName: string };
   updatedBy?: { firstName: string; lastName: string } | null;
   createdAt: string;
@@ -120,13 +124,81 @@ export default function VisiteConsultationPage() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [closing, setClosing]     = useState(false);
 
+  // Avis spécialisés
+  type Avis = { id: string; nomPrenom: string; dateAvis: string; contenu: string; rapportUrl?: string | null };
+  const [avisList, setAvisList]   = useState<Avis[]>([]);
+  const [avisDialog, setAvisDialog] = useState(false);
+  const [editingAvis, setEditingAvis] = useState<Avis | null>(null);
+  const [avisForm, setAvisForm]   = useState({ nomPrenom: "", dateAvis: "", contenu: "", rapportUrl: "" });
+  const [avisSaving, setAvisSaving] = useState(false);
+  const [avisUploading, setAvisUploading] = useState(false);
+  const [avisBlobUrl, setAvisBlobUrl] = useState<string | null>(null);
+
   useEffect(() => {
     if (!id) return;
     fetch(`/api/visites/${id}`)
       .then((r) => r.json())
       .then(setVisite)
       .finally(() => setLoading(false));
+    fetch(`/api/visites/${id}/avis-specialises`)
+      .then((r) => r.json())
+      .then((data) => Array.isArray(data) && setAvisList(data));
   }, [id]);
+
+  const openAvisDialog = (a?: Avis) => {
+    setEditingAvis(a ?? null);
+    setAvisBlobUrl(null);
+    setAvisForm(a
+      ? { nomPrenom: a.nomPrenom, dateAvis: a.dateAvis.substring(0, 10), contenu: a.contenu, rapportUrl: a.rapportUrl ?? "" }
+      : { nomPrenom: "", dateAvis: "", contenu: "", rapportUrl: "" });
+    setAvisDialog(true);
+  };
+
+  const handleAvisFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const blob = URL.createObjectURL(file);
+    setAvisBlobUrl(blob);
+    setAvisUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const { url } = await res.json();
+        setAvisForm((f) => ({ ...f, rapportUrl: url }));
+      }
+    } finally {
+      setAvisUploading(false);
+    }
+  };
+
+  const saveAvis = async () => {
+    setAvisSaving(true);
+    try {
+      const url = editingAvis
+        ? `/api/visites/${id}/avis-specialises/${editingAvis.id}`
+        : `/api/visites/${id}/avis-specialises`;
+      const res = await fetch(url, {
+        method: editingAvis ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...avisForm, rapportUrl: avisForm.rapportUrl || null }),
+      });
+      if (!res.ok) return;
+      const saved: Avis = await res.json();
+      setAvisList((prev) =>
+        editingAvis ? prev.map((a) => a.id === saved.id ? saved : a) : [saved, ...prev]
+      );
+      setAvisDialog(false);
+    } finally {
+      setAvisSaving(false);
+    }
+  };
+
+  const deleteAvis = async (avisId: string) => {
+    await fetch(`/api/visites/${id}/avis-specialises/${avisId}`, { method: "DELETE" });
+    setAvisList((prev) => prev.filter((a) => a.id !== avisId));
+  };
 
   const handleCloturer = async () => {
     setClosing(true);
@@ -357,22 +429,165 @@ export default function VisiteConsultationPage() {
             </Box>
           )}
 
-          {/* Placeholder futurs formulaires spécifiques */}
+          {/* Étude de poste */}
           {visite.formulaire && (
             <Box mt={3}>
               <Divider sx={{ mb: 2 }} />
               <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Typography variant="body2" color="text.secondary">
-                  Formulaires spécifiques (expertise, DSM-5, BAT…)
-                </Typography>
-                <Button size="small" variant="outlined" startIcon={<AddIcon />} disabled>
-                  Ajouter un formulaire (bientôt)
-                </Button>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <WorkIcon color="action" fontSize="small" />
+                  <Typography variant="body2" fontWeight={500}>Étude de poste</Typography>
+                  {visite.etudeDePoste && (
+                    <Typography variant="caption" color="text.secondary">
+                      — créée le {dayjs(visite.etudeDePoste.createdAt).format("DD/MM/YYYY")}
+                    </Typography>
+                  )}
+                </Stack>
+                {visite.etudeDePoste ? (
+                  <Button
+                    size="small" variant="outlined" startIcon={<WorkIcon />}
+                    onClick={() => router.push(`/etude-de-poste/${id}`)}
+                  >
+                    Ouvrir l'étude de poste
+                  </Button>
+                ) : visite.statut !== "CLOTUREE" && visite.statut !== "ANNULEE" ? (
+                  <Button
+                    size="small" variant="contained" startIcon={<AddIcon />}
+                    onClick={async () => {
+                      const res = await fetch(`/api/visites/${id}/etude-de-poste`, { method: "POST" });
+                      if (res.ok) {
+                        setVisite((prev) => prev
+                          ? { ...prev, etudeDePoste: { id: "", createdAt: new Date().toISOString() } }
+                          : prev);
+                        router.push(`/etude-de-poste/${id}`);
+                      }
+                    }}
+                  >
+                    Ajouter une étude de poste
+                  </Button>
+                ) : null}
               </Stack>
             </Box>
           )}
         </Paper>
+
+        {/* ── Bloc Avis spécialisés ─────────────────────────────────────────── */}
+        <Paper sx={{ p: 3 }} elevation={3}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
+            <SectionTitle icon={<RateReviewIcon color="primary" />} title="Avis spécialisés" />
+            {visite.statut !== "CLOTUREE" && visite.statut !== "ANNULEE" && (
+              <Button variant="contained" startIcon={<AddIcon />} size="small" onClick={() => openAvisDialog()}>
+                Ajouter un avis
+              </Button>
+            )}
+          </Stack>
+          <Divider sx={{ mb: 2 }} />
+
+          {avisList.length === 0 ? (
+            <Box sx={{ py: 3, textAlign: "center", border: "1px dashed", borderColor: "divider", borderRadius: 2 }}>
+              <RateReviewIcon sx={{ fontSize: 36, opacity: 0.3, mb: 1 }} />
+              <Typography variant="body2" color="text.secondary">Aucun avis spécialisé enregistré.</Typography>
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {avisList.map((a) => (
+                <Paper key={a.id} variant="outlined" sx={{ p: 2 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                    <Box>
+                      <Typography variant="subtitle2" fontWeight={600}>{a.nomPrenom}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {dayjs(a.dateAvis).format("DD/MM/YYYY")}
+                      </Typography>
+                      <Typography variant="body2" mt={1} sx={{ whiteSpace: "pre-wrap" }}>{a.contenu}</Typography>
+                      {a.rapportUrl && (
+                        <Button size="small" variant="text" sx={{ mt: 0.5, p: 0 }}
+                          onClick={() => window.open(a.rapportUrl!, "_blank")}
+                        >
+                          📄 Voir le rapport joint
+                        </Button>
+                      )}
+                    </Box>
+                    {visite.statut !== "CLOTUREE" && visite.statut !== "ANNULEE" && (
+                      <Stack direction="row" spacing={0.5} flexShrink={0} ml={2}>
+                        <Tooltip title="Modifier">
+                          <IconButton size="small" onClick={() => openAvisDialog(a)}><EditIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        <Tooltip title="Supprimer">
+                          <IconButton size="small" color="error" onClick={() => deleteAvis(a.id)}><DeleteIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                      </Stack>
+                    )}
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </Paper>
       </Stack>
+
+      {/* ── Dialog avis spécialisé ────────────────────────────────────────── */}
+      <Dialog open={avisDialog} onClose={() => setAvisDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingAvis ? "Modifier l'avis spécialisé" : "Ajouter un avis spécialisé"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="Nom et prénom du Professeur référent *"
+              fullWidth size="small"
+              value={avisForm.nomPrenom}
+              onChange={(e) => setAvisForm((f) => ({ ...f, nomPrenom: e.target.value }))}
+            />
+            <TextField
+              label="Date de l'avis spécialisé *"
+              type="date" size="small"
+              value={avisForm.dateAvis}
+              onChange={(e) => setAvisForm((f) => ({ ...f, dateAvis: e.target.value }))}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              label="Contenu de l'avis médical *"
+              fullWidth multiline minRows={4} size="small"
+              value={avisForm.contenu}
+              onChange={(e) => setAvisForm((f) => ({ ...f, contenu: e.target.value }))}
+            />
+            <Box>
+              <Typography variant="body2" mb={0.5}>Rapport joint (optionnel)</Typography>
+              <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                <Button
+                  variant="outlined" component="label" size="small"
+                  startIcon={avisUploading ? <CircularProgress size={14} /> : undefined}
+                  disabled={avisUploading}
+                >
+                  {avisUploading ? "Envoi..." : "Joindre un rapport"}
+                  <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={handleAvisFileChange} />
+                </Button>
+                {avisForm.rapportUrl && (
+                  <Typography variant="caption" color="text.secondary">
+                    {avisForm.rapportUrl.split("/").pop()}
+                  </Typography>
+                )}
+                {(avisBlobUrl ?? avisForm.rapportUrl) && !avisUploading && (
+                  <Button size="small" variant="text"
+                    onClick={() => window.open((avisBlobUrl ?? avisForm.rapportUrl)!, "_blank")}
+                  >
+                    Visualiser
+                  </Button>
+                )}
+              </Stack>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAvisDialog(false)}>Annuler</Button>
+          <Button
+            variant="contained"
+            disabled={avisSaving || !avisForm.nomPrenom || !avisForm.dateAvis || !avisForm.contenu}
+            onClick={saveAvis}
+            startIcon={avisSaving ? <CircularProgress size={16} /> : undefined}
+          >
+            {editingAvis ? "Enregistrer" : "Ajouter"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* ── Dialog confirmation clôture ───────────────────────────────────── */}
       <Dialog open={confirmClose} onClose={() => setConfirmClose(false)}>

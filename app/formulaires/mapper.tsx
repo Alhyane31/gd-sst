@@ -1,6 +1,6 @@
 import type { FormData } from "@/app/formulaires/components/types";
 
-const emptyData: FormData = {
+export const emptyData: FormData = {
   nom: "",
   prenom: "",
   dateNaissance: "",
@@ -9,6 +9,8 @@ const emptyData: FormData = {
 
   formation: "",
   service: "",
+  poste: "",
+  detailPoste: "",
   dateAffectationChu: "",
   autreEtablissement: "non",
   lieuTravail: "",
@@ -23,6 +25,21 @@ const emptyData: FormData = {
   nbNuitsMois: "",
   horairesNuit: "",
 
+  nombrePersonnelsEquipe: "",
+  tachesProfessionnelles: "",
+  presenceAideTechnique: "non",
+  posturesPredominantes: "",
+  presenceContraintes: "non",
+  typesContraintes: [],
+
+  examenCliniqueComplet: "",
+  examensPracliniques: "",
+  diagnosticsAnterieurs: "",
+  maladiesDecouvertes: "",
+  diagnosticsSuspectes: "",
+  decisionAptitude: "",
+  recommandations: "",
+
   pathologiesHistory: [],
   pathologiesToAdd: [],
   antecedents: "",
@@ -30,6 +47,24 @@ const emptyData: FormData = {
   nePlusNecessiterSuivi:    null,
   motifsSuiviRapproche:     [],
   prochainVisiteMois:       null,
+
+  cmTypeCertificat:  "",
+  cmDateDebut:       "",
+  cmDateFin:         "",
+  cmNombreJours:     "",
+  cmDiagnostic:      "",
+  cmAvisSst:         "",
+  cmRecommandations: "",
+
+  expertiseDateReception: "",
+  expertiseSource:        "",
+  expertiseMotif:         "",
+  expertiseConclusion:    "",
+  expertiseDecision:      "",
+  expertiseAmenagementRecommandations: "",
+  expertiseReclassementPoste:          "",
+  expertiseCertificatRepriseUrl:       "",
+  expertiseDateTransmission:           "",
 };
 
 function toDateInput(value?: string | Date | null) {
@@ -105,6 +140,27 @@ export function mapApiToFormData(payload: any): FormData {
     heuresNuitMois:   rp?.heuresNuitMois   ?? raw?.heuresNuitMois   ?? "",
     joursReposAnnee:  rp?.joursReposAnnee  ?? raw?.joursReposAnnee  ?? "",
 
+    // ---- ACTIVITES ET CONTRAINTES PROFESSIONNELLES ----
+    nombrePersonnelsEquipe: f.activitesContraintes?.nombrePersonnelsEquipe ?? raw?.nombrePersonnelsEquipe ?? "",
+    tachesProfessionnelles: f.activitesContraintes?.tachesProfessionnelles ?? raw?.tachesProfessionnelles ?? "",
+    presenceAideTechnique:  f.activitesContraintes?.presenceAideTechnique  ?? raw?.presenceAideTechnique  ?? "non",
+    posturesPredominantes:  f.activitesContraintes?.posturesPredominantes  ?? raw?.posturesPredominantes  ?? "",
+    presenceContraintes:    f.activitesContraintes?.presenceContraintes    ?? raw?.presenceContraintes    ?? "non",
+    typesContraintes: Array.isArray(f.activitesContraintes?.typesContraintes)
+      ? f.activitesContraintes.typesContraintes
+      : Array.isArray(raw?.typesContraintes)
+      ? raw.typesContraintes
+      : [],
+
+    // ---- EXAMEN CLINIQUE ET APTITUDE ----
+    examenCliniqueComplet: f.examenClinique?.examenCliniqueComplet ?? raw?.examenCliniqueComplet ?? "",
+    examensPracliniques:   f.examenClinique?.examensPracliniques   ?? raw?.examensPracliniques   ?? "",
+    diagnosticsAnterieurs: f.examenClinique?.diagnosticsAnterieurs ?? raw?.diagnosticsAnterieurs ?? "",
+    maladiesDecouvertes:   f.examenClinique?.maladiesDecouvertes   ?? raw?.maladiesDecouvertes   ?? "",
+    diagnosticsSuspectes:  f.examenClinique?.diagnosticsSuspectes  ?? raw?.diagnosticsSuspectes  ?? "",
+    decisionAptitude:      f.examenClinique?.decisionAptitude      ?? raw?.decisionAptitude      ?? "",
+    recommandations:       f.examenClinique?.recommandations       ?? raw?.recommandations       ?? "",
+
     // ---- ANTECEDENTS ----
     pathologiesHistory: (p.pathologiesHistory ?? p.pathologies ?? []).map((x: any) => ({
       cim11Code:    x.cim11?.code    ?? "",
@@ -131,5 +187,25 @@ export function mapApiToFormData(payload: any): FormData {
     nePlusNecessiterSuivi:    f.nePlusNecessiterSuivi    ?? null,
     motifsSuiviRapproche:     Array.isArray(f.motifsSuiviRapproche) ? f.motifsSuiviRapproche : [],
     prochainVisiteMois:       f.prochainVisiteMois != null ? Number(f.prochainVisiteMois) : null,
+
+    // ---- CERTIFICAT MÉDICAL ----
+    cmTypeCertificat:  (f.certMedical?.typeCertificat ?? "") as any,
+    cmDateDebut:       toDateInput(f.certMedical?.dateDebut),
+    cmDateFin:         toDateInput(f.certMedical?.dateFin),
+    cmNombreJours:     f.certMedical?.nombreJours != null ? String(f.certMedical.nombreJours) : "",
+    cmDiagnostic:      f.certMedical?.diagnostic      ?? "",
+    cmAvisSst:         (f.certMedical?.avisSst         ?? "") as any,
+    cmRecommandations: f.certMedical?.recommandations  ?? "",
+
+    // ---- EXPERTISE ----
+    expertiseDateReception: toDateInput(f.expertise?.dateReception),
+    expertiseSource:        (f.expertise?.source ?? "") as any,
+    expertiseMotif:         (f.expertise?.motif  ?? "") as any,
+    expertiseConclusion:    f.expertise?.conclusion    ?? "",
+    expertiseDecision:      (f.expertise?.decision     ?? "") as any,
+    expertiseAmenagementRecommandations: f.expertise?.amenagementRecommandations ?? "",
+    expertiseReclassementPoste:          f.expertise?.reclassementPoste          ?? "",
+    expertiseCertificatRepriseUrl:       f.expertise?.certificatRepriseUrl       ?? "",
+    expertiseDateTransmission:           toDateInput(f.expertise?.dateTransmission),
   };
 }

@@ -1,9 +1,19 @@
 "use client";
 
-import { Box, Button, MenuItem, Paper, Stack, TextField } from "@mui/material";
+import {
+  Box, Button, Checkbox, Chip, FormControl, InputLabel,
+  ListItemText, MenuItem, Paper, Select, Stack, TextField,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import { Formation, Poste, Service, ConvocationsFilters } from "../types";
+import { Formation, Poste, Service, ConvocationsFilters, ConvocationStatut } from "../types";
+
+const STATUT_OPTIONS: { value: ConvocationStatut; label: string }[] = [
+  { value: "A_CONVOQUER",         label: "À convoquer" },
+  { value: "CONVOCATION_GENEREE", label: "Convocation générée" },
+  { value: "ENVOYEE",             label: "Envoyée" },
+  { value: "ANNULEE",             label: "Annulée" },
+];
 
 type Props = {
   postes: Poste[];
@@ -34,7 +44,7 @@ export default function ConvocationsFiltersBar({
 
   return (
     <Paper sx={{ p: 3, mb: 4 }} elevation={12}>
-      <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
+      <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" alignItems="flex-start">
         {/* Personnel */}
         <TextField
           size="small"
@@ -61,9 +71,7 @@ export default function ConvocationsFiltersBar({
         >
           <MenuItem value="">Tous</MenuItem>
           {postes.map((p) => (
-            <MenuItem key={p.id} value={p.id}>
-              {p.libelle}
-            </MenuItem>
+            <MenuItem key={p.id} value={p.id}>{p.libelle}</MenuItem>
           ))}
         </TextField>
 
@@ -74,36 +82,44 @@ export default function ConvocationsFiltersBar({
           value={draft.formationId}
           sx={field20}
           onChange={(e) =>
-            onDraftChange({
-              formationId: e.target.value,
-              serviceId: "", // reset service si formation change
-            })
+            onDraftChange({ formationId: e.target.value, serviceIds: [] })
           }
         >
           <MenuItem value="">Toutes</MenuItem>
           {formations.map((f) => (
-            <MenuItem key={f.id} value={f.id}>
-              {f.libelle}
-            </MenuItem>
+            <MenuItem key={f.id} value={f.id}>{f.libelle}</MenuItem>
           ))}
         </TextField>
 
-        <TextField
-          select
-          size="small"
-          label="Service"
-          value={draft.serviceId}
-          disabled={!draft.formationId}
-          sx={field20}
-          onChange={(e) => onDraftChange({ serviceId: e.target.value })}
-        >
-          <MenuItem value="">Tous</MenuItem>
-          {services.map((s) => (
-            <MenuItem key={s.id} value={s.id}>
-              {s.libelle}
-            </MenuItem>
-          ))}
-        </TextField>
+        {/* Service — multi-select */}
+        <FormControl size="small" sx={field20} disabled={!draft.formationId}>
+          <InputLabel id="conv-services-label">Service</InputLabel>
+          <Select
+            multiple
+            labelId="conv-services-label"
+            label="Service"
+            value={draft.serviceIds}
+            onChange={(e) => onDraftChange({ serviceIds: e.target.value as string[] })}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {(selected as string[]).map((v) => (
+                  <Chip
+                    key={v}
+                    label={services.find((s) => s.id === v)?.libelle ?? v}
+                    size="small"
+                  />
+                ))}
+              </Box>
+            )}
+          >
+            {services.map((s) => (
+              <MenuItem key={s.id} value={s.id}>
+                <Checkbox checked={draft.serviceIds.includes(s.id)} />
+                <ListItemText primary={s.libelle} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <TextField
           select
@@ -117,8 +133,6 @@ export default function ConvocationsFiltersBar({
           <MenuItem value="VP">VP</MenuItem>
           <MenuItem value="SMR">SMR</MenuItem>
         </TextField>
-
-        
 
         {/* Convocation */}
         <TextField
@@ -134,24 +148,35 @@ export default function ConvocationsFiltersBar({
           <MenuItem value="RAPPROCHEE">Rapprochée</MenuItem>
         </TextField>
 
-        <TextField
-          select
-          size="small"
-          label="Statut convocation"
-          value={draft.statut}
-          sx={field20}
-          onChange={(e) => onDraftChange({ statut: e.target.value as any })}
-        >
-          <MenuItem value="">Tous</MenuItem>
-          <MenuItem value="A_CONVOQUER">À convoquer</MenuItem>
-          <MenuItem value="CONVOCATION_GENEREE">Convocation générée</MenuItem>
-          <MenuItem value="ENVOYEE">Envoyée</MenuItem>
-          <MenuItem value="A_TRAITER">À traiter</MenuItem>
-          <MenuItem value="A_RELANCER">À relancer</MenuItem>
-          <MenuItem value="RELANCEE">Relancée</MenuItem>
-          <MenuItem value="REALISEE">Réalisée</MenuItem>
-          <MenuItem value="ANNULEE">Annulée</MenuItem>
-        </TextField>
+        {/* Statut convocation — multi-select */}
+        <FormControl size="small" sx={field20}>
+          <InputLabel id="conv-statuts-label">Statut convocation</InputLabel>
+          <Select
+            multiple
+            labelId="conv-statuts-label"
+            label="Statut convocation"
+            value={draft.statuts}
+            onChange={(e) => onDraftChange({ statuts: e.target.value as ConvocationStatut[] })}
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {(selected as ConvocationStatut[]).map((v) => (
+                  <Chip
+                    key={v}
+                    label={STATUT_OPTIONS.find((o) => o.value === v)?.label ?? v}
+                    size="small"
+                  />
+                ))}
+              </Box>
+            )}
+          >
+            {STATUT_OPTIONS.map((o) => (
+              <MenuItem key={o.value} value={o.value}>
+                <Checkbox checked={draft.statuts.includes(o.value)} />
+                <ListItemText primary={o.label} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <TextField
           select
@@ -168,8 +193,6 @@ export default function ConvocationsFiltersBar({
           <MenuItem value="RELANCE_3">Relance 3</MenuItem>
         </TextField>
 
-       
-
         <TextField
           select
           size="small"
@@ -184,12 +207,12 @@ export default function ConvocationsFiltersBar({
           <MenuItem value="RELANCE">Relancé</MenuItem>
         </TextField>
 
-        {/* Dates */}
+        {/* Dates convocation */}
         <TextField
           size="small"
           type="date"
           label="Convocation du"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
           value={draft.dateConvocFrom}
           sx={field20}
           onChange={(e) => onDraftChange({ dateConvocFrom: e.target.value })}
@@ -198,12 +221,51 @@ export default function ConvocationsFiltersBar({
           size="small"
           type="date"
           label="Convocation au"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
           value={draft.dateConvocTo}
           sx={field20}
           onChange={(e) => onDraftChange({ dateConvocTo: e.target.value })}
         />
-        
+
+        {/* Dates visite prévue */}
+        <TextField
+          size="small"
+          type="date"
+          label="Visite prévue du"
+          slotProps={{ inputLabel: { shrink: true } }}
+          value={draft.datePrevueFrom}
+          sx={field20}
+          onChange={(e) => onDraftChange({ datePrevueFrom: e.target.value })}
+        />
+        <TextField
+          size="small"
+          type="date"
+          label="Visite prévue au"
+          slotProps={{ inputLabel: { shrink: true } }}
+          value={draft.datePrevueTo}
+          sx={field20}
+          onChange={(e) => onDraftChange({ datePrevueTo: e.target.value })}
+        />
+
+        {/* Dates visite réalisée */}
+        <TextField
+          size="small"
+          type="date"
+          label="Visite réalisée du"
+          slotProps={{ inputLabel: { shrink: true } }}
+          value={draft.dateVisiteRealiseeFrom}
+          sx={field20}
+          onChange={(e) => onDraftChange({ dateVisiteRealiseeFrom: e.target.value })}
+        />
+        <TextField
+          size="small"
+          type="date"
+          label="Visite réalisée au"
+          slotProps={{ inputLabel: { shrink: true } }}
+          value={draft.dateVisiteRealiseeTO}
+          sx={field20}
+          onChange={(e) => onDraftChange({ dateVisiteRealiseeTO: e.target.value })}
+        />
 
         {/* Actions */}
         <Box

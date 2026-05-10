@@ -4,13 +4,16 @@ import {
   Box,
   Button,
   Chip,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import dayjs from "dayjs";
 
 type ConvocationStatut =
@@ -135,7 +138,17 @@ export default function BordereauConvocationsTable({
                         <Chip size="small" label={STATUT_LABELS[r.statut] ?? r.statut}  variant="outlined" />
                       </TableCell>
                       <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType] ?? r.convocationType}</TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                        <Tooltip title="Télécharger convocation PDF">
+                          <IconButton
+                            size="small"
+                            component="a"
+                            href={`/api/convocations/${r.id}/pdf`}
+                            target="_blank"
+                          >
+                            <PictureAsPdfIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <Button
                           size="small"
                           variant="outlined"

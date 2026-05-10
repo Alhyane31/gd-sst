@@ -11,6 +11,19 @@ enum Role {
   USER
 }
 
+model AppRole {
+  id               String   @id @default(uuid())
+  name             String   @unique
+  description      String?
+  menuAccess       String[] @default([])
+  canValidateForms Boolean  @default(false)
+
+  users     User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id        String  @id @default(uuid())
   email     String  @unique
@@ -19,6 +32,9 @@ model User {
   lastName  String
   role      Role    @default(USER)
   isActive  Boolean @default(true)
+
+  appRoleId String?
+  appRole   AppRole? @relation(fields: [appRoleId], references: [id])
 
   // ✅ back relations
   visitesCreees    Visite[] @relation("VisiteCreatedBy")
@@ -52,6 +68,7 @@ model Service {
   id      String @id @default(uuid())
   code    String @unique
   libelle String
+  chefDeService String?
 
   formationId String
   formation   Formation @relation(fields: [formationId], references: [id])
@@ -133,6 +150,7 @@ posteDetailId String?
   formation       Formation @relation(fields: [formationId], references: [id])
   dateAffectation DateTime?
   dateProchainVisite DateTime?
+  dateSortie DateTime?
 
 
   categorie    PersonnelCategorie            @default(VP)
@@ -142,6 +160,8 @@ posteDetailId String?
   affectations PersonnelAffectationHistory[]
   convocations Convocation[]
   pathologies  PersonnelPathologie[]
+  expertises    Expertise[]
+  etudesDePoste EtudeDePoste[]
   createdAt    DateTime                      @default(now())
   updatedAt    DateTime                      @updatedAt
 }
@@ -220,7 +240,9 @@ model Visite {
   convocationId String?      @unique
   convocation   Convocation? @relation(fields: [convocationId], references: [id])
 
-  formulaire Formulaire?
+  formulaire       Formulaire?
+  etudeDePoste     EtudeDePoste?
+  avisSpecialises  AvisSpecialise[]
 
   // ✅ AUDIT
   createdById String
@@ -286,6 +308,8 @@ model Formulaire {
   // (JSON flexible : antécédents, examen, etc.)
   // -------------------------
   data Json?
+
+  expertise Expertise?
 
   // Flags de propagation
   // (utile si tu veux tracer si le formulaire a mis à jour Personnel)
@@ -457,6 +481,40 @@ enum FormSectionKey {
   INFORMATIONS_PROFESSIONNELLES
   ANTECEDENTS
   RENSEIGNEMENTS_PROFESSIONNELS
+  ACTIVITES_CONTRAINTES_PROFESSIONNELLES
+  EXAMEN_CLINIQUE_APTITUDE
+  SUIVI_RAPPROCHE
+  CERTIFICAT_MEDICALE
+  IDENTIFICATION_EXPERTISE
+  RESULTAT_EXPERTISE
+}
+
+enum ExpertiseSource {
+  CHEF_SERVICE
+  PERSONNEL
+  COMMISSION_MEDICALE
+  DIRECTION
+  SERVICE_SANTE_TRAVAIL
+}
+
+enum ExpertiseMotif {
+  EVALUATION_APTITUDE
+  MUTATION_SANTE
+  RETRAITE_ANTICIPEE
+  ABSENCE_SANTE
+  REPRISE_ARRET_PSYCHIATRIQUE
+  DISPONIBILITE_SANTE
+  CONGE_MMD
+  CONGE_MLD
+}
+
+enum ExpertiseDecision {
+  AMENAGEMENT_POSTE
+  RECLASSEMENT_PROFESSIONNEL
+  PAS_AMENAGEMENT
+  DECISION_DIFFEREE
+  APTITUDE_REPRISE
+  INAPTITUDE_REPRISE
 }
 
 enum StatutSocial {
@@ -464,4 +522,110 @@ enum StatutSocial {
   MARIE
   DIVORCE
   VEUF
+}
+
+model Expertise {
+  id String @id @default(uuid())
+
+  personnelId String
+  personnel   Personnel @relation(fields: [personnelId], references: [id])
+
+  formulaireId String?    @unique
+  formulaire   Formulaire? @relation(fields: [formulaireId], references: [id])
+
+  // Identification
+  dateReception DateTime?
+  source        ExpertiseSource?
+  motif         ExpertiseMotif?
+
+  // Résultat
+  conclusion   String?
+  decision     ExpertiseDecision?
+
+  // Sous-questions conditionnelles
+  amenagementRecommandations String?   // Q92 — si AMENAGEMENT_POSTE
+  reclassementPoste          String?   // Q93 — si RECLASSEMENT_PROFESSIONNEL
+  certificatRepriseUrl       String?   // Q94 — si APTITUDE_REPRISE
+  dateTransmission           DateTime? // Q95 — commun à plusieurs décisions
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personnelId])
+}
+
+enum VentilationQualite {
+  BONNE
+  MOYENNE
+  INSUFFISANTE
+  NULLE
+}
+
+enum EclairageType {
+  NATUREL
+  ARTIFICIEL
+  MIXTE
+}
+
+enum EclairageSuffisance {
+  BON
+  MOYEN
+  INSUFFISANT
+}
+
+model EtudeDePoste {
+  id String @id @default(uuid())
+
+  visiteId    String  @unique
+  visite      Visite  @relation(fields: [visiteId], references: [id])
+
+  personnelId String
+  personnel   Personnel @relation(fields: [personnelId], references: [id])
+
+  // Q70
+  etudeEnvisagee    Boolean?
+  // Q71
+  dateEnvoiDemande  DateTime?
+
+  // Q72-74 — Données professionnelles (si Q70 = Oui)
+  dureeCycleMinutes    Int?
+  descriptionCycle     String?
+  nombrePatientsActes  Int?
+
+  // Q75-81 — Environnement (si Q70 = Oui)
+  niveauBruitDb              Float?
+  humiditeRelative           Float?
+  ventilation                VentilationQualite?
+  commentaireEnvironnement   String?
+  eclairageType              EclairageType?
+  eclairageSuffisance        EclairageSuffisance?
+  eclairementLux             Float?
+
+  // Q82-84 — Charge physique/mentale (toujours)
+  chargePhysiqueUrl  String?
+  chargeMentaleUrl   String?
+  commentaireFinal   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visiteId])
+  @@index([personnelId])
+}
+
+model AvisSpecialise {
+  id        String   @id @default(uuid())
+
+  visiteId  String
+  visite    Visite   @relation(fields: [visiteId], references: [id])
+
+  nomPrenom  String
+  dateAvis   DateTime
+  contenu    String
+  rapportUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visiteId])
 }

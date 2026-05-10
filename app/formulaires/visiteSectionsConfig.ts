@@ -22,8 +22,10 @@ export type SectionConfig = {
 const S_INFOS_GENERALES:        SectionConfig = { key: "INFORMATIONS_GENERALES",        label: "Informations générales" };
 const S_INFOS_PRO:              SectionConfig = { key: "INFORMATIONS_PROFESSIONNELLES", label: "Informations professionnelles" };
 const S_RENS_PRO:               SectionConfig = { key: "RENSEIGNEMENTS_PROFESSIONNELS", label: "Renseignements professionnels" };
+const S_ACTIVITES_CONTRAINTES:  SectionConfig = { key: "ACTIVITES_CONTRAINTES_PROFESSIONNELLES", label: "Activités et contraintes professionnelles" };
 const S_ANTECEDENTS:            SectionConfig = { key: "ANTECEDENTS",                   label: "Antécédents" };
-const S_SUIVI_RAPPROCHE:        SectionConfig = { key: "SUIVI_RAPPROCHE",               label: "Suivi rapproché" };
+const S_EXAMEN_CLINIQUE:        SectionConfig = { key: "EXAMEN_CLINIQUE_APTITUDE",      label: "Examens clinique et paracliniques" };
+const S_SUIVI_RAPPROCHE:        SectionConfig = { key: "SUIVI_RAPPROCHE",               label: "Décision d'aptitude et suivi" };
 const S_CERTIFICAT_MEDICALE:    SectionConfig = { key: "CERTIFICAT_MEDICALE",           label: "Certificat médical" };
 const S_IDENTIFICATION_EXPERTISE: SectionConfig = { key: "IDENTIFICATION_EXPERTISE",   label: "Identification expertise" };
 const S_RESULTAT_EXPERTISE:     SectionConfig = { key: "RESULTAT_EXPERTISE",            label: "Résultat de l'expertise" };
@@ -32,7 +34,9 @@ const SECTIONS_STANDARD: SectionConfig[] = [
   S_INFOS_GENERALES,
   S_INFOS_PRO,
   S_RENS_PRO,
+  S_ACTIVITES_CONTRAINTES,
   S_ANTECEDENTS,
+  S_EXAMEN_CLINIQUE,
   S_SUIVI_RAPPROCHE,
 ];
 
@@ -49,7 +53,9 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_INFOS_GENERALES,
     S_INFOS_PRO,
     S_RENS_PRO,
+    S_ACTIVITES_CONTRAINTES,
     S_ANTECEDENTS,
+    S_EXAMEN_CLINIQUE,
     S_CERTIFICAT_MEDICALE,
   ],
 
@@ -58,9 +64,9 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_IDENTIFICATION_EXPERTISE,
     S_INFOS_PRO,
     S_RENS_PRO,
+    S_ACTIVITES_CONTRAINTES,
     S_ANTECEDENTS,
-    
-    
+    S_EXAMEN_CLINIQUE,
     S_RESULTAT_EXPERTISE,
   ],
 };

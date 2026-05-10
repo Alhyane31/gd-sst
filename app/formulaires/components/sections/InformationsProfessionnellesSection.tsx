@@ -17,7 +17,7 @@ type Option = {
   id: string;
   libelle: string;
   code?: string;
-  categorieForm?: "A" | "B";
+  categorieForm?: "A" | "B" | "C" | "D";
   details?: DetailOption[];
 };
 

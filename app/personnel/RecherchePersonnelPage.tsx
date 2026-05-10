@@ -1,21 +1,9 @@
 "use client";
 
 import {
-  Box,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  IconButton,
-  Chip,
-  MenuItem,
-  TablePagination,
-  Stack,
+  Box, Paper, TextField, Button, Typography, Table, TableBody, TableCell,
+  TableHead, TableRow, IconButton, Chip, MenuItem, TablePagination, Stack,
+  FormControl, InputLabel, Select, ListItemText, Checkbox, FormControlLabel,
 } from "@mui/material";
 import dayjs from "dayjs";
 import SearchIcon from "@mui/icons-material/Search";
@@ -23,7 +11,6 @@ import ClearIcon from "@mui/icons-material/Clear";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
-import Checkbox from "@mui/material/Checkbox";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
@@ -31,6 +18,10 @@ import { useSession, signIn } from "next-auth/react";
 import { buildPersonnelQuery, type Filters, type PersonnelCategorie } from "./components/buildPersonnelQuery";
 import RechercheActionsBar from "./components/RechercheActionsBar";
 import BulkConvocationDialog from "./components/BulkConvocationDialog";
+import PersonnelCreateDialog from "./components/PersonnelCreateDialog";
+import RadierDialog from "./components/RadierDialog";
+import ImportPersonnelDialog from "./components/ImportPersonnelDialog";
+import ImportRadiationDialog from "./components/ImportRadiationDialog";
 
 interface Personnel {
   id: string;
@@ -42,60 +33,53 @@ interface Personnel {
   isActive: boolean;
   categorie?: PersonnelCategorie;
   dateProchainVisite?: string | null;
-  convocations?: Array<{
-    id: string;
-    datePrevue: string | null;
-  }>;
-  visites?: Array<{
-    id: string;
-    dateDebut: string;
-    statut: string;
-  }>;
+  convocations?: Array<{ id: string; datePrevue: string | null }>;
+  visites?: Array<{ id: string; dateDebut: string; statut: string }>;
 }
 
 interface Poste     { id: string; libelle: string }
 interface Formation { id: string; libelle: string }
 interface Service   { id: string; libelle: string }
 
-type ApiResponse = {
-  items: Personnel[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
-
+type ApiResponse = { items: Personnel[]; total: number; page: number; pageSize: number };
 
 export default function RecherchePersonnelPage() {
   const { status } = useSession();
   const router = useRouter();
 
-  const [openBulk, setOpenBulk]   = useState(false);
-  const [bulkMode, setBulkMode]   = useState<"ALL" | "SELECTED">("ALL");
+  // ── Convocation bulk ──
+  const [openBulk, setOpenBulk] = useState(false);
+  const [bulkMode, setBulkMode] = useState<"ALL" | "SELECTED">("ALL");
+  const setOpenBulkMode = (m: "ALL" | "SELECTED") => { setBulkMode(m); setOpenBulk(true); };
 
-  const setOpenBulkMode = (m: "ALL" | "SELECTED") => {
-    setBulkMode(m);
-    setOpenBulk(true);
-  };
+  // ── Dialogs ──
+  const [openCreate,    setOpenCreate]    = useState(false);
+  const [openRadier,    setOpenRadier]    = useState(false);
+  const [radierTarget,  setRadierTarget]  = useState<Personnel | null>(null);
+  const [openImportP,   setOpenImportP]   = useState(false);
+  const [openImportR,   setOpenImportR]   = useState(false);
 
+  // ── Référentiels ──
   const [postes,     setPostes]     = useState<Poste[]>([]);
   const [formations, setFormations] = useState<Formation[]>([]);
   const [services,   setServices]   = useState<Service[]>([]);
 
   const empty: Filters = {
-    nom: "", prenom: "", poste: "", service: "", formation: "", categorie: "",
+    nom: "", prenom: "", poste: "", services: [], formation: "", categorie: "",
     prochaineVisiteFrom: "", prochaineVisiteTo: "",
     convocFrom: "", convocTo: "",
     derniereVisiteFrom: "", derniereVisiteTo: "",
+    showInactif: false,
   };
 
-  const [filtersDraft,    setFiltersDraft]    = useState<Filters>(empty);
-  const [appliedFilters,  setAppliedFilters]  = useState<Filters>(empty);
-  const [page,            setPage]            = useState(0);
-  const [rowsPerPage,     setRowsPerPage]     = useState(10);
-  const [personnels,      setPersonnels]      = useState<Personnel[]>([]);
-  const [total,           setTotal]           = useState(0);
-  const [loading,         setLoading]         = useState(false);
-  const [selectedIds,     setSelectedIds]     = useState<string[]>([]);
+  const [filtersDraft,   setFiltersDraft]   = useState<Filters>(empty);
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(empty);
+  const [page,           setPage]           = useState(0);
+  const [rowsPerPage,    setRowsPerPage]    = useState(10);
+  const [personnels,     setPersonnels]     = useState<Personnel[]>([]);
+  const [total,          setTotal]          = useState(0);
+  const [loading,        setLoading]        = useState(false);
+  const [selectedIds,    setSelectedIds]    = useState<string[]>([]);
 
   useEffect(() => { setSelectedIds([]); }, [appliedFilters, page, rowsPerPage]);
 
@@ -172,10 +156,9 @@ export default function RecherchePersonnelPage() {
       };
       const header = ["Nom", "Prénom", "Poste", "Service", "Formation", "Catégorie", "Date prochaine visite", "Dernière convocation"];
       const lines: string[] = [header.join(";")];
-      const pageSize = 500;
       let p = 0, fetched = 0;
       while (true) {
-        const qs = buildPersonnelQuery(appliedFilters, p, pageSize);
+        const qs = buildPersonnelQuery(appliedFilters, p, 500);
         const res = await fetch(`/api/personnel?${qs}`);
         if (!res.ok) break;
         const data: ApiResponse = await res.json();
@@ -198,22 +181,21 @@ export default function RecherchePersonnelPage() {
       const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `personnel_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      a.href = url; a.download = `personnel_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     } catch { alert("Erreur export"); }
   };
 
-  // colonnes : checkbox + Nom/Prénom + Poste + Service + Formation + Catégorie + Date prochaine visite + Dernière convoc (date + statut) + Statut + Actions
-  const COL_COUNT = 10;
+  const handleOpenRadier = (p: Personnel) => { setRadierTarget(p); setOpenRadier(true); };
+  const refresh = () => fetchPersonnels(appliedFilters, page, rowsPerPage);
+
+  const COL_COUNT = 11;
 
   return (
     <Box p={4}>
       <Typography variant="h4" mb={3}>Recherche du personnel</Typography>
 
+      {/* Filtres */}
       <Paper sx={{ p: 3, mb: 4 }} elevation={12}>
         <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
           <TextField size="small" label="Nom"    name="nom"    value={filtersDraft.nom}    onChange={handleDraftChange} sx={field20} />
@@ -224,24 +206,29 @@ export default function RecherchePersonnelPage() {
             {postes.map((p) => <MenuItem key={p.id} value={p.id}>{p.libelle}</MenuItem>)}
           </TextField>
 
-          <TextField
-            select size="small" label="Formation" name="formation"
-            value={filtersDraft.formation}
-            onChange={(e) => setFiltersDraft({ ...filtersDraft, formation: e.target.value, service: "" })}
-            sx={field20}
-          >
+          <TextField select size="small" label="Formation" name="formation" value={filtersDraft.formation}
+            onChange={(e) => setFiltersDraft({ ...filtersDraft, formation: e.target.value, services: [] })} sx={field20}>
             <MenuItem value="">Toutes</MenuItem>
             {formations.map((f) => <MenuItem key={f.id} value={f.id}>{f.libelle}</MenuItem>)}
           </TextField>
 
-          <TextField
-            select size="small" label="Service" name="service"
-            value={filtersDraft.service} onChange={handleDraftChange}
-            disabled={!filtersDraft.formation} sx={field20}
-          >
-            <MenuItem value="">Tous</MenuItem>
-            {services.map((s) => <MenuItem key={s.id} value={s.id}>{s.libelle}</MenuItem>)}
-          </TextField>
+          <FormControl size="small" sx={field20} disabled={!filtersDraft.formation}>
+            <InputLabel id="pers-services-label">Service</InputLabel>
+            <Select multiple labelId="pers-services-label" label="Service" value={filtersDraft.services}
+              onChange={(e) => setFiltersDraft({ ...filtersDraft, services: e.target.value as string[] })}
+              renderValue={(selected) => (
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                  {(selected as string[]).map((v) => <Chip key={v} label={services.find((s) => s.id === v)?.libelle ?? v} size="small" />)}
+                </Box>
+              )}>
+              {services.map((s) => (
+                <MenuItem key={s.id} value={s.id}>
+                  <Checkbox checked={filtersDraft.services.includes(s.id)} />
+                  <ListItemText primary={s.libelle} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           <TextField select size="small" label="Catégorie" name="categorie" value={filtersDraft.categorie} onChange={handleDraftChange} sx={field20}>
             <MenuItem value="">Toutes</MenuItem>
@@ -250,25 +237,31 @@ export default function RecherchePersonnelPage() {
           </TextField>
 
           <TextField size="small" type="date" label="Prochaine visite (du)" name="prochaineVisiteFrom"
-            value={filtersDraft.prochaineVisiteFrom} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.prochaineVisiteFrom} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
           <TextField size="small" type="date" label="Prochaine visite (au)" name="prochaineVisiteTo"
-            value={filtersDraft.prochaineVisiteTo} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.prochaineVisiteTo} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
 
           <TextField size="small" type="date" label="Dernière convocation (du)" name="convocFrom"
-            value={filtersDraft.convocFrom} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.convocFrom} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
           <TextField size="small" type="date" label="Dernière convocation (au)" name="convocTo"
-            value={filtersDraft.convocTo} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.convocTo} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
 
           <TextField size="small" type="date" label="Dernière visite (du)" name="derniereVisiteFrom"
-            value={filtersDraft.derniereVisiteFrom} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.derniereVisiteFrom} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
           <TextField size="small" type="date" label="Dernière visite (au)" name="derniereVisiteTo"
-            value={filtersDraft.derniereVisiteTo} onChange={handleDraftChange}
-            sx={field20} InputLabelProps={{ shrink: true }} />
+            value={filtersDraft.derniereVisiteTo} onChange={handleDraftChange} sx={field20} InputLabelProps={{ shrink: true }} />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={filtersDraft.showInactif}
+                onChange={(e) => setFiltersDraft({ ...filtersDraft, showInactif: e.target.checked })}
+                size="small"
+              />
+            }
+            label="Afficher les inactifs"
+            sx={{ flexBasis: { xs: "100%", md: "20%" }, flexGrow: 1, minWidth: 200 }}
+          />
 
           <Box sx={{ flexBasis: { xs: "100%", md: "20%" }, flexGrow: 1, minWidth: 200, display: "flex", justifyContent: "flex-end", gap: 2 }}>
             <Button variant="contained" startIcon={<SearchIcon />} onClick={handleSearchClick}>Rechercher</Button>
@@ -284,6 +277,9 @@ export default function RecherchePersonnelPage() {
         onExport={exportCsv}
         onOpenBulkAll={() => setOpenBulkMode("ALL")}
         onOpenBulkSelected={() => setOpenBulkMode("SELECTED")}
+        onCreatePersonnel={() => setOpenCreate(true)}
+        onImportPersonnel={() => setOpenImportP(true)}
+        onImportRadiation={() => setOpenImportR(true)}
       />
 
       <Paper elevation={3}>
@@ -309,7 +305,6 @@ export default function RecherchePersonnelPage() {
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={COL_COUNT} align="center">Chargement...</TableCell></TableRow>
@@ -349,9 +344,11 @@ export default function RecherchePersonnelPage() {
                       <Chip label={p.isActive ? "Actif" : "Inactif"} color={p.isActive ? "success" : "default"} size="small" />
                     </TableCell>
                     <TableCell align="center">
-                      <IconButton color="primary"  onClick={() => router.push(`/personnel/${p.id}`)}>       <VisibilityIcon /> </IconButton>
-                      <IconButton color="warning"  onClick={() => router.push(`/personnel/${p.id}/edit`)}> <EditIcon />       </IconButton>
-                      <IconButton color="error">                                                             <BlockIcon />      </IconButton>
+                      <IconButton color="primary"  onClick={() => router.push(`/personnel/${p.id}`)}>        <VisibilityIcon /></IconButton>
+                      <IconButton color="warning"  onClick={() => router.push(`/personnel/${p.id}/edit`)}>   <EditIcon /></IconButton>
+                      <IconButton color="error"    onClick={() => handleOpenRadier(p)} title="Radier" disabled={!p.isActive}>
+                        <BlockIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 );
@@ -371,13 +368,39 @@ export default function RecherchePersonnelPage() {
         />
       </Paper>
 
+      {/* Dialogs */}
       <BulkConvocationDialog
         open={openBulk}
         onClose={() => setOpenBulk(false)}
         appliedFilters={appliedFilters}
         total={bulkMode === "ALL" ? total : selectedIds.length}
         personnelIds={selectedIds}
-        onSuccess={() => fetchPersonnels(appliedFilters, page, rowsPerPage)}
+        onSuccess={refresh}
+      />
+
+      <PersonnelCreateDialog
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSuccess={refresh}
+      />
+
+      <RadierDialog
+        open={openRadier}
+        onClose={() => { setOpenRadier(false); setRadierTarget(null); }}
+        onSuccess={refresh}
+        personnel={radierTarget}
+      />
+
+      <ImportPersonnelDialog
+        open={openImportP}
+        onClose={() => setOpenImportP(false)}
+        onSuccess={refresh}
+      />
+
+      <ImportRadiationDialog
+        open={openImportR}
+        onClose={() => setOpenImportR(false)}
+        onSuccess={refresh}
       />
     </Box>
   );

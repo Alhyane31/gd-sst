@@ -8,6 +8,22 @@ function toYMD(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+export async function POST(req: Request) {
+  try {
+    const { date, label } = await req.json();
+    if (!date) return badRequest("date obligatoire");
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return badRequest("date invalide");
+    const jf = await prisma.jourFerie.create({
+      data: { date: d, label: label?.trim() || null },
+    });
+    return NextResponse.json({ id: jf.id, date: toYMD(jf.date), label: jf.label }, { status: 201 });
+  } catch (e: any) {
+    if (e?.code === "P2002") return NextResponse.json({ error: "Ce jour est déjà enregistré" }, { status: 409 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
@@ -32,12 +48,12 @@ export async function GET(req: Request) {
     const rows = await prisma.jourFerie.findMany({
       where,
       orderBy: { date: "asc" },
-      select: { date: true, label: true },
+      select: { id: true, date: true, label: true },
     });
 
-    // ✅ format attendu par ton calendrier
     const items = rows.map((h) => ({
-      date: toYMD(h.date),     // "YYYY-MM-DD"
+      id:    h.id,
+      date:  toYMD(h.date),
       label: h.label ?? null,
     }));
 

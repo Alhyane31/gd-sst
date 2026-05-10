@@ -70,13 +70,14 @@ export async function GET(request: Request) {
   const prenom = (searchParams.get("prenom") ?? "").trim();
   const posteId = (searchParams.get("posteId") ?? "").trim();
   const formationId = (searchParams.get("formationId") ?? "").trim();
-  const serviceId = (searchParams.get("serviceId") ?? "").trim();
   const categorie = (searchParams.get("categorie") ?? "").trim(); // "SMR" | "VP"
-  const tag = (searchParams.get("tag") ?? "").trim(); // exact (tags.has)
+  const serviceIdsRaw = (searchParams.get("serviceIds") ?? "").trim();
+  const serviceIdList = serviceIdsRaw ? serviceIdsRaw.split(",").filter(Boolean) : [];
 
   // ===== filtres convocation
   const visiteType = (searchParams.get("visiteType") ?? "").trim(); // "ANNUELLE" | "RAPPROCHEE"
-  const statut = (searchParams.get("statut") ?? "").trim(); // enum ConvocationStatut
+  const statutsRaw = (searchParams.get("statuts") ?? "").trim();
+  const statutList = statutsRaw ? statutsRaw.split(",").filter(Boolean) : [];
   const convocationType = (searchParams.get("convocationType") ?? "").trim(); // INITIALE, RELANCE_1...
 const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
 
@@ -85,10 +86,17 @@ const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
   const toIso = (searchParams.get("to") ?? "").trim();
   const datePrevueRangeIso = asIsoRange(fromIso || null, toIso || null);
 
-  // ===== anciens filtres date (YYYY-MM-DD) si tu en as besoin
   const dateConvocFrom = (searchParams.get("dateConvocFrom") ?? "").trim();
   const dateConvocTo = (searchParams.get("dateConvocTo") ?? "").trim();
   const dateConvocationRangeYMD = asDateRangeYMD(dateConvocFrom || null, dateConvocTo || null);
+
+  const datePrevueFrom = (searchParams.get("datePrevueFrom") ?? "").trim();
+  const datePrevueTo = (searchParams.get("datePrevueTo") ?? "").trim();
+  const datePrevueRangeYMD = asDateRangeYMD(datePrevueFrom || null, datePrevueTo || null);
+
+  const dateVisiteRealiseeFrom = (searchParams.get("dateVisiteRealiseeFrom") ?? "").trim();
+  const dateVisiteRealiseeTO = (searchParams.get("dateVisiteRealiseeTO") ?? "").trim();
+  const dateVisiteRealiseeRange = asDateRangeYMD(dateVisiteRealiseeFrom || null, dateVisiteRealiseeTO || null);
 
   // ===== construction WHERE
   const where: any = { AND: [] };
@@ -104,10 +112,12 @@ const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
   }
   // --- filtres convocation
   if (visiteType) where.AND.push({ type: visiteType });
-  if (statut) where.AND.push({ statut });
+  if (statutList.length) where.AND.push({ statut: { in: statutList } });
   if (convocationType) where.AND.push({ convocationType });
 
   if (dateConvocationRangeYMD) where.AND.push({ dateConvocation: dateConvocationRangeYMD });
+  if (datePrevueRangeYMD) where.AND.push({ datePrevue: datePrevueRangeYMD });
+  if (dateVisiteRealiseeRange) where.AND.push({ visite: { dateDebut: dateVisiteRealiseeRange } });
 
   // --- filtres sur PERSONNEL (relation)
   const personnelAND: any[] = [];
@@ -116,21 +126,37 @@ const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
   if (nom) personnelAND.push({ lastName: { contains: nom, mode: "insensitive" } });
   if (posteId) personnelAND.push({ posteId });
   if (formationId) personnelAND.push({ formationId });
-  if (serviceId) personnelAND.push({ serviceId });
+  if (serviceIdList.length) personnelAND.push({ serviceId: { in: serviceIdList } });
 
   if (categorie === "SMR" || categorie === "VP") personnelAND.push({ categorie });
-
-  if (tag) personnelAND.push({ tags: { has: tag } });
 
   if (personnelAND.length) where.AND.push({ personnel: { AND: personnelAND } });
 
   if (where.AND.length === 0) delete where.AND;
 
+  const orderDir = searchParams.get("orderDir") === "asc" ? "asc" : "desc";
+  const orderByField = (searchParams.get("orderBy") ?? "datePrevue").trim();
+
+  const orderByMap: Record<string, object> = {
+    personnel:          { personnel: { lastName: orderDir } },
+    poste:              { personnel: { poste: { libelle: orderDir } } },
+    service:            { personnel: { service: { libelle: orderDir } } },
+    formation:          { personnel: { formation: { libelle: orderDir } } },
+    categorie:          { personnel: { categorie: orderDir } },
+    statut:             { statut: orderDir },
+    convocationType:    { convocationType: orderDir },
+    dateConvocation:    { dateConvocation: orderDir },
+    datePrevue:         { datePrevue: orderDir },
+    dateVisiteRealisee: { visite: { dateDebut: orderDir } },
+  };
+
+  const primaryOrder = orderByMap[orderByField] ?? { datePrevue: orderDir };
+
   const [total, items] = await Promise.all([
     prisma.convocation.count({ where }),
 prisma.convocation.findMany({
   where,
-  orderBy: [{ datePrevue: "asc" }, { createdAt: "asc" }],
+  orderBy: [primaryOrder, { createdAt: orderDir }],
   skip: page * pageSize,
   take: pageSize,
   include: {
@@ -141,6 +167,7 @@ prisma.convocation.findMany({
         formation: true,
       },
     },
+    visite: { select: { dateDebut: true } },
   },
 })
 

@@ -5,7 +5,9 @@ export type FormSectionKey =
   | "INFORMATIONS_GENERALES"
   | "INFORMATIONS_PROFESSIONNELLES"
   | "RENSEIGNEMENTS_PROFESSIONNELS"
+  | "ACTIVITES_CONTRAINTES_PROFESSIONNELLES"
   | "ANTECEDENTS"
+  | "EXAMEN_CLINIQUE_APTITUDE"
   | "SUIVI_RAPPROCHE"
   | "CERTIFICAT_MEDICALE"
   | "IDENTIFICATION_EXPERTISE"
@@ -15,6 +17,8 @@ export type Cim11Option = {
   id: string;
   code: string;
   libelle: string;
+  level: string;
+  isLeaf: boolean;
 };
 export type PathologieItem = {
   cim11Code: string;
@@ -46,7 +50,7 @@ export type FormData = {
   detailPoste: string;
   detailPosteId?: string;
 
-  categorieForm?: "A" | "B" | "C"| "";
+  categorieForm?: "A" | "B" | "C" | "D" | "";
   
   dateAffectationChu: string; // ISO yyyy-mm-dd
   autreEtablissement: OuiNon;
@@ -68,16 +72,56 @@ posteNuitFixe?: "oui" | "non" | "";
 rythmeTravailNuit?: "3x8" | "2x12" | "ROULEMENT_HEBDOMADAIRE" | "ROULEMENT_MENSUEL" | "";
 heuresNuitMois?: string;
 joursReposAnnee?: string;
+
+  // ACTIVITES ET CONTRAINTES PROFESSIONNELLES
+  nombrePersonnelsEquipe: string;
+  tachesProfessionnelles: string;
+  presenceAideTechnique: OuiNon;
+  posturesPredominantes: "ASSISE_PROLONGEE" | "DEBOUT_PROLONGEE" | "PAS_DE_POSITION_PROLONGEE" | "";
+  presenceContraintes: OuiNon;
+  typesContraintes: string[];
+
   // ANTECEDENTS
   pathologiesHistory: PathologieItem[]; // read-only (vient du backend)
   pathologiesToAdd: PathologieItem[];   // editable (ajouts du formulaire)
 
   antecedents: string;
 
+  // EXAMEN CLINIQUE ET PARACLINIQUES
+  examenCliniqueComplet: string;
+  examensPracliniques: string;
+  diagnosticsAnterieurs: string;
+  maladiesDecouvertes: string;
+  diagnosticsSuspectes: string;
+  decisionAptitude: "APTE" | "APTE_AVEC_RESTRICTIONS" | "INAPTE_AVEC_RECLASSEMENT" | "";
+  recommandations: string;
+
   necessitatSuiviRapproche: boolean | null;
   motifsSuiviRapproche: string[];
   prochainVisiteMois: number | null;
   nePlusNecessiterSuivi?: boolean | null;
+
+  // CERTIFICAT_MEDICALE
+  cmTypeCertificat: "ARRET_TRAVAIL" | "REPRISE_TRAVAIL" | "CONGE_MMD" | "CONGE_MLD" | "DISPONIBILITE_SANTE" | "AUTRE" | "";
+  cmDateDebut: string;       // ISO yyyy-mm-dd
+  cmDateFin: string;         // ISO yyyy-mm-dd
+  cmNombreJours: string;     // durée en jours
+  cmDiagnostic: string;      // motif / diagnostic succinct
+  cmAvisSst: "CONFORME" | "NON_CONFORME" | "A_VERIFIER" | "";
+  cmRecommandations: string; // recommandations SST
+
+  // IDENTIFICATION_EXPERTISE
+  expertiseDateReception: string; // ISO yyyy-mm-dd
+  expertiseSource: "CHEF_SERVICE" | "PERSONNEL" | "COMMISSION_MEDICALE" | "DIRECTION" | "SERVICE_SANTE_TRAVAIL" | "";
+  expertiseMotif: "EVALUATION_APTITUDE" | "MUTATION_SANTE" | "RETRAITE_ANTICIPEE" | "ABSENCE_SANTE" | "REPRISE_ARRET_PSYCHIATRIQUE" | "DISPONIBILITE_SANTE" | "CONGE_MMD" | "CONGE_MLD" | "";
+
+  // RESULTAT_EXPERTISE
+  expertiseConclusion: string;
+  expertiseDecision: "AMENAGEMENT_POSTE" | "RECLASSEMENT_PROFESSIONNEL" | "PAS_AMENAGEMENT" | "DECISION_DIFFEREE" | "APTITUDE_REPRISE" | "INAPTITUDE_REPRISE" | "";
+  expertiseAmenagementRecommandations: string; // Q92
+  expertiseReclassementPoste: string;          // Q93
+  expertiseCertificatRepriseUrl: string;       // Q94
+  expertiseDateTransmission: string;           // Q95 ISO yyyy-mm-dd
 };
 
 export type ChangeHandler = <K extends keyof FormData>(

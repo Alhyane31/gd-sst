@@ -1,15 +1,17 @@
 "use client";
 
 import {
-  Box, Button, CircularProgress, IconButton, Paper, Stack,
+  Box, Button, CircularProgress, IconButton, Paper, Stack, Tooltip,
   Table, TableBody, TableCell, TableHead, TableRow,
   TextField, Typography, Autocomplete,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import { useEffect, useState } from "react";
 
 import type { ChangeHandler, Cim11Option, FormData, PathologieItem } from "../types";
+import Cim11PickerDialog from "../Cim11PickerDialog";
 
 function optionLabel(o: Cim11Option) {
   return `${o.code} — ${o.libelle}`;
@@ -37,6 +39,8 @@ export default function AntecedentsSection({
   const [cim11Options, setCim11Options] = useState<Record<number, Cim11Option[]>>({});
   const [loading, setLoading] = useState<Record<number, boolean>>({});
   const [searchTexts, setSearchTexts] = useState<Record<number, string>>({});
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerTargetIdx, setPickerTargetIdx] = useState<number | null>(null);
 
   const addRow = () => {
     onChange("pathologiesToAdd", [...toAdd, emptyRow()]);
@@ -166,7 +170,9 @@ export default function AntecedentsSection({
                 toAdd.map((row, idx) => (
                   <TableRow key={idx}>
                     <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
                       <Autocomplete<Cim11Option, false, false, false>
+                        sx={{ flex: 1 }}
                         options={cim11Options[idx] ?? []}
                         loading={loading[idx] ?? false}
                         filterOptions={(x) => x}
@@ -205,7 +211,11 @@ export default function AntecedentsSection({
                         }
 
                         onChange={(_, opt) => {
-                          if (!opt?.isLeaf) return;
+                          if (!opt) {
+                            updateRow(idx, { cim11Code: "", cim11Libelle: "" });
+                            return;
+                          }
+                          if (!opt.isLeaf) return;
                           updateRow(idx, { cim11Code: opt.code, cim11Libelle: opt.libelle });
                         }}
 
@@ -229,6 +239,15 @@ export default function AntecedentsSection({
                           />
                         )}
                       />
+                      <Tooltip title="Parcourir le référentiel CIM-11">
+                        <IconButton
+                          size="small"
+                          onClick={() => { setPickerTargetIdx(idx); setPickerOpen(true); }}
+                        >
+                          <ManageSearchIcon />
+                        </IconButton>
+                      </Tooltip>
+                      </Stack>
                     </TableCell>
 
                     <TableCell>
@@ -273,6 +292,16 @@ export default function AntecedentsSection({
         label="Antécédents (médicaux, chirurgicaux, allergies, traitements...)"
         value={data.antecedents}
         onChange={(e) => onChange("antecedents", e.target.value)}
+      />
+
+      <Cim11PickerDialog
+        open={pickerOpen}
+        onClose={() => { setPickerOpen(false); setPickerTargetIdx(null); }}
+        onSelect={(item) => {
+          if (pickerTargetIdx !== null) {
+            updateRow(pickerTargetIdx, { cim11Code: item.code, cim11Libelle: item.libelle });
+          }
+        }}
       />
     </Stack>
   );

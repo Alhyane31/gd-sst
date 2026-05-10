@@ -93,11 +93,8 @@ export default function AvailableConvocationsTable({
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.set("serviceId", serviceId);
-      params.set("statut", "A_CONVOQUER");
-
-      // ⚠️ IMPORTANT : pour exclure celles déjà attachées
-      // -> côté API, idéalement: bordereauId=__null
+      params.set("serviceIds", serviceId);
+      params.set("statuts", "A_CONVOQUER");
       params.set("bordereauId", "__null");
 
       const res = await fetch(`/api/convocations?${params.toString()}`);

@@ -39,6 +39,7 @@ export async function GET(
           include: {
             formation:  true,
             service:    true,
+            expertise:  true,
             filledBy:   { select: { id: true, firstName: true, lastName: true } },
             submittedBy: { select: { id: true, firstName: true, lastName: true } },
             verifiedBy:  { select: { id: true, firstName: true, lastName: true } },
@@ -64,8 +65,11 @@ export async function GET(
 
     // Extraire les sections du JSON data
     const data = (v.formulaire.data ?? {}) as Record<string, any>;
-    const renseignements  = data.renseignementsProfessionnels ?? {};
-    const suiviRapproche  = data.suiviRapproche ?? {};
+    const renseignements       = data.renseignementsProfessionnels ?? {};
+    const activitesContraintes = data.activitesContraintes ?? {};
+    const examenClinique       = data.examenClinique ?? {};
+    const suiviRapproche       = data.suiviRapproche ?? {};
+    const certMedical          = data.certMedical ?? {};
 
     return NextResponse.json({
       visite: {
@@ -119,21 +123,36 @@ export async function GET(
         // renseignements professionnels (depuis JSON)
         renseignementsProfessionnels: renseignements,
 
+        // activités et contraintes professionnelles (depuis JSON)
+        activitesContraintes,
+
+        // examen clinique et aptitude (depuis JSON)
+        examenClinique,
+
         // antécédents
-        antecedents:       data.antecedents ?? "",
-        pathologiesToAdd:  v.formulaire.pathologies.map((p) => ({
-          cim11Code:    p.cim11.code,
-          cim11Libelle: p.cim11.libelle,
-          date:         p.date,
-          commentaire:  p.commentaire,
-          source:       p.source,
-        })),
+        antecedents: data.antecedents ?? "",
+        // Pathologies : depuis la table DB si déjà validées, sinon depuis le JSON (draft)
+        pathologiesToAdd: v.formulaire.pathologies.length > 0
+          ? v.formulaire.pathologies.map((p) => ({
+              cim11Code:    p.cim11.code,
+              cim11Libelle: p.cim11.libelle,
+              date:         p.date,
+              commentaire:  p.commentaire,
+              source:       p.source,
+            }))
+          : (Array.isArray(data.pathologiesToAdd) ? data.pathologiesToAdd : []),
 
         // suivi rapproché (depuis JSON)
         necessitatSuiviRapproche: suiviRapproche.necessitatSuiviRapproche ?? null,
         nePlusNecessiterSuivi:    suiviRapproche.nePlusNecessiterSuivi    ?? null,
         motifsSuiviRapproche:     suiviRapproche.motifsSuiviRapproche    ?? [],
         prochainVisiteMois:       suiviRapproche.prochainVisiteMois      ?? null,
+
+        // certificat médical (depuis JSON)
+        certMedical,
+
+        // expertise (depuis table dédiée)
+        expertise: v.formulaire.expertise ?? null,
       },
     });
   } catch (e: any) {
@@ -377,9 +396,7 @@ export async function PUT(
     const currentStatut = visite.formulaire.statut;
 
     let nextStatut = currentStatut;
-    if (currentStatut === "DRAFT") {
-      nextStatut = "SUBMITTED";
-    } else if (currentStatut === "SUBMITTED") {
+    if (currentStatut === "DRAFT" || currentStatut === "SUBMITTED") {
       nextStatut = "VERIFIED";
     } else if (currentStatut === "VERIFIED") {
       nextStatut = "VERIFIED";
@@ -433,8 +450,47 @@ export async function PUT(
         heuresNuitMois: body.heuresNuitMois ?? "",
         joursReposAnnee: body.joursReposAnnee ?? "",
       },
+      activitesContraintes: {
+        nombrePersonnelsEquipe: body.nombrePersonnelsEquipe ?? "",
+        tachesProfessionnelles: body.tachesProfessionnelles ?? "",
+        presenceAideTechnique: body.presenceAideTechnique ?? "non",
+        posturesPredominantes: body.posturesPredominantes ?? "",
+        presenceContraintes: body.presenceContraintes ?? "non",
+        typesContraintes: Array.isArray(body.typesContraintes)
+          ? body.typesContraintes
+          : [],
+      },
+      examenClinique: {
+        examenCliniqueComplet: body.examenCliniqueComplet ?? "",
+        examensPracliniques:   body.examensPracliniques   ?? "",
+        diagnosticsAnterieurs: body.diagnosticsAnterieurs ?? "",
+        maladiesDecouvertes:   body.maladiesDecouvertes   ?? "",
+        diagnosticsSuspectes:  body.diagnosticsSuspectes  ?? "",
+        decisionAptitude:      body.decisionAptitude      ?? "",
+        recommandations:       body.recommandations       ?? "",
+      },
       antecedents: body.antecedents ?? "",
       pathologiesToAdd,
+      certMedical: {
+        typeCertificat: body.cmTypeCertificat  || null,
+        dateDebut:      body.cmDateDebut       || null,
+        dateFin:        body.cmDateFin         || null,
+        nombreJours:    body.cmNombreJours ? parseInt(body.cmNombreJours, 10) : null,
+        diagnostic:     body.cmDiagnostic      ?? null,
+        avisSst:        body.cmAvisSst         || null,
+        recommandations: body.cmRecommandations ?? null,
+      },
+      expertise: {
+        dateReception:                body.expertiseDateReception ?? null,
+        source:                       body.expertiseSource        ?? null,
+        motif:                        body.expertiseMotif         ?? null,
+        conclusion:                   body.expertiseConclusion    ?? null,
+        decision:                     body.expertiseDecision      ?? null,
+        amenagementRecommandations:   body.expertiseAmenagementRecommandations ?? null,
+        reclassementPoste:            body.expertiseReclassementPoste          ?? null,
+        certificatRepriseUrl:         body.expertiseCertificatRepriseUrl       ?? null,
+        dateTransmission:             body.expertiseDateTransmission ?? null,
+      },
       suiviRapproche: {
         necessitatSuiviRapproche: body.necessitatSuiviRapproche ?? null,
         nePlusNecessiterSuivi: body.nePlusNecessiterSuivi ?? null,
@@ -448,6 +504,26 @@ export async function PUT(
       },
       raw: body,
     };
+
+    // Pré-charger les codes CIM-11 avant la transaction pour éviter des requêtes imbriquées
+    let cim11Map = new Map<string, string>(); // code → id
+    if (currentStatut !== "VERIFIED" && pathologiesToAdd.length > 0) {
+      const codes = pathologiesToAdd.map((p) => p.cim11Code).filter(Boolean);
+      if (codes.length > 0) {
+        const nodes = await prisma.cim11Node.findMany({
+          where: { code: { in: codes } },
+          select: { id: true, code: true },
+        });
+        cim11Map = new Map(nodes.map((n) => [n.code, n.id]));
+        const missing = codes.filter((c) => !cim11Map.has(c));
+        if (missing.length > 0) {
+          return NextResponse.json(
+            { message: `Codes CIM-11 introuvables : ${missing.join(", ")}` },
+            { status: 400 }
+          );
+        }
+      }
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const formulaire = await tx.formulaire.update({
@@ -480,13 +556,9 @@ export async function PUT(
           filledById: user.id,
 
           submittedById:
-            nextStatut === "SUBMITTED" && currentStatut !== "SUBMITTED"
-              ? user.id
-              : undefined,
+            currentStatut === "DRAFT" ? user.id : undefined,
           submittedAt:
-            nextStatut === "SUBMITTED" && currentStatut !== "SUBMITTED"
-              ? new Date()
-              : undefined,
+            currentStatut === "DRAFT" ? new Date() : undefined,
 
           verifiedById:
             nextStatut === "VERIFIED" && currentStatut !== "VERIFIED"
@@ -498,6 +570,38 @@ export async function PUT(
               : undefined,
         },
       });
+
+      // Upsert Expertise si le formulaire est de type EXPERTISE
+      if (visite.type === "EXPERTISE") {
+        const expertiseData = (jsonData as any).expertise ?? {};
+        await tx.expertise.upsert({
+          where: { formulaireId: formulaire.id },
+          create: {
+            personnelId:  visite.personnelId,
+            formulaireId: formulaire.id,
+            dateReception:              parseDate(expertiseData.dateReception),
+            source:                     expertiseData.source   || null,
+            motif:                      expertiseData.motif    || null,
+            conclusion:                 expertiseData.conclusion ?? null,
+            decision:                   expertiseData.decision || null,
+            amenagementRecommandations: expertiseData.amenagementRecommandations ?? null,
+            reclassementPoste:          expertiseData.reclassementPoste          ?? null,
+            certificatRepriseUrl:       expertiseData.certificatRepriseUrl       ?? null,
+            dateTransmission:           parseDate(expertiseData.dateTransmission),
+          },
+          update: {
+            dateReception:              parseDate(expertiseData.dateReception),
+            source:                     expertiseData.source   || null,
+            motif:                      expertiseData.motif    || null,
+            conclusion:                 expertiseData.conclusion ?? null,
+            decision:                   expertiseData.decision || null,
+            amenagementRecommandations: expertiseData.amenagementRecommandations ?? null,
+            reclassementPoste:          expertiseData.reclassementPoste          ?? null,
+            certificatRepriseUrl:       expertiseData.certificatRepriseUrl       ?? null,
+            dateTransmission:           parseDate(expertiseData.dateTransmission),
+          },
+        });
+      }
 
       if (currentStatut !== "VERIFIED" && nextStatut === "VERIFIED") {
         const nouvelleFormationId =
@@ -557,37 +661,29 @@ export async function PUT(
           where: { formulaireId: formulaire.id },
         });
 
-        for (const p of pathologiesToAdd) {
-          if (!p.cim11Code) continue;
+        const pathologieRows = pathologiesToAdd
+          .filter((p) => p.cim11Code && cim11Map.has(p.cim11Code))
+          .map((p) => ({
+            personnelId: visite.personnelId,
+            cim11NodeId: cim11Map.get(p.cim11Code)!,
+            formulaireId: formulaire.id,
+            date: parseDate(p.date) ?? new Date(),
+            commentaire: p.commentaire ?? null,
+            source: p.source ?? "formulaire validé",
+            createdById: user.id,
+          }));
 
-          const cim11 = await tx.cim11Node.findUnique({
-            where: { code: p.cim11Code },
-            select: { id: true },
-          });
-
-          if (!cim11) {
-            throw new Error(`Code CIM-11 introuvable: ${p.cim11Code}`);
-          }
-
-          await tx.personnelPathologie.create({
-            data: {
-              personnelId: visite.personnelId,
-              cim11NodeId: cim11.id,
-              formulaireId: formulaire.id,
-              date: parseDate(p.date) ?? new Date(),
-              commentaire: p.commentaire ?? null,
-              source: p.source ?? "formulaire validé",
-              createdById: user.id,
-            },
-          });
+        if (pathologieRows.length > 0) {
+          await tx.personnelPathologie.createMany({ data: pathologieRows });
         }
       }
 
       return tx.formulaire.findUnique({
         where: { id: formulaire.id },
         include: {
-          formation: true,
-          service: true,
+          formation:  true,
+          service:    true,
+          expertise:  true,
           pathologies: {
             include: { cim11: true },
             orderBy: { date: "desc" },

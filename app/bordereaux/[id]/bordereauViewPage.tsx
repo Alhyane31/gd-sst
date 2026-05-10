@@ -6,6 +6,8 @@ import {
   TextField, Alert,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -122,6 +124,23 @@ export default function BordereauDetailPage() {
       <BordereauHeader bordereau={bordereau} onBack={() => router.push("/bordereaux")} />
 
       <Box display="flex" justifyContent="flex-end" gap={2} mb={2}>
+        <Button
+          variant="outlined"
+          startIcon={<DescriptionIcon />}
+          href={`/api/bordereaux/${bordereau.id}/pdf`}
+          component="a"
+        >
+          Bordereau Word
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          startIcon={<PictureAsPdfIcon />}
+          href={`/api/bordereaux/${bordereau.id}/zip`}
+          component="a"
+        >
+          Convocations PDF
+        </Button>
         <DeleteBordereauButton
           bordereauId={bordereau.id}
           disabled={!isNouveau}

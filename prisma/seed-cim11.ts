@@ -1,8 +1,11 @@
+import "dotenv/config";
 import { PrismaClient, Cim11Level } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 type CsvRow = {
   code: string;

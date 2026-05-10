@@ -370,10 +370,7 @@ export default function BulkConvocationDialog({
             >
               <MenuItem value="A_CONVOQUER">À convoquer</MenuItem>
               <MenuItem value="CONVOCATION_GENEREE">Convocation générée</MenuItem>
-              <MenuItem value="A_TRAITER">À traiter</MenuItem>
-              <MenuItem value="A_RELANCER">À relancer</MenuItem>
-              <MenuItem value="RELANCEE">Relancé</MenuItem>
-              <MenuItem value="REALISEE">Réalisée</MenuItem>
+              <MenuItem value="ENVOYEE">Envoyée</MenuItem>
               <MenuItem value="ANNULEE">Annulée</MenuItem>
             </TextField>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Alert,
   Box,
   Grid,
   TextField,
@@ -17,7 +18,7 @@ import {
   Checkbox,
   TableBody,
 } from "@mui/material";
-import type { ChangeHandler, FormData } from "../types";
+import type { ChangeHandler, FormData, OuiNon } from "../types";
 
 export default function RenseignementsProfessionnelsSection({
   data,
@@ -39,6 +40,12 @@ const toggleFormeHoraireAtypique = (value: string) => {
 
     
     <Box>
+
+      {!data.categorieForm && (
+        <Alert severity="info">
+          Merci de sélectionner un poste pour afficher cette section.
+        </Alert>
+      )}
 
       {data.categorieForm === "B" && (
   <>
@@ -121,76 +128,80 @@ const toggleFormeHoraireAtypique = (value: string) => {
     <Divider sx={{ my: 3 }} />
   </>
 )}
-{(data.categorieForm === "A" || data.horairesTravail === "SEMAINE_STANDARD") && (
+{/* Personnel administratif (catégorie C) : horaires simplifiés uniquement */}
+{data.categorieForm === "C" && (
   <>
     <Typography variant="h6" mb={1}>
       Préciser les horaires de travail
     </Typography>
 
-    
+    <RadioGroup
+      value={data.horaireTravailPrecision ?? ""}
+      onChange={(e) => onChange("horaireTravailPrecision", e.target.value as FormData["horaireTravailPrecision"])}
+    >
+      <FormControlLabel value="08H00_14H00" control={<Radio />} label="08h00 - 14h00" />
+      <FormControlLabel value="08H00_16H00" control={<Radio />} label="08h00 - 16h00" />
+    </RadioGroup>
+  </>
+)}
+
+{/* Catégorie A et B semaine standard : horaires complets + garde */}
+{(data.categorieForm === "A" || data.horairesTravail === "SEMAINE_STANDARD") && data.categorieForm !== "C" && (
+  <>
+    <Typography variant="h6" mb={1}>
+      Préciser les horaires de travail
+    </Typography>
 
     <RadioGroup
       value={data.horaireTravailPrecision ?? ""}
-      onChange={(e) => onChange("horaireTravailPrecision", e.target.value)}
+      onChange={(e) => onChange("horaireTravailPrecision", e.target.value as FormData["horaireTravailPrecision"])}
     >
-      <FormControlLabel
-        value="08H00_14H00"
-        control={<Radio />}
-        label="08h00 - 14h00"
-      />
-      <FormControlLabel
-        value="08H00_16H00"
-        control={<Radio />}
-        label="08h00 - 16h00"
-      />
-      <FormControlLabel
-        value="14H00_20H00"
-        control={<Radio />}
-        label="14h00 - 20h00"
-      />
+      <FormControlLabel value="08H00_14H00" control={<Radio />} label="08h00 - 14h00" />
+      <FormControlLabel value="08H00_16H00" control={<Radio />} label="08h00 - 16h00" />
+      <FormControlLabel value="14H00_20H00" control={<Radio />} label="14h00 - 20h00" />
     </RadioGroup>
 
     <Divider sx={{ my: 3 }} />
-  
-   <Typography variant="h6" mb={1}>
-        Travail de garde
-      </Typography>
 
-      <RadioGroup
-        row
-        value={data.travailGarde}
-        onChange={(e) => onChange("travailGarde", e.target.value)}
-      >
-        <FormControlLabel value="oui" control={<Radio />} label="Oui" />
-        <FormControlLabel value="non" control={<Radio />} label="Non" />
-      </RadioGroup>
+    <Typography variant="h6" mb={1}>
+      Travail de garde
+    </Typography>
 
-      {data.travailGarde === "oui" && (
-        <Grid container spacing={2} mt={1}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Nombre d’heures de garde"
-              value={data.heuresGarde}
-              onChange={(e) => onChange("heuresGarde", e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Rythme (ex: 1/3, 2 fois/semaine...)"
-              value={data.rythmeGarde}
-              onChange={(e) => onChange("rythmeGarde", e.target.value)}
-            />
-          </Grid>
+    <RadioGroup
+      row
+      value={data.travailGarde}
+      onChange={(e) => onChange("travailGarde", e.target.value as OuiNon)}
+    >
+      <FormControlLabel value="oui" control={<Radio />} label="Oui" />
+      <FormControlLabel value="non" control={<Radio />} label="Non" />
+    </RadioGroup>
+
+    {data.travailGarde === "oui" && (
+      <Grid container spacing={2} mt={1}>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Nombre d’heures de garde"
+            value={data.heuresGarde}
+            onChange={(e) => onChange("heuresGarde", e.target.value)}
+          />
         </Grid>
-      )}
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth
+            label="Rythme (ex: 1/3, 2 fois/semaine...)"
+            value={data.rythmeGarde}
+            onChange={(e) => onChange("rythmeGarde", e.target.value)}
+          />
+        </Grid>
+      </Grid>
+    )}
 
-      <Divider sx={{ my: 3 }} />
-</>
+    <Divider sx={{ my: 3 }} />
+  </>
 )}
 
-{data.horairesTravail === "SEMAINE_ATYPIQUE" && (
+{data.horairesTravail === "SEMAINE_ATYPIQUE" && data.categorieForm !== "C" && (
   <>
     <Typography variant="h6" mb={1}>
       Forme d'horaire atypique
@@ -245,6 +256,8 @@ const toggleFormeHoraireAtypique = (value: string) => {
     <Divider sx={{ my: 3 }} />
   </>
 )}
+{(data.categorieForm === "B" ) && (
+  <>
    <Typography variant="h6" mb={1}>
   Travail de nuit
 </Typography>
@@ -253,9 +266,6 @@ const toggleFormeHoraireAtypique = (value: string) => {
   Poste de nuit fixe *
 </Typography>
 
-<Typography variant="body2" color="text.secondary" mb={1}>
-  Une seule réponse possible.
-</Typography>
 
 <RadioGroup
   row
@@ -337,7 +347,8 @@ const toggleFormeHoraireAtypique = (value: string) => {
       onChange={(e) => onChange("joursReposAnnee", e.target.value)}
     />
   </Grid>
-</Grid>  
+</Grid>  </>
+)}
       
     </Box>
   );

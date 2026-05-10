@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { ConvocationStatut } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
+import { generateMatricule } from "@/lib/generate-matricule";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -13,7 +14,8 @@ export async function GET(request: Request) {
   const nom = (searchParams.get("nom") ?? "").trim();
   const prenom = (searchParams.get("prenom") ?? "").trim();
   const posteId = (searchParams.get("posteId") ?? "").trim();
-  const serviceId = (searchParams.get("serviceId") ?? "").trim();
+  const serviceIdsRaw = (searchParams.get("serviceIds") ?? "").trim();
+  const serviceIdList = serviceIdsRaw ? serviceIdsRaw.split(",").filter(Boolean) : [];
   const formationId = (searchParams.get("formationId") ?? "").trim();
    
   const categorie            = (searchParams.get("categorie")          ?? "").trim();
@@ -25,11 +27,10 @@ export async function GET(request: Request) {
   const derniereVisiteTo     = (searchParams.get("derniereVisiteTo")    ?? "").trim();
   const page = Math.max(0, parseInt(searchParams.get("page") ?? "0", 10));
   const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
+  const showInactif = searchParams.get("showInactif") === "true";
 
   const where: any = {
-    // si tu veux afficher aussi les inactifs quand pas de filtre -> adapte
-    // ici tu avais forcé isActive: true
-    isActive: true,
+    ...(showInactif ? {} : { isActive: true }),
     AND: [],
   };
 
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
   }
 
   if (posteId) where.AND.push({ posteId });
-  if (serviceId) where.AND.push({ serviceId });
+  if (serviceIdList.length) where.AND.push({ serviceId: { in: serviceIdList } });
   if (formationId) where.AND.push({ formationId });
   if (categorie === "SMR" || categorie === "VP") {
     where.AND.push({ categorie });
@@ -107,4 +108,52 @@ export async function GET(request: Request) {
   ]);
 
   return NextResponse.json({ items, total, page, pageSize });
+}
+
+export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const body = await request.json();
+    const {
+      firstName, lastName, matricule, email, dateNaissance, statutSocial,
+      posteId, posteDetailId, serviceId, formationId,
+      categorie, dateAffectation, dateProchainVisite,
+    } = body;
+
+    if (!firstName || !lastName || !posteId || !serviceId || !formationId) {
+      return NextResponse.json({ error: "Champs obligatoires manquants" }, { status: 400 });
+    }
+
+    // Auto-génération du matricule si absent
+    let finalMatricule = (matricule ?? "").trim() || null;
+    if (!finalMatricule) {
+      const existing = new Set(
+        (await prisma.personnel.findMany({ select: { matricule: true }, where: { matricule: { not: null } } }))
+          .map((p) => p.matricule!.toLowerCase())
+      );
+      finalMatricule = generateMatricule(lastName, firstName, existing);
+    }
+
+    const personnel = await prisma.personnel.create({
+      data: {
+        firstName, lastName,
+        matricule: finalMatricule,
+        email: email || null,
+        dateNaissance: dateNaissance ? new Date(dateNaissance) : null,
+        statutSocial: statutSocial || null,
+        posteId,
+        posteDetailId: posteDetailId || null,
+        serviceId, formationId,
+        categorie: (categorie === "SMR" ? "SMR" : "VP"),
+        dateAffectation: dateAffectation ? new Date(dateAffectation) : null,
+        dateProchainVisite: dateProchainVisite ? new Date(dateProchainVisite) : null,
+      },
+    });
+    return NextResponse.json(personnel, { status: 201 });
+  } catch (e: any) {
+    if (e.code === "P2002") return NextResponse.json({ error: "Matricule ou email déjà utilisé" }, { status: 409 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }

@@ -103,8 +103,9 @@ const orphans = matchingLeaves
 
     // — Chemin normal sans recherche textuelle —
     const where: any = {};
-    if (parentId) where.parentId = parentId;
-    if (level) where.level = Number(level);
+    if (parentId === "__root__") where.parentId = null;
+    else if (parentId) where.parentId = parentId;
+    if (level) where.level = level;
     if (typeof isLeaf === "boolean") where.isLeaf = isLeaf;
 
     const skip = (page - 1) * pageSize;

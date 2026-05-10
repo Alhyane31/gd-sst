@@ -17,11 +17,9 @@ if (session.user.role == "") redirect("/403")
       userName={session.user?.name || session.user?.email || "Nom"}
       userSurname={session.user?.surname || ""}
     >
-   <Container maxWidth="lg">
-      <Box py={4}>
+   
         <VisiteEditPage />
-      </Box>
-    </Container></SidebarMenu>
+     </SidebarMenu>
   );
 }
 

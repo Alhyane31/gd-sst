@@ -5,10 +5,12 @@ export type VisiteType = "ANNUELLE" | "RAPPROCHEE";
 export type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
+  | "ENVOYEE"
   | "A_TRAITER"
   | "A_RELANCER"
   | "RELANCEE"
-  | "REALISEE";
+  | "REALISEE"
+  | "ANNULEE";
 
 export type ConvocationType = "INITIALE" | "RELANCE_1" | "RELANCE_2" | "RELANCE_3";
 
@@ -63,13 +65,12 @@ export type ConvocationsFilters = {
   prenom: string;
   posteId: string;
   formationId: string;
-  serviceId: string;
+  serviceIds: string[];
   categorie: "" | PersonnelCategorie;
-  tag: string; // exact (si API tags.has)
 
   // filtres visite
   visiteType: "" | VisiteType;
-  statut: "" | ConvocationStatut;
+  statuts: ConvocationStatut[];
   convocationType: "" | ConvocationType;
   presence: "" | PresenceStatut;
   etat: "" | EtatWorkflow;
@@ -77,5 +78,8 @@ export type ConvocationsFilters = {
   // dates (format YYYY-MM-DD)
   dateConvocFrom: string;
   dateConvocTo: string;
-  
+  datePrevueFrom: string;
+  datePrevueTo: string;
+  dateVisiteRealiseeFrom: string;
+  dateVisiteRealiseeTO: string;
 };
