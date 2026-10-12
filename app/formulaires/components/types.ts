@@ -1,4 +1,5 @@
 // app/formulaires/components/types.ts
+import type { MembreFamille } from "@/lib/clinique/antecedents";
 export type OuiNon = "oui" | "non";
 
 export type FormSectionKey =
@@ -140,7 +141,10 @@ joursReposAnnee?: string;
   pathologiesHistory: PathologieItem[]; // read-only (vient du backend)
   pathologiesToAdd: PathologieItem[];   // editable (ajouts du formulaire)
 
-  antecedents: string;
+  antecedents: string; // synthèse des antécédents (générée puis modifiable)
+  antecedentsChirurgicaux?: string;
+  antecedentsFamiliaux?: MembreFamille[];
+  antecedentsProfessionnels?: Record<string, unknown>;
 
   // EXAMEN CLINIQUE ET PARACLINIQUES
   examenCliniqueComplet: string;

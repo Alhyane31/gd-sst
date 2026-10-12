@@ -134,7 +134,7 @@ export default function PersonnelFormStepper({
             <ActivitesContraintesProfessionnellesSection data={formData} onChange={onFieldChange} />
           )}
           {stepKey === "ANTECEDENTS" && (
-            <AntecedentsSection data={formData} onChange={onFieldChange} />
+            <AntecedentsSection data={formData} onChange={onFieldChange} readOnly={readOnly} />
           )}
           {stepKey === "EXAMEN_CLINIQUE_APTITUDE" && (
             <ExamenCliniqueAptitudeSection data={formData} onChange={onFieldChange} />

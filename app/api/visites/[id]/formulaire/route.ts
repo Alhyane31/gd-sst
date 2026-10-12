@@ -204,6 +204,9 @@ type FormPayload = {
 
   pathologiesToAdd?: PathologieItem[];
   antecedents?: string;
+  antecedentsChirurgicaux?: string;
+  antecedentsFamiliaux?: Prisma.InputJsonValue[];
+  antecedentsProfessionnels?: Prisma.InputJsonObject;
 };
 
 function parseDate(value?: string | null) {
@@ -293,6 +296,9 @@ export async function POST(
       },
       parcoursAcademique: buildParcoursAcademique(body),
       antecedents: body.antecedents ?? "",
+      antecedentsChirurgicaux: body.antecedentsChirurgicaux ?? "",
+      antecedentsFamiliaux: Array.isArray(body.antecedentsFamiliaux) ? body.antecedentsFamiliaux : [],
+      antecedentsProfessionnels: body.antecedentsProfessionnels ?? {},
       pathologiesToAdd: body.pathologiesToAdd ?? [],
       raw: body,
     };
@@ -507,6 +513,9 @@ export async function PUT(
         recommandations:       body.recommandations       ?? "",
       },
       antecedents: body.antecedents ?? "",
+      antecedentsChirurgicaux: body.antecedentsChirurgicaux ?? "",
+      antecedentsFamiliaux: Array.isArray(body.antecedentsFamiliaux) ? body.antecedentsFamiliaux : [],
+      antecedentsProfessionnels: body.antecedentsProfessionnels ?? {},
       pathologiesToAdd,
       certMedical: {
         typeCertificat: body.cmTypeCertificat  || null,

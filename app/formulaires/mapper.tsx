@@ -223,6 +223,9 @@ export function mapApiToFormData(payload: any): FormData {
       : [],
 
     antecedents: f.antecedents ?? raw?.antecedents ?? "",
+    antecedentsChirurgicaux:   raw?.antecedentsChirurgicaux ?? "",
+    antecedentsFamiliaux:      Array.isArray(raw?.antecedentsFamiliaux) ? raw.antecedentsFamiliaux : [],
+    antecedentsProfessionnels: raw?.antecedentsProfessionnels ?? {},
 
     // ---- SUIVI RAPPROCHÉ ----
     necessitatSuiviRapproche: f.necessitatSuiviRapproche ?? null,
