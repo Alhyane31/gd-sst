@@ -488,6 +488,8 @@ export async function PUT(
       activitesContraintes: {
         nombrePersonnelsEquipe: body.nombrePersonnelsEquipe ?? "",
         tachesProfessionnelles: body.tachesProfessionnelles ?? "",
+        dureeCycleHeures: body.dureeCycleHeures ?? "",
+        nombrePatientsJour: body.nombrePatientsJour ?? "",
         presenceAideTechnique: body.presenceAideTechnique ?? "non",
         posturesPredominantes: body.posturesPredominantes ?? "",
         presenceContraintes: body.presenceContraintes ?? "non",

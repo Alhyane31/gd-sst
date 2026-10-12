@@ -129,6 +129,8 @@ joursReposAnnee?: string;
   // ACTIVITES ET CONTRAINTES PROFESSIONNELLES
   nombrePersonnelsEquipe: string;
   tachesProfessionnelles: string;
+  dureeCycleHeures?: string;
+  nombrePatientsJour?: string;
   presenceAideTechnique: OuiNon;
   posturesPredominantes: "ASSISE_PROLONGEE" | "DEBOUT_PROLONGEE" | "PAS_DE_POSITION_PROLONGEE" | "";
   presenceContraintes: OuiNon;

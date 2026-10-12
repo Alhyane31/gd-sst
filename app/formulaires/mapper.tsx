@@ -183,6 +183,8 @@ export function mapApiToFormData(payload: any): FormData {
     // ---- ACTIVITES ET CONTRAINTES PROFESSIONNELLES ----
     nombrePersonnelsEquipe: f.activitesContraintes?.nombrePersonnelsEquipe ?? raw?.nombrePersonnelsEquipe ?? "",
     tachesProfessionnelles: f.activitesContraintes?.tachesProfessionnelles ?? raw?.tachesProfessionnelles ?? "",
+    dureeCycleHeures:       f.activitesContraintes?.dureeCycleHeures       ?? raw?.dureeCycleHeures       ?? "",
+    nombrePatientsJour:     f.activitesContraintes?.nombrePatientsJour     ?? raw?.nombrePatientsJour     ?? "",
     presenceAideTechnique:  f.activitesContraintes?.presenceAideTechnique  ?? raw?.presenceAideTechnique  ?? "non",
     posturesPredominantes:  f.activitesContraintes?.posturesPredominantes  ?? raw?.posturesPredominantes  ?? "",
     presenceContraintes:    f.activitesContraintes?.presenceContraintes    ?? raw?.presenceContraintes    ?? "non",
