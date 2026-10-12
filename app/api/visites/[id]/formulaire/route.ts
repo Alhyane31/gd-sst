@@ -156,6 +156,9 @@ export async function GET(
 
         // expertise (depuis table dédiée)
         expertise: v.formulaire.expertise ?? null,
+
+        // saisie complète (champs sans colonne ni bloc dédié : grade, enfants, examen structuré...)
+        raw: data.raw ?? {},
       },
     });
   } catch (e: any) {

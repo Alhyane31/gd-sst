@@ -84,7 +84,7 @@ function toDateInput(value?: string | Date | null) {
 export function mapApiToFormData(payload: any): FormData {
   const p = payload?.personnel;
   const f = payload?.formulaire;
-  const raw = f?.data?.raw ?? {};
+  const raw = f?.raw ?? f?.data?.raw ?? {};
   const rp = f?.renseignementsProfessionnels ?? f?.data?.renseignementsProfessionnels ?? {};
   const pa = f?.parcoursAcademique ?? f?.data?.parcoursAcademique ?? {};
 
