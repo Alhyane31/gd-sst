@@ -22,3 +22,35 @@ describe("mapApiToFormData", () => {
     expect(f.grade).toBe("HORS_GRADE");
   });
 });
+
+describe("compatibilité des dossiers v1", () => {
+  const v1 = {
+    ...base,
+    formulaire: {
+      antecedents: "HTA connue",
+      activitesContraintes: { posturesPredominantes: "ASSISE_PROLONGEE", presenceAideTechnique: "oui", nombrePersonnelsEquipe: "4" },
+      examenClinique: { examenCliniqueComplet: "Examen normal", examensPracliniques: "Radio normale" },
+      raw: {},
+    },
+  };
+
+  it("conserve les champs retirés de l'écran (réécrits tels quels à la sauvegarde)", () => {
+    const f = mapApiToFormData(v1);
+    expect(f.posturesPredominantes).toBe("ASSISE_PROLONGEE");
+    expect(f.presenceAideTechnique).toBe("oui");
+    expect(f.examenCliniqueComplet).toBe("Examen normal");
+    expect(f.examensPracliniques).toBe("Radio normale");
+  });
+
+  it("reprend le texte libre des antécédents comme synthèse", () => {
+    expect(mapApiToFormData(v1).antecedents).toBe("HTA connue");
+  });
+
+  it("initialise les nouveaux blocs à vide", () => {
+    const f = mapApiToFormData(v1);
+    expect(f.examen).toEqual({});
+    expect(f.paraclinique).toEqual({});
+    expect(f.antecedentsFamiliaux).toEqual([]);
+    expect(f.antecedentsProfessionnels).toEqual({});
+  });
+});

@@ -313,7 +313,7 @@ export async function POST(
         personnelId: visite.personnelId,
 
         statut: FormulaireStatut.DRAFT,
-        schemaVersion: 1,
+        schemaVersion: 2,
         sectionsEnabled: [
           FormSectionKey.INFORMATIONS_GENERALES,
           FormSectionKey.INFORMATIONS_PROFESSIONNELLES,
@@ -434,6 +434,7 @@ export async function PUT(
     }
 
     const currentStatut = visite.formulaire.statut;
+    const archiveV1 = (visite.formulaire.data as Prisma.JsonObject | null)?.archiveV1 as Prisma.InputJsonValue | undefined;
 
     let nextStatut = currentStatut;
     if (currentStatut === "DRAFT" || currentStatut === "SUBMITTED") {
@@ -554,6 +555,8 @@ export async function PUT(
           : [],
         prochainVisiteMois: nePlusNecessiter ? null : (body.prochainVisiteMois ?? null),
       },
+      // archive des champs retirés de l'écran (script prisma/reprise-dossier-v2.ts), conservée à chaque sauvegarde
+      ...(archiveV1 ? { archiveV1 } : {}),
       raw: body,
     };
 
@@ -584,6 +587,8 @@ export async function PUT(
         where: { id: visite.formulaire!.id },
         data: {
           statut: nextStatut,
+          // v2 : examen clinique / paraclinique structurés, antécédents détaillés
+          schemaVersion: 2,
 
           snapshotFirstName: body.prenom ?? null,
           snapshotLastName: body.nom ?? null,
