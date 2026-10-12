@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-const LOGO_G = path.join(process.cwd(), "public", "images", "image2.jpg"); // Ministère
-const LOGO_D = path.join(process.cwd(), "public", "images", "image1.jpg"); // CHU Ibn Rochd
+const LOGO_G = path.join(process.cwd(), "public", "images", "Image1.png"); // Ministère
 
 function imgBase64(p: string): string {
   if (!fs.existsSync(p)) return "";
@@ -33,42 +32,43 @@ const CSS = `
   .page { page-break-after: always; }
   .page:last-child { page-break-after: avoid; }
 
+  .banner { margin-bottom: 8pt; }
+  .logo { width: 100%; height: auto; display: block; }
   .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 40pt;
+    justify-content: center;
+    margin-bottom: 18pt;
   }
-  .logo { height: 52px; width: auto; object-fit: contain; flex-shrink: 0; }
   .title-block { flex: 1; text-align: center; padding: 0 12px; }
-  .title-main { font-weight: bold; font-size: 10.5pt; margin-bottom: 5pt; margin-top: 32pt; }
-  .title-sub  { font-weight: bold; font-size: 9.5pt; margin-bottom: 8pt; }
+  .title-main { font-weight: bold; font-size: 10.5pt; margin-bottom: 3pt; margin-top: 20pt; }
+  .title-sub  { font-weight: bold; font-size: 9.5pt; margin-bottom: 5pt; }
 
-  .field-row { display: flex; align-items: baseline; margin-bottom: 6pt; }
+  .field-row { display: flex; align-items: baseline; margin-bottom: 4pt; }
   .b   { font-weight: bold; white-space: nowrap; }
   .sep { margin-left: 14px; }
 
-  .poste-row { margin-bottom: 14pt; margin-top: 4pt; }
+  .poste-row { margin-bottom: 10pt; margin-top: 2pt; }
 
-  .para   { margin-bottom: 9pt; line-height: 1.6; text-align: justify; }
-  .bullet { margin-left: 22px; margin-bottom: 4pt; }
-  .closing{ margin-top: 14pt; line-height: 1.6; text-align: justify; }
+  .para   { margin-bottom: 6pt; line-height: 1.35; text-align: justify; }
+  .bullet { margin-left: 22px; margin-bottom: 3pt; }
+  .closing{ margin-top: 10pt; line-height: 1.35; text-align: justify; }
 `;
 
-function buildBody(d: ConvocationData, logoG: string, logoD: string): string {
+function buildBody(d: ConvocationData, logoG: string): string {
   const isSmr     = d.categorie === "SMR";
   const titleMain = isSmr ? "Surveillance Médicale Rapprochée (SMR)" : "Surveillance Médicale Périodique";
   const typeTexte = isSmr ? "rapprochée" : "périodique";
   const posteLabel = [d.fc, d.poste].filter(Boolean).join(" – ");
 
   return `
+  ${logoG ? `<div class="banner"><img class="logo" src="${logoG}" /></div>` : ""}
+
   <div class="header">
-    ${logoG ? `<img class="logo" src="${logoG}" />` : `<div style="width:60px"></div>`}
     <div class="title-block">
       <div class="title-main">${esc(titleMain)}</div>
       <div class="title-sub">Convocation à la visite médicale</div>
     </div>
-    ${logoD ? `<img class="logo" src="${logoD}" />` : `<div style="width:70px"></div>`}
   </div>
 
   <div class="field-row">
@@ -102,16 +102,14 @@ function buildBody(d: ConvocationData, logoG: string, logoD: string): string {
 
 export function buildConvocationHtml(d: ConvocationData): string {
   const logoG = imgBase64(LOGO_G);
-  const logoD = imgBase64(LOGO_D);
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${CSS}</style></head>
-<body><div class="page">${buildBody(d, logoG, logoD)}</div></body></html>`;
+<body><div class="page">${buildBody(d, logoG)}</div></body></html>`;
 }
 
 // Toutes les convocations dans un seul HTML multi-pages
 export function buildConvocationsBatchHtml(items: ConvocationData[]): string {
   const logoG = imgBase64(LOGO_G);
-  const logoD = imgBase64(LOGO_D);
-  const pages = items.map((d) => `<div class="page">${buildBody(d, logoG, logoD)}</div>`).join("\n");
+  const pages = items.map((d) => `<div class="page">${buildBody(d, logoG)}</div>`).join("\n");
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${CSS}</style></head>
 <body>${pages}</body></html>`;
 }

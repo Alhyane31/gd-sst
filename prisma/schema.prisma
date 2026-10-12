@@ -356,6 +356,7 @@ enum VisiteType {
   ETUDEP
   LD
   MD
+  EMBAUCHE
   AUTRE
 }
 enum ConvocationStatut {

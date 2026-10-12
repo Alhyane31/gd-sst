@@ -12,6 +12,7 @@ export type VisiteType =
   | "ETUDEP"
   | "LD"
   | "MD"
+  | "EMBAUCHE"
   | "AUTRE";
 
 export type SectionConfig = {
@@ -20,7 +21,8 @@ export type SectionConfig = {
 };
 
 const S_INFOS_GENERALES:        SectionConfig = { key: "INFORMATIONS_GENERALES",        label: "Informations générales" };
-const S_INFOS_PRO:              SectionConfig = { key: "INFORMATIONS_PROFESSIONNELLES", label: "Informations professionnelles" };
+const S_PARCOURS_ACADEMIQUE:    SectionConfig = { key: "PARCOURS_ACADEMIQUE",           label: "Parcours académique" };
+const S_INFOS_PRO:            SectionConfig = { key: "INFORMATIONS_PROFESSIONNELLES", label: "Informations professionnelles" };
 const S_RENS_PRO:               SectionConfig = { key: "RENSEIGNEMENTS_PROFESSIONNELS", label: "Renseignements professionnels" };
 const S_ACTIVITES_CONTRAINTES:  SectionConfig = { key: "ACTIVITES_CONTRAINTES_PROFESSIONNELLES", label: "Activités et contraintes professionnelles" };
 const S_ANTECEDENTS:            SectionConfig = { key: "ANTECEDENTS",                   label: "Antécédents" };
@@ -48,6 +50,18 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
   LD:         SECTIONS_STANDARD,
   MD:         SECTIONS_STANDARD,
   AUTRE:      SECTIONS_STANDARD,
+
+  // Visite d'embauche : seule visite avec le parcours académique
+  EMBAUCHE: [
+    S_INFOS_GENERALES,
+    S_PARCOURS_ACADEMIQUE,
+    S_INFOS_PRO,
+    S_RENS_PRO,
+    S_ACTIVITES_CONTRAINTES,
+    S_ANTECEDENTS,
+    S_EXAMEN_CLINIQUE,
+    S_SUIVI_RAPPROCHE,
+  ],
 
   CM: [
     S_INFOS_GENERALES,

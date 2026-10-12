@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
   // ===== pagination
   const page = Math.max(0, parseInt(searchParams.get("page") ?? "0", 10));
-  const pageSize = Math.min(500, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
+  const pageSize = Math.min(5000, Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10)));
 
   // ===== filtres personnel
   const nom = (searchParams.get("nom") ?? "").trim();
@@ -97,6 +97,7 @@ const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
   const dateVisiteRealiseeFrom = (searchParams.get("dateVisiteRealiseeFrom") ?? "").trim();
   const dateVisiteRealiseeTO = (searchParams.get("dateVisiteRealiseeTO") ?? "").trim();
   const dateVisiteRealiseeRange = asDateRangeYMD(dateVisiteRealiseeFrom || null, dateVisiteRealiseeTO || null);
+  const dateVisiteRealiseeEmpty = (searchParams.get("dateVisiteRealiseeEmpty") ?? "").trim() === "1";
 
   // ===== construction WHERE
   const where: any = { AND: [] };
@@ -117,7 +118,11 @@ const bordereauIdRaw = (searchParams.get("bordereauId") ?? "").trim();
 
   if (dateConvocationRangeYMD) where.AND.push({ dateConvocation: dateConvocationRangeYMD });
   if (datePrevueRangeYMD) where.AND.push({ datePrevue: datePrevueRangeYMD });
-  if (dateVisiteRealiseeRange) where.AND.push({ visite: { dateDebut: dateVisiteRealiseeRange } });
+  if (dateVisiteRealiseeEmpty) {
+    where.AND.push({ visite: null });
+  } else if (dateVisiteRealiseeRange) {
+    where.AND.push({ visite: { dateDebut: dateVisiteRealiseeRange } });
+  }
 
   // --- filtres sur PERSONNEL (relation)
   const personnelAND: any[] = [];

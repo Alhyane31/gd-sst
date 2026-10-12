@@ -214,7 +214,7 @@ export default function SidebarMenu({ userName, userSurname, children }: Sidebar
           {!collapsed && (
             <Box display="flex" alignItems="center" gap={1.5}>
               <Box sx={{ width: 40, height: 40, borderRadius: "8px", overflow: "hidden", bgcolor: "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Image src="/images/image1.jpg" alt="Logo" height={36} width={36} style={{ objectFit: "contain" }} />
+                <Image src="/images/logo.jpg" alt="Logo" height={36} width={36} style={{ objectFit: "contain" }} />
               </Box>
               <Typography variant="subtitle2" fontWeight={700} noWrap sx={{ color: "white", letterSpacing: 0.5 }}>
                 GD-SST

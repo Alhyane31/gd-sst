@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormData, ChangeHandler } from "./types";
 
 import InformationsGeneralesSection from "./sections/InformationsGeneralesSection";
+import ParcoursAcademiqueSection from "./sections/ParcoursAcademiqueSection";
 import InformationsProfessionnellesSection from "./sections/InformationsProfessionnellesSection";
 import RenseignementsProfessionnelsSection from "./sections/RenseignementsProfessionnelsSection";
 import ActivitesContraintesProfessionnellesSection from "./sections/ActivitesContraintesProfessionnellesSection";
@@ -118,7 +119,10 @@ export default function PersonnelFormStepper({
         {/* Contenu principal */}
         <Paper sx={{ p: 2, flex: 1, minWidth: 0 }} elevation={2}>
           {stepKey === "INFORMATIONS_GENERALES" && (
-            <InformationsGeneralesSection data={formData} onChange={onFieldChange} categoriePersonnel={categoriePersonnel} />
+            <InformationsGeneralesSection data={formData} onChange={onFieldChange} categoriePersonnel={categoriePersonnel} readOnly={readOnly} />
+          )}
+          {stepKey === "PARCOURS_ACADEMIQUE" && (
+            <ParcoursAcademiqueSection data={formData} onChange={onFieldChange} />
           )}
           {stepKey === "INFORMATIONS_PROFESSIONNELLES" && (
             <InformationsProfessionnellesSection data={formData} onChange={onFieldChange} />

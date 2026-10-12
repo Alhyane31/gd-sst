@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Box, Button, Checkbox, Chip, FormControl, InputLabel,
+  Box, Button, Checkbox, Chip, FormControl, FormControlLabel, InputLabel,
   ListItemText, MenuItem, Paper, Select, Stack, TextField,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
@@ -255,6 +255,7 @@ export default function ConvocationsFiltersBar({
           slotProps={{ inputLabel: { shrink: true } }}
           value={draft.dateVisiteRealiseeFrom}
           sx={field20}
+          disabled={draft.dateVisiteRealiseeEmpty}
           onChange={(e) => onDraftChange({ dateVisiteRealiseeFrom: e.target.value })}
         />
         <TextField
@@ -264,8 +265,35 @@ export default function ConvocationsFiltersBar({
           slotProps={{ inputLabel: { shrink: true } }}
           value={draft.dateVisiteRealiseeTO}
           sx={field20}
+          disabled={draft.dateVisiteRealiseeEmpty}
           onChange={(e) => onDraftChange({ dateVisiteRealiseeTO: e.target.value })}
         />
+        <Box
+          sx={{
+            flexBasis: { xs: "100%", md: "20%" },
+            flexGrow: 1,
+            minWidth: 200,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={draft.dateVisiteRealiseeEmpty}
+                onChange={(e) =>
+                  onDraftChange({
+                    dateVisiteRealiseeEmpty: e.target.checked,
+                    ...(e.target.checked
+                      ? { dateVisiteRealiseeFrom: "", dateVisiteRealiseeTO: "" }
+                      : {}),
+                  })
+                }
+              />
+            }
+            label="Visite réalisée = vide"
+          />
+        </Box>
 
         {/* Actions */}
         <Box

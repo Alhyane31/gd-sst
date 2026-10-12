@@ -3,6 +3,7 @@ export type OuiNon = "oui" | "non";
 
 export type FormSectionKey =
   | "INFORMATIONS_GENERALES"
+  | "PARCOURS_ACADEMIQUE"
   | "INFORMATIONS_PROFESSIONNELLES"
   | "RENSEIGNEMENTS_PROFESSIONNELS"
   | "ACTIVITES_CONTRAINTES_PROFESSIONNELLES"
@@ -27,15 +28,60 @@ export type PathologieItem = {
   commentaire?: string;
   source?: string; // surtout utile dans l'historique
 };
+export type Grade =
+  | "GRADE_4"
+  | "GRADE_3"
+  | "GRADE_2"
+  | "GRADE_1"
+  | "GRADE_PRINCIPAL"
+  | "GRADE_EXCEPTIONNEL"
+  | "HORS_GRADE"
+  | "";
+
+export type GardeItem = {
+  heures: string; // "12h" | "24h" | ... | "72h"
+  rythme: string;
+};
+
+export type ExperienceAnterieure = {
+  secteur: "PRIVE" | "PUBLIC" | "";
+  lieu: string;
+  du: string; // ISO yyyy-mm-dd
+  au: string; // ISO yyyy-mm-dd
+  horaires: string;
+};
+
+export type NiveauDiplome = "BAC_2" | "BAC_3" | "BAC_4" | "BAC_5" | "BAC_6" | "BAC_7_PLUS" | "";
+
+export type DiplomePostBac = {
+  niveau: NiveauDiplome;
+  diplome: string;
+  annee: string;
+};
+
+export type AutreDiplome = {
+  diplome: string;
+  annee: string;
+};
+
 export type FormData = {
   // INFORMATIONS_GENERALES
   nom: string;
   prenom: string;
   dateNaissance: string; // ISO yyyy-mm-dd
   statutSocial: string;
-  matricule: string;
+  matricule: string; // PPR
+  nombreEnfants?: string;
   motifConsultation?: string;
-  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "AUTRE" | "";
+  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "EMBAUCHE" | "AUTRE" | "";
+
+  // PARCOURS_ACADEMIQUE
+  bacObtenu: OuiNon | "";
+  bacAnnee: string;
+  bacOption: string;
+  bacLieu: string;
+  diplomesPostBac: DiplomePostBac[];
+  autresDiplomes: AutreDiplome[];
 
   // INFORMATIONS_PROFESSIONNELLES
    formation: string;
@@ -51,9 +97,14 @@ export type FormData = {
   detailPosteId?: string;
 
   categorieForm?: "A" | "B" | "C" | "D" | "";
+
+  grade?: Grade;
+  anneeEtude?: string; // médecin résident (1-5) / interne (1-2)
   
   dateAffectationChu: string; // ISO yyyy-mm-dd
   autreEtablissement: OuiNon;
+  experiencesAnterieures?: ExperienceAnterieure[];
+  // champs historiques, alimentés à partir de experiencesAnterieures
   lieuTravail: string;
   dureeAnnees: string; // string pour TextField, convert côté API
   horaires: string;
@@ -62,6 +113,7 @@ export type FormData = {
   travailGarde: OuiNon;
   heuresGarde: string;
   rythmeGarde: string;
+  gardesSupplementaires?: GardeItem[]; // autres possibilités (heures + rythme)
 horairesTravail?: "SEMAINE_STANDARD" | "SEMAINE_ATYPIQUE" | "";
   horaireTravailPrecision?: "08H00_14H00" | "08H00_16H00" | "14H00_20H00" | "";
  formesHoraireAtypique?: string[];

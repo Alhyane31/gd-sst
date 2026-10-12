@@ -1,11 +1,30 @@
 
 import "dotenv/config"
 import { PrismaClient } from "@prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+const prisma = new PrismaClient({ adapter })
+
+function generateMatricule(firstName, lastName, existingSet) {
+  const initial = (s) => (s.trim().match(/[A-Za-zÀ-ÿ]/)?.[0] ?? "X").toUpperCase()
+  const prefix = initial(firstName) + initial(lastName)
+  let candidate
+  do {
+    const digits = String(Math.floor(Math.random() * 100000)).padStart(5, "0")
+    candidate = prefix + digits
+  } while (existingSet.has(candidate))
+  existingSet.add(candidate)
+  return candidate
+}
 
 async function main() {
   console.log("🚀 Seed started")
+
+  const existingMatricules = new Set(
+    (await prisma.personnel.findMany({ select: { matricule: true }, where: { matricule: { not: null } } }))
+      .map((p) => p.matricule)
+  )
 
 
 const HIR001 = await prisma.service.findUnique({ where: { code: "HIR001" } })
@@ -5459,8 +5478,9 @@ console.log(HIR001)
 
   
   for (const Pers of Personnel) {
+    const matricule = Pers.matricule ?? generateMatricule(Pers.firstName, Pers.lastName, existingMatricules)
     await prisma.personnel.create({
-    data: Pers,
+    data: { ...Pers, matricule },
   })
   }
 

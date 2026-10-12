@@ -9,7 +9,7 @@ import {
 import path from "path";
 
 const logoGauche = path.join(process.cwd(), "public", "images", "image2.jpg"); // Ministère
-const logoDroite = path.join(process.cwd(), "public", "images", "image1.jpg"); // CHU Ibn Rochd
+const logoDroite = path.join(process.cwd(), "public", "images", "image1.png"); // CHU Ibn Rochd
 
 const s = StyleSheet.create({
   page:      { padding: 30, fontFamily: "Helvetica", fontSize: 9.5, color: "#000" },
@@ -56,10 +56,10 @@ export function ConvocationPdf({
         <View style={s.header}>
           <Image src={logoGauche} style={s.logoG} />
           <View style={s.titleBloc}>
-            <Text style={s.titleMain}>{titleMain}</Text>
-            <Text style={s.titleSub}>Convocation à la visite médicale</Text>
+            
           </View>
-          <Image src={logoDroite} style={s.logoD} />
+         <Text style={s.titleMain}>{titleMain}</Text>
+            <Text style={s.titleSub}>Convocation à la visite médicale</Text>
         </View>
 
         {/* Champs */}

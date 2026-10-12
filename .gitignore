@@ -46,3 +46,7 @@ out/
 .DS_Store
 
 /lib/generated/prisma
+
+# photos du personnel (données personnelles)
+/photos/*
+!/photos/.gitkeep

@@ -1,11 +1,13 @@
 "use client";
 
-import { Box, Paper, TablePagination, Typography } from "@mui/material";
+import { Box, Button, Paper, TablePagination, Typography } from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { useCallback, useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 
 import ConvocationsFiltersBar from "./components/ConvocationsFiltersBar";
 import ConvocationsTable from "./components/ConvocationsTable";
+import ImportConvocationsDialog from "./components/ImportConvocationsDialog";
 import { ApiResponse, Formation, Poste, Service, ConvocationRow, ConvocationsFilters } from "./types";
 
 export default function ConvocationsSearchPage() {
@@ -35,6 +37,7 @@ export default function ConvocationsSearchPage() {
     datePrevueTo: "",
     dateVisiteRealiseeFrom: "",
     dateVisiteRealiseeTO: "",
+    dateVisiteRealiseeEmpty: false,
   };
 
   const defaultFilters: ConvocationsFilters = { ...empty, statuts: ["ENVOYEE"] };
@@ -53,6 +56,8 @@ export default function ConvocationsSearchPage() {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkCanceling, setBulkCanceling] = useState(false);
+
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -98,8 +103,12 @@ export default function ConvocationsSearchPage() {
       if (f.dateConvocTo) params.set("dateConvocTo", f.dateConvocTo);
       if (f.datePrevueFrom) params.set("datePrevueFrom", f.datePrevueFrom);
       if (f.datePrevueTo) params.set("datePrevueTo", f.datePrevueTo);
-      if (f.dateVisiteRealiseeFrom) params.set("dateVisiteRealiseeFrom", f.dateVisiteRealiseeFrom);
-      if (f.dateVisiteRealiseeTO) params.set("dateVisiteRealiseeTO", f.dateVisiteRealiseeTO);
+      if (f.dateVisiteRealiseeEmpty) {
+        params.set("dateVisiteRealiseeEmpty", "1");
+      } else {
+        if (f.dateVisiteRealiseeFrom) params.set("dateVisiteRealiseeFrom", f.dateVisiteRealiseeFrom);
+        if (f.dateVisiteRealiseeTO) params.set("dateVisiteRealiseeTO", f.dateVisiteRealiseeTO);
+      }
 
       params.set("page", String(p));
       params.set("pageSize", String(size));
@@ -183,9 +192,20 @@ export default function ConvocationsSearchPage() {
 
   return (
     <Box p={4}>
-      <Typography variant="h4" mb={3}>
-        Recherche des convocations
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, flexWrap: "wrap", gap: 2 }}>
+        <Typography variant="h4">
+          Recherche des convocations
+        </Typography>
+        <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setImportOpen(true)}>
+          Importer des convocations (CSV)
+        </Button>
+      </Box>
+
+      <ImportConvocationsDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSuccess={() => fetchConvocations(applied, page, rowsPerPage, sortBy, sortOrder)}
+      />
 
       <ConvocationsFiltersBar
         postes={postes}

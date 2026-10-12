@@ -7,6 +7,13 @@ export const emptyData: FormData = {
   statutSocial: "",
   matricule: "",
 
+  bacObtenu: "",
+  bacAnnee: "",
+  bacOption: "",
+  bacLieu: "",
+  diplomesPostBac: [],
+  autresDiplomes: [],
+
   formation: "",
   service: "",
   poste: "",
@@ -79,6 +86,7 @@ export function mapApiToFormData(payload: any): FormData {
   const f = payload?.formulaire;
   const raw = f?.data?.raw ?? {};
   const rp = f?.renseignementsProfessionnels ?? f?.data?.renseignementsProfessionnels ?? {};
+  const pa = f?.parcoursAcademique ?? f?.data?.parcoursAcademique ?? {};
 
   if (!p || !f) return { ...emptyData };
 
@@ -92,9 +100,26 @@ export function mapApiToFormData(payload: any): FormData {
     dateNaissance: toDateInput(f.dateNaissance ?? p.dateNaissance),
     statutSocial:  (f.statutSocial ?? p.statutSocial ?? "") as any,
     typeVisite:    payload?.visite.type,
+    nombreEnfants: raw?.nombreEnfants ?? "",
+
+    // ---- PARCOURS ACADEMIQUE ----
+    bacObtenu: pa?.bacObtenu ?? raw?.bacObtenu ?? "",
+    bacAnnee:  pa?.bacAnnee  ?? raw?.bacAnnee  ?? "",
+    bacOption: pa?.bacOption ?? raw?.bacOption ?? "",
+    bacLieu:   pa?.bacLieu   ?? raw?.bacLieu   ?? "",
+    diplomesPostBac: Array.isArray(pa?.diplomesPostBac)
+      ? pa.diplomesPostBac
+      : Array.isArray(raw?.diplomesPostBac)
+      ? raw.diplomesPostBac
+      : [],
+    autresDiplomes: Array.isArray(pa?.autresDiplomes)
+      ? pa.autresDiplomes
+      : Array.isArray(raw?.autresDiplomes)
+      ? raw.autresDiplomes
+      : [],
 
     // ---- INFORMATIONS PROFESSIONNELLES ----
-    formation:   f.formation?.libelle ?? p.formation?.libelle ?? "",
+    formation:  f.formation?.libelle ?? p.formation?.libelle ?? "",
     formationId: f.formationId        ?? p.formationId        ?? p.formation?.id ?? "",
 
     service:   f.service?.libelle ?? p.service?.libelle ?? "",
@@ -106,6 +131,9 @@ export function mapApiToFormData(payload: any): FormData {
     detailPoste:   f.detailPoste   ?? raw?.detailPoste   ?? p.posteDetail?.libelle             ?? "",
 
     categorieForm: p.poste?.categorieForm ?? "",
+
+    grade:      raw?.grade      ?? "",
+    anneeEtude: raw?.anneeEtude ?? "",
 
     dateAffectationChu: toDateInput(f.dateAffectation ?? p.dateAffectation ?? raw?.dateAffectationChu),
 
@@ -119,11 +147,22 @@ export function mapApiToFormData(payload: any): FormData {
       ? (raw?.dureeAnnees ?? "")
       : String(f.autreDureeAnnees),
     horaires: f.autreHoraires ?? raw?.horaires ?? "",
+    experiencesAnterieures: Array.isArray(raw?.experiencesAnterieures)
+      ? raw.experiencesAnterieures
+      : // anciens formulaires : une ligne reconstituée depuis lieu / horaires
+      f.autreLieuTravail || f.autreHoraires
+      ? [{ secteur: "", lieu: f.autreLieuTravail ?? "", du: "", au: "", horaires: f.autreHoraires ?? "" }]
+      : [],
 
     // ---- RENSEIGNEMENTS PRO ----
     travailGarde:           rp?.travailGarde           ?? raw?.travailGarde           ?? "non",
     heuresGarde:            rp?.heuresGarde            ?? raw?.heuresGarde            ?? "",
     rythmeGarde:            rp?.rythmeGarde            ?? raw?.rythmeGarde            ?? "",
+    gardesSupplementaires: Array.isArray(rp?.gardesSupplementaires)
+      ? rp.gardesSupplementaires
+      : Array.isArray(raw?.gardesSupplementaires)
+      ? raw.gardesSupplementaires
+      : [],
     horairesTravail:        rp?.horairesTravail        ?? raw?.horairesTravail        ?? "",
     horaireTravailPrecision: rp?.horaireTravailPrecision ?? raw?.horaireTravailPrecision ?? "",
     formesHoraireAtypique: Array.isArray(rp?.formesHoraireAtypique)

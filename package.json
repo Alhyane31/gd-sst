@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "seed:cim11": "tsx prisma/seed-cim11.ts",
-    "seed:postes": "tsx prisma/seed-postes.ts"
+    "seed:postes": "tsx prisma/seed-postes.ts",
+    "seed:poste-details": "tsx prisma/seedPosteDetails.js",
+    "db:reset-data": "tsx prisma/reset-data.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

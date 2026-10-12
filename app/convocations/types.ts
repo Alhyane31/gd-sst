@@ -82,4 +82,5 @@ export type ConvocationsFilters = {
   datePrevueTo: string;
   dateVisiteRealiseeFrom: string;
   dateVisiteRealiseeTO: string;
+  dateVisiteRealiseeEmpty: boolean;
 };

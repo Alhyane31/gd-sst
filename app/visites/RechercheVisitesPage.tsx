@@ -15,7 +15,7 @@ import { useSession, signIn } from "next-auth/react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type VisiteType = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "AUTRE";
+type VisiteType = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "EMBAUCHE" | "AUTRE";
 type VisiteStatut = "BROUILLON" | "EN_COURS" | "CLOTUREE" | "ANNULEE";
 
 interface Visite {
@@ -49,6 +49,7 @@ const TYPE_LABELS: Record<VisiteType, string> = {
   RAPPROCHEE: "Rapprochée",
   SPONTANNE: "Spontanée",
   EXPERTISE: "Expertise",
+  EMBAUCHE: "Visite d'embauche",
   AUTRE: "Autre",
 };
 

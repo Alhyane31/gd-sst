@@ -17,8 +17,36 @@ import {
   TableCell,
   Checkbox,
   TableBody,
+  MenuItem,
+  Button,
+  IconButton,
 } from "@mui/material";
-import type { ChangeHandler, FormData, OuiNon } from "../types";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import type { ChangeHandler, FormData, GardeItem, OuiNon } from "../types";
+
+const HEURES_GARDE = ["12h", "24h", "36h", "48h", "60h", "72h"];
+
+// Liste des heures de garde (garde une ancienne valeur saisie librement si elle n'est pas dans la liste)
+function HeuresGardeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const options = value && !HEURES_GARDE.includes(value) ? [value, ...HEURES_GARDE] : HEURES_GARDE;
+  return (
+    <TextField
+      select
+      sx={{ width: 240, flexShrink: 0 }}
+      label="Nombre d’heures de garde"
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <MenuItem value="">Sélectionner</MenuItem>
+      {options.map((h) => (
+        <MenuItem key={h} value={h}>
+          {h}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
 
 export default function RenseignementsProfessionnelsSection({
   data,
@@ -35,6 +63,14 @@ const toggleFormeHoraireAtypique = (value: string) => {
 
   onChange("formesHoraireAtypique", next);
 };
+
+const gardesSupplementaires = data.gardesSupplementaires ?? [];
+
+const updateGarde = (index: number, patch: Partial<GardeItem>) =>
+  onChange(
+    "gardesSupplementaires",
+    gardesSupplementaires.map((g, i) => (i === index ? { ...g, ...patch } : g))
+  );
   return (
 
 
@@ -177,24 +213,58 @@ const toggleFormeHoraireAtypique = (value: string) => {
     </RadioGroup>
 
     {data.travailGarde === "oui" && (
-      <Grid container spacing={2} mt={1}>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Nombre d’heures de garde"
-            value={data.heuresGarde}
-            onChange={(e) => onChange("heuresGarde", e.target.value)}
+      <>
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center", mt: 1 }}>
+        <HeuresGardeSelect
+          value={data.heuresGarde}
+          onChange={(v) => onChange("heuresGarde", v)}
+        />
+        <TextField
+          sx={{ flex: 1 }}
+          label="Rythme (ex: 1/3, 2 fois/semaine...)"
+          value={data.rythmeGarde}
+          onChange={(e) => onChange("rythmeGarde", e.target.value)}
+        />
+        {/* même largeur que le bouton supprimer des lignes suivantes */}
+        <Box sx={{ width: 40, flexShrink: 0 }} />
+      </Box>
+
+      {/* Autres possibilités de garde */}
+      {gardesSupplementaires.map((g, index) => (
+        <Box key={index} sx={{ display: "flex", gap: 2, alignItems: "center", mt: 2 }}>
+          <HeuresGardeSelect
+            value={g.heures}
+            onChange={(v) => updateGarde(index, { heures: v })}
           />
-        </Grid>
-        <Grid item xs={12} md={6}>
           <TextField
-            fullWidth
+            sx={{ flex: 1 }}
             label="Rythme (ex: 1/3, 2 fois/semaine...)"
-            value={data.rythmeGarde}
-            onChange={(e) => onChange("rythmeGarde", e.target.value)}
+            value={g.rythme}
+            onChange={(e) => updateGarde(index, { rythme: e.target.value })}
           />
-        </Grid>
-      </Grid>
+          <IconButton
+            color="error"
+            aria-label="Supprimer"
+            sx={{ width: 40, flexShrink: 0 }}
+            onClick={() =>
+              onChange("gardesSupplementaires", gardesSupplementaires.filter((_, i) => i !== index))
+            }
+          >
+            <DeleteOutlineIcon />
+          </IconButton>
+        </Box>
+      ))}
+
+      <Button
+        startIcon={<AddIcon />}
+        sx={{ mt: 1 }}
+        onClick={() =>
+          onChange("gardesSupplementaires", [...gardesSupplementaires, { heures: "", rythme: "" }])
+        }
+      >
+        Ajouter une autre possibilité
+      </Button>
+      </>
     )}
 
     <Divider sx={{ my: 3 }} />

@@ -120,6 +120,9 @@ export async function GET(
         autreDureeAnnees:   v.formulaire.autreDureeAnnees,
         autreHoraires:      v.formulaire.autreHoraires,
 
+        // parcours académique (depuis JSON)
+        parcoursAcademique: data.parcoursAcademique ?? {},
+
         // renseignements professionnels (depuis JSON)
         renseignementsProfessionnels: renseignements,
 
@@ -212,6 +215,29 @@ function parseIntOrNull(value?: string | null) {
   return Number.isNaN(n) ? null : n;
 }
 
+function buildParcoursAcademique(body: any) {
+  const bacObtenu = body.bacObtenu ?? "";
+  return {
+    bacObtenu,
+    bacAnnee:  bacObtenu === "oui" ? body.bacAnnee  ?? "" : "",
+    bacOption: bacObtenu === "oui" ? body.bacOption ?? "" : "",
+    bacLieu:   bacObtenu === "oui" ? body.bacLieu   ?? "" : "",
+    diplomesPostBac: Array.isArray(body.diplomesPostBac)
+      ? body.diplomesPostBac.map((d: any) => ({
+          niveau:  d?.niveau  ?? "",
+          diplome: d?.diplome ?? "",
+          annee:   d?.annee   ?? "",
+        }))
+      : [],
+    autresDiplomes: Array.isArray(body.autresDiplomes)
+      ? body.autresDiplomes.map((d: any) => ({
+          diplome: d?.diplome ?? "",
+          annee:   d?.annee   ?? "",
+        }))
+      : [],
+  };
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -262,6 +288,7 @@ export async function POST(
         nbNuitsMois: body.nbNuitsMois ?? "",
         horairesNuit: body.horairesNuit ?? "",
       },
+      parcoursAcademique: buildParcoursAcademique(body),
       antecedents: body.antecedents ?? "",
       pathologiesToAdd: body.pathologiesToAdd ?? [],
       raw: body,
@@ -437,6 +464,9 @@ export async function PUT(
         travailGarde: body.travailGarde ?? "non",
         heuresGarde: body.heuresGarde ?? "",
         rythmeGarde: body.rythmeGarde ?? "",
+        gardesSupplementaires: Array.isArray(body.gardesSupplementaires)
+          ? body.gardesSupplementaires
+          : [],
         travailNuit: body.travailNuit ?? "non",
         nbNuitsMois: body.nbNuitsMois ?? "",
         horairesNuit: body.horairesNuit ?? "",
@@ -450,6 +480,7 @@ export async function PUT(
         heuresNuitMois: body.heuresNuitMois ?? "",
         joursReposAnnee: body.joursReposAnnee ?? "",
       },
+      parcoursAcademique: buildParcoursAcademique(body),
       activitesContraintes: {
         nombrePersonnelsEquipe: body.nombrePersonnelsEquipe ?? "",
         tachesProfessionnelles: body.tachesProfessionnelles ?? "",

@@ -20,7 +20,7 @@ import RateReviewIcon from "@mui/icons-material/RateReview";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type VisiteType    = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "AUTRE";
+type VisiteType    = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "EMBAUCHE" | "AUTRE";
 type VisiteStatut  = "BROUILLON" | "EN_COURS" | "CLOTUREE" | "ANNULEE";
 type ConvStatut    = "A_CONVOQUER" | "CONVOCATION_GENEREE" | "A_TRAITER" | "A_RELANCER" | "RELANCEE" | "REALISEE" | "ANNULEE";
 type FormStatut    = "DRAFT" | "SUBMITTED" | "VERIFIED";
@@ -68,7 +68,7 @@ interface VisiteDetail {
 
 const TYPE_LABELS: Record<VisiteType, string> = {
   ANNUELLE: "Annuelle", RAPPROCHEE: "Rapprochée", SPONTANNE: "Spontanée",
-  EXPERTISE: "Expertise", AUTRE: "Autre",
+  EXPERTISE: "Expertise", EMBAUCHE: "Visite d'embauche", AUTRE: "Autre",
 };
 
 const STATUT_LABELS: Record<VisiteStatut, string> = {

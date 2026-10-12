@@ -25,6 +25,7 @@ const VISITE_TYPE_LABELS: Record<string, string> = {
   EXPERTISE: "Expertise",
   CM:        "Certificat médical",
   ETUDEP:    "Étude de poste",
+  EMBAUCHE:  "Visite d'embauche",
   AUTRE:     "Autre",
 };
 

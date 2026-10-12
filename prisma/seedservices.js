@@ -1,8 +1,10 @@
 
 import "dotenv/config"
 import { PrismaClient } from "@prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log("🚀 Seed started")
@@ -146,10 +148,7 @@ async function main() {
   
   for (const service of services) {
     await prisma.service.upsert({
-      where: {  code_formationId: {
-        code: service.code,
-        formationId: service.formationId,
-      }},
+      where: { code: service.code },
       update: {},
       create: service,
     })

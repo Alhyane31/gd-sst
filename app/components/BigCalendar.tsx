@@ -11,6 +11,7 @@ import type { EventInput, DatesSetArg } from "@fullcalendar/core";
 type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
+  | "ENVOYEE"
   | "A_TRAITER"
   | "A_RELANCER"
   | "RELANCEE"
@@ -26,6 +27,7 @@ type ConvocationMini = {
   id: string;
   statut: ConvocationStatut;
   datePrevue: string; // ISO
+  dateRealisee?: string | null; // ISO — présent si la visite liée a été réalisée
 };
 
 function toDayKey(dateIso: string) {
@@ -84,11 +86,12 @@ console.log("📡 Response status /api/convocations:", res.status);
       console.log("📦 Data brute /api/convocations:", data);
       const rows: ConvocationMini[] = Array.isArray(data) ? data : data.items ?? [];
 
-      // on garde seulement les 3 statuts à afficher
-      const wanted: ConvocationStatut[] = ["A_CONVOQUER", "CONVOCATION_GENEREE", "REALISEE"];
-      const filtered = rows.filter((c) => wanted.includes(c.statut));
+      // Réalisée = la convocation est liée à une visite réalisée (dateRealisee renseignée),
+      // indépendamment du champ statut. Sinon, on classe par statut d'attente.
+      const wanted: ConvocationStatut[] = ["A_CONVOQUER", "CONVOCATION_GENEREE", "ENVOYEE"];
+      const filtered = rows.filter((c) => c.dateRealisee || wanted.includes(c.statut));
 
-      // agg: day -> {A_CONVOQUER, CONVOCATION_GENEREE, REALISEE}
+      // agg: day -> {A_CONVOQUER, CONVOCATION_GENEREE/ENVOYEE, Réalisée}
       const agg = new Map<string, { a: number; g: number; r: number }>();
 
       for (const c of filtered) {
@@ -96,9 +99,13 @@ console.log("📡 Response status /api/convocations:", res.status);
         const day = toDayKey(c.datePrevue);
 
         const cur = agg.get(day) ?? { a: 0, g: 0, r: 0 };
-        if (c.statut === "A_CONVOQUER") cur.a += 1;
-        if (c.statut === "CONVOCATION_GENEREE") cur.g += 1;
-        if (c.statut === "REALISEE") cur.r += 1;
+        if (c.dateRealisee) {
+          cur.r += 1;
+        } else if (c.statut === "A_CONVOQUER") {
+          cur.a += 1;
+        } else if (c.statut === "CONVOCATION_GENEREE" || c.statut === "ENVOYEE") {
+          cur.g += 1;
+        }
 
         agg.set(day, cur);
       }
@@ -147,7 +154,7 @@ console.log("📡 Response status /api/convocations:", res.status);
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Box sx={{ width: 14, height: 14, bgcolor: "#ed6c02", borderRadius: 0.5 }} />
-          <Typography variant="body2">Convoquée</Typography>
+          <Typography variant="body2">Convoquée / Envoyée</Typography>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

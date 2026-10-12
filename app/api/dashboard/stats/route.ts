@@ -74,7 +74,7 @@ export async function GET() {
   const TYPE_LABELS: Record<string, string> = {
     ANNUELLE: "Annuelle", RAPPROCHEE: "Rapprochée", SPONTANNE: "Spontanée",
     CM: "CM", EXPERTISE: "Expertise", ETUDEP: "Étude de poste",
-    LD: "LD", MD: "MD", AUTRE: "Autre",
+    LD: "LD", MD: "MD", EMBAUCHE: "Embauche", AUTRE: "Autre",
   };
   const STATUT_LABELS: Record<string, string> = {
     A_CONVOQUER: "À convoquer", CONVOCATION_GENEREE: "Générée",

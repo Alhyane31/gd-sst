@@ -16,6 +16,7 @@ const VISITE_LABELS: Record<string, string> = {
   ETUDEP: "Étude de poste",
   LD: "Longue durée",
   MD: "Mi-durée",
+  EMBAUCHE: "Visite d'embauche",
   AUTRE: "Autre visite",
 };
 
