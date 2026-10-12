@@ -46,20 +46,6 @@ export default function ExamenCliniqueAptitudeSection({
 
       <Divider sx={{ my: 3 }} />
 
-      <Typography variant="subtitle1" mb={1}>
-        Si examens paracliniques demandés, veuillez les indiquer avec résultats et interprétation
-      </Typography>
-      <TextField
-        fullWidth
-        multiline
-        minRows={4}
-        disabled={readOnly}
-        value={data.examensPracliniques}
-        onChange={(e) => onChange("examensPracliniques", e.target.value)}
-      />
-
-      <Divider sx={{ my: 3 }} />
-
       <Typography variant="h6" mb={2}>
         Conclusion de la consultation médicale
       </Typography>

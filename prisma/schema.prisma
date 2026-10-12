@@ -45,6 +45,7 @@ model User {
   formulairesSoumis   Formulaire[]          @relation("FormSubmittedBy")
   formulairesVerifies Formulaire[]          @relation("FormVerifiedBy")
   pathologiesAjoutees PersonnelPathologie[] @relation("PersonnelPathologieCreatedBy")
+  piecesJointes       PieceJointe[]         @relation("PieceJointeUploadedBy")
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 }
@@ -244,6 +245,7 @@ model Visite {
   formulaire       Formulaire?
   etudeDePoste     EtudeDePoste?
   avisSpecialises  AvisSpecialise[]
+  piecesJointes    PieceJointe[]
 
   // ✅ AUDIT
   createdById String
@@ -636,6 +638,28 @@ model AvisSpecialise {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([visiteId])
+}
+
+// Pièces jointes des examens (paraclinique, ergovision, ECG...) :
+// fichiers stockés hors de public/, servis par /api/pieces-jointes/[id] (session requise)
+model PieceJointe {
+  id           String   @id @default(uuid())
+
+  visiteId     String
+  visite       Visite   @relation(fields: [visiteId], references: [id])
+
+  champ        String   // ex. "paraclinique.spirometrie.compteRendu"
+  nomOriginal  String
+  chemin       String   // relatif au dossier de stockage
+  mimeType     String
+  taille       Int
+
+  uploadedById String
+  uploadedBy   User     @relation("PieceJointeUploadedBy", fields: [uploadedById], references: [id])
+
+  createdAt    DateTime @default(now())
 
   @@index([visiteId])
 }

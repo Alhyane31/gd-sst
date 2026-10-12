@@ -50,3 +50,6 @@ out/
 # photos du personnel (données personnelles)
 /photos/*
 !/photos/.gitkeep
+
+# pieces jointes des examens (donnees medicales)
+/storage/

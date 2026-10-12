@@ -210,6 +210,7 @@ export default function InformationsProfessionnellesSection({
 
               onChange("posteId", id);
               onChange("poste", selected?.libelle ?? "");
+              onChange("posteCode", selected?.code ?? "");
               onChange("categorieForm", selected?.categorieForm ?? "");
 
               onChange("detailPosteId", "");

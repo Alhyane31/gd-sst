@@ -6,6 +6,7 @@ import SectionRenderer from "./SectionRenderer";
 import { CONSTANTES } from "../config/constantes";
 import { ANTECEDENTS_PROFESSIONNELS } from "../config/antecedentsProfessionnels";
 import { EXAMEN_CLINIQUE } from "../config/examenClinique";
+import { EXAMEN_PARACLINIQUE } from "../config/paraclinique";
 import { RACHIS_LOMBAIRE } from "../config/rachis";
 import type { SectionDef, SectionValues } from "../types";
 
@@ -17,7 +18,7 @@ function Harness({ section, initial = {}, sexe }: { section: SectionDef; initial
 }
 
 describe("SectionRenderer", () => {
-  it.each(EXAMEN_CLINIQUE.flatMap((g) => g.sections).map((s) => [s.id, s] as const))("affiche %s sans erreur", (_id, s) => {
+  it.each([...EXAMEN_CLINIQUE, ...EXAMEN_PARACLINIQUE].flatMap((g) => g.sections).map((s) => [s.id, s] as const))("affiche %s sans erreur", (_id, s) => {
     render(<Harness section={s} />);
     expect(screen.getAllByText(/./).length).toBeGreaterThan(0);
   });

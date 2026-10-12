@@ -21,6 +21,7 @@ import CertificatMedicalSection from "./sections/CertificatMedicalSection";
 import IdentificationExpertiseSection from "./sections/IdentificationExpertiseSection";
 import ResultatExpertiseSection from "./sections/ResultatExpertiseSection";
 import ConstantesSection from "./sections/ConstantesSection";
+import ExamenParacliniqueSection from "./sections/ExamenParacliniqueSection";
 import type { ExamCtx } from "../examen/types";
 import { getSectionsForVisiteType } from "../visiteSectionsConfig";
 
@@ -155,6 +156,9 @@ export default function PersonnelFormStepper({
           )}
           {stepKey === "EXAMEN_CLINIQUE_APTITUDE" && (
             <ExamenCliniqueAptitudeSection data={formData} onChange={onFieldChange} ctx={examCtx} />
+          )}
+          {stepKey === "EXAMEN_PARACLINIQUE" && (
+            <ExamenParacliniqueSection data={formData} onChange={onFieldChange} ctx={examCtx} />
           )}
           {stepKey === "SUIVI_RAPPROCHE" && (
             <SuiviRapprocheSection data={formData} onChange={onFieldChange} categoriePersonnel={categoriePersonnel} />
