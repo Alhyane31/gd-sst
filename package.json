@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "seed:cim11": "tsx prisma/seed-cim11.ts",
     "seed:postes": "tsx prisma/seed-postes.ts",
     "seed:poste-details": "tsx prisma/seedPosteDetails.js",
@@ -42,6 +43,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
@@ -50,12 +53,14 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "jsdom": "^26.1.0",
     "postcss": "^8.5.6",
     "prisma": "^7.7.0",
     "tailwindcss": "^4.1.18",
     "ts-node": "^1.7.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
