@@ -474,6 +474,7 @@ export async function PUT(
         nbNuitsMois: body.nbNuitsMois ?? "",
         horairesNuit: body.horairesNuit ?? "",
         horairesTravail: body.horairesTravail ?? "",
+        joursTravailles: body.joursTravailles ?? "",
         horaireTravailPrecision: body.horaireTravailPrecision ?? "",
         formesHoraireAtypique: Array.isArray(body.formesHoraireAtypique)
           ? body.formesHoraireAtypique

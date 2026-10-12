@@ -77,14 +77,14 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
     
     <Box>
 
-      {!data.categorieForm && (
-        <Alert severity="info">
-          Merci de sélectionner un poste pour afficher cette section.
+      {!data.posteId && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Sélectionnez un poste (Informations professionnelles) pour afficher les questions propres au poste.
         </Alert>
       )}
 
-      {data.categorieForm === "B" && (
-  <>
+      {/* Type de semaine et jours travaillés : tous les postes */}
+      <>
     <Typography variant="h6" mb={1}>
       Horaires de travail
     </Typography>
@@ -103,8 +103,8 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
         <TableBody>
           <TableRow>
             <TableCell>Les horaires</TableCell>
-            <TableCell>Entre 7 h et 20 h</TableCell>
-            <TableCell>De 21 h à 6 h</TableCell>
+            <TableCell>Entre 8 h et 20 h</TableCell>
+            <TableCell>De 20 h à 8 h</TableCell>
           </TableRow>
 
           <TableRow>
@@ -152,18 +152,29 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
       <FormControlLabel
         value="SEMAINE_STANDARD"
         control={<Radio />}
-        label="Semaine standard"
+        label="Semaine standard (8h–20h)"
       />
       <FormControlLabel
         value="SEMAINE_ATYPIQUE"
         control={<Radio />}
-        label="Semaine atypique"
+        label="Semaine atypique (20h–8h)"
       />
+    </RadioGroup>
+
+    <Typography variant="subtitle1" mt={2} mb={0.5}>
+      Jours travaillés
+    </Typography>
+    <RadioGroup
+      row
+      value={data.joursTravailles ?? ""}
+      onChange={(e) => onChange("joursTravailles", e.target.value as FormData["joursTravailles"])}
+    >
+      <FormControlLabel value="5_JOURS" control={<Radio />} label="5 jours (lundi au vendredi)" />
+      <FormControlLabel value="6_JOURS" control={<Radio />} label="6 jours (lundi au samedi)" />
     </RadioGroup>
 
     <Divider sx={{ my: 3 }} />
   </>
-)}
 {/* Personnel administratif (catégorie C) : horaires simplifiés uniquement */}
 {data.categorieForm === "C" && (
   <>

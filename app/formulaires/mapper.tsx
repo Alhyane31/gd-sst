@@ -164,6 +164,7 @@ export function mapApiToFormData(payload: any): FormData {
       ? raw.gardesSupplementaires
       : [],
     horairesTravail:        rp?.horairesTravail        ?? raw?.horairesTravail        ?? "",
+    joursTravailles:        rp?.joursTravailles        ?? raw?.joursTravailles        ?? "",
     horaireTravailPrecision: rp?.horaireTravailPrecision ?? raw?.horaireTravailPrecision ?? "",
     formesHoraireAtypique: Array.isArray(rp?.formesHoraireAtypique)
       ? rp.formesHoraireAtypique

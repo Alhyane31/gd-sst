@@ -115,6 +115,7 @@ export type FormData = {
   rythmeGarde: string;
   gardesSupplementaires?: GardeItem[]; // autres possibilités (heures + rythme)
 horairesTravail?: "SEMAINE_STANDARD" | "SEMAINE_ATYPIQUE" | "";
+  joursTravailles?: "5_JOURS" | "6_JOURS" | "";
   horaireTravailPrecision?: "08H00_14H00" | "08H00_16H00" | "14H00_20H00" | "";
  formesHoraireAtypique?: string[];
   travailNuit: OuiNon;
