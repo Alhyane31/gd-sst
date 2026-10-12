@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isVisible } from "../engine";
 import type { FieldDef, GridFieldDef, SectionDef } from "../types";
 import { EXAMEN_CLINIQUE } from "./examenClinique";
+import { CARDIOVASCULAIRE, COU_THYROIDE, NEUROLOGIQUE } from "./appareils";
 import { EPAULES } from "./membreSuperieur";
 import { RACHIS_CERVICAL, RACHIS_LOMBAIRE } from "./rachis";
 
@@ -86,5 +87,33 @@ describe("règles cliniques", () => {
     const f = RACHIS_LOMBAIRE.fields.find((x) => x.id === "irradiationCote")!;
     expect(isVisible(f, { irradiation: "AUCUNE" }, {})).toBe(false);
     expect(isVisible(f, { irradiation: "CUISSE" }, {})).toBe(true);
+  });
+});
+
+describe("4.6 à 4.14 : conditions d'affichage", () => {
+  const f = (s: SectionDef, id: string) => s.fields.find((x) => x.id === id)!;
+
+  it("couvre les 14 régions de l'examen clinique, dans l'ordre du PDF", () => {
+    expect(sections.map((s) => s.id)).toEqual([
+      "epaules", "coudes", "poignetsMains", "rachisCervical", "rachisDorsal", "rachisLombaire", "membreInferieur",
+      "cardiovasculaire", "digestif", "pleuropulmonaire", "neurologique",
+      "teguments", "orl", "ophtalmologie", "couThyroide", "buccoDentaire",
+    ]);
+  });
+
+  it("souffle cardiaque présent → foyers et intensité", () => {
+    expect(isVisible(f(CARDIOVASCULAIRE, "souffleFoyers"), { souffle: "ABSENT" }, {})).toBe(false);
+    expect(isVisible(f(CARDIOVASCULAIRE, "souffleIntensite"), { souffle: "PRESENT" }, {})).toBe(true);
+  });
+
+  it("adénopathie dans une aire → caractéristiques à décrire", () => {
+    const c = f(COU_THYROIDE, "caracteristiquesAdenopathies");
+    expect(isVisible(c, { airesGanglionnaires: { CERVICALES: "LIBRES" } }, {})).toBe(false);
+    expect(isVisible(c, { airesGanglionnaires: { AXILLAIRES: "ADENOPATHIE_G" } }, {})).toBe(true);
+  });
+
+  it("conscience : anomalie → préciser", () => {
+    expect(isVisible(f(NEUROLOGIQUE, "conscienceAnomalie"), { conscience: "ANOMALIE" }, {})).toBe(true);
+    expect(isVisible(f(NEUROLOGIQUE, "conscienceAnomalie"), { conscience: "CONSCIENT_ORIENTE" }, {})).toBe(false);
   });
 });
