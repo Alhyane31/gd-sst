@@ -167,7 +167,8 @@ if (jf)
         ...(statut !== undefined ? { statut: statut as AllowedStatut } : {}),
         ...(convocationType !== undefined ? { convocationType: convocationType as AllowedConvocationType } : {}),
         
-        ...(datePrevue !== undefined ? { datePrevue: dPrevue } : {}),
+        // dPrevue === null est rejeté plus haut (400)
+        ...(datePrevue !== undefined ? { datePrevue: dPrevue as Date } : {}),
         ...(dateConvocation !== undefined ? { dateConvocation: dConvoc } : {}),
         ...(commentaire !== undefined ? { commentaire: commentaire ?? null } : {}),
       },

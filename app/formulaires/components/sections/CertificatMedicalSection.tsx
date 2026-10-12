@@ -57,7 +57,7 @@ export default function CertificatMedicalSection({
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <TextField
             type="date"
             label="Date de début *"
@@ -68,7 +68,7 @@ export default function CertificatMedicalSection({
             slotProps={{ inputLabel: { shrink: true } }}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <TextField
             type="date"
             label="Date de fin"
@@ -79,7 +79,7 @@ export default function CertificatMedicalSection({
             slotProps={{ inputLabel: { shrink: true } }}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <TextField
             type="number"
             label="Durée (jours)"

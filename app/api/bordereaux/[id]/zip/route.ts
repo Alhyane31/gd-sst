@@ -60,7 +60,7 @@ export async function GET(
   if (!pdfBuffer)
     return NextResponse.json({ error: "Erreur génération PDF" }, { status: 500 });
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       "Content-Type":        "application/pdf",

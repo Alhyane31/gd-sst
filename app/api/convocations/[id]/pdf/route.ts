@@ -67,7 +67,7 @@ export async function GET(
   const pdfBuffer = await renderHtmlToPdf(html, { format: "A5", landscape: true });
 
   if (pdfBuffer) {
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         "Content-Type":        "application/pdf",
@@ -100,7 +100,7 @@ export async function GET(
   });
 
   const docxBuffer = doc.getZip().generate({ type: "nodebuffer" });
-  return new NextResponse(docxBuffer, {
+  return new NextResponse(new Uint8Array(docxBuffer), {
     status: 200,
     headers: {
       "Content-Type":        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

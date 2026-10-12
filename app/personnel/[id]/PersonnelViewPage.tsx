@@ -161,28 +161,28 @@ export default function PersonnelViewPage() {
         {/* Section 1 : Informations générales */}
         <SectionTitle title="Informations générales" />
         <Grid container spacing={0} columnSpacing={6}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Nom et prénom" value={`${p.lastName} ${p.firstName}`} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Matricule" value={p.matricule} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Date de naissance"
               value={p.dateNaissance ? dayjs(p.dateNaissance).format("DD/MM/YYYY") : undefined}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Statut social"
               value={p.statutSocial ? (STATUT_SOCIAL_LABELS[p.statutSocial] ?? p.statutSocial) : undefined}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Email" value={p.email} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Statut"
               value={
@@ -195,7 +195,7 @@ export default function PersonnelViewPage() {
             />
           </Grid>
           {!p.isActive && (
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoRow
                 label="Date de sortie"
                 value={p.dateSortie ? dayjs(p.dateSortie).format("DD/MM/YYYY") : undefined}
@@ -209,21 +209,21 @@ export default function PersonnelViewPage() {
         {/* Section 2 : Informations professionnelles */}
         <SectionTitle title="Informations professionnelles" />
         <Grid container spacing={0} columnSpacing={6}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Formation" value={p.formation?.libelle} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Service" value={p.service?.libelle} />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow label="Poste" value={p.poste?.libelle} />
           </Grid>
           {p.posteDetail && (
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <InfoRow label="Détail du poste" value={p.posteDetail.libelle} />
             </Grid>
           )}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Catégorie"
               value={
@@ -235,20 +235,20 @@ export default function PersonnelViewPage() {
               }
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Date d'affectation CHU"
               value={p.dateAffectation ? dayjs(p.dateAffectation).format("DD/MM/YYYY") : undefined}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <InfoRow
               label="Date prochaine visite"
               value={p.dateProchainVisite ? dayjs(p.dateProchainVisite).format("DD/MM/YYYY") : undefined}
             />
           </Grid>
           {tags.length > 0 && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <InfoRow
                 label="Tags"
                 value={

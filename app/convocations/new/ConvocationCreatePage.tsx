@@ -271,7 +271,7 @@ router.push("/convocations");
     )}
   </Grid>
 
-  <Grid item xs={12}>
+  <Grid size={{ xs: 12 }}>
   <Box sx={{ height: 30
    }} /> {/* espace visuel clair */}
 </Grid>
@@ -280,7 +280,7 @@ router.push("/convocations");
  
     
       {/* Ligne champs principaux */}
-    <Grid item xs={12}>
+    <Grid size={{ xs: 12 }}>
   <Stack
     direction={{ xs: "column", md: "row" }}
     spacing={2}
@@ -352,13 +352,13 @@ router.push("/convocations");
 
 
 
-   <Grid item xs={12}>
+   <Grid size={{ xs: 12 }}>
   <Box sx={{ height: 30
    }} /> {/* espace visuel clair */}
 </Grid>
  
 
-<Grid item xs={12}>
+<Grid size={{ xs: 12 }}>
   <Box
     sx={{
       display: "flex",

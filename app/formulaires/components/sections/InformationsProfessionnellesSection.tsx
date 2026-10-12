@@ -145,7 +145,7 @@ export default function InformationsProfessionnellesSection({
   return (
     <Box>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             select
             fullWidth
@@ -172,7 +172,7 @@ export default function InformationsProfessionnellesSection({
           </TextField>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             select
             fullWidth
@@ -197,7 +197,7 @@ export default function InformationsProfessionnellesSection({
           </TextField>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             select
             fullWidth
@@ -227,7 +227,7 @@ export default function InformationsProfessionnellesSection({
         </Grid>
 
         {detailsPoste.length > 0 && (
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               select
               fullWidth
@@ -254,7 +254,7 @@ export default function InformationsProfessionnellesSection({
         )}
 
         {nbAnnees > 0 && (
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               select
               fullWidth
@@ -273,7 +273,7 @@ export default function InformationsProfessionnellesSection({
           </Grid>
         )}
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             select
             fullWidth
@@ -291,7 +291,7 @@ export default function InformationsProfessionnellesSection({
           </TextField>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             type="date"

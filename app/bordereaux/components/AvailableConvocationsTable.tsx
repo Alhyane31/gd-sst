@@ -232,7 +232,7 @@ export default function AvailableConvocationsTable({
                   <TableCell>{name}</TableCell>
                   <TableCell>{date}</TableCell>
                   
-                  <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType] ?? r.convocationType}</TableCell>
+                  <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType ?? ""] ?? r.convocationType}</TableCell>
                   <TableCell>
                                           <Chip size="small" label={STATUT_LABELS[r.statut] ?? r.statut}  variant="outlined" />
                                         </TableCell>

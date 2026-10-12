@@ -297,7 +297,7 @@ export default function VisiteConsultationPage() {
           />
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={2} sx={{ width: "100%" }}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <InfoRow label="Personnel"
                 value={`${visite.personnel.lastName} ${visite.personnel.firstName}`} />
               <InfoRow label="Matricule" value={visite.personnel.matricule} />
@@ -305,7 +305,7 @@ export default function VisiteConsultationPage() {
               <InfoRow label="Service" value={visite.personnel.service.libelle} />
               <InfoRow label="Formation" value={visite.personnel.formation.libelle} />
             </Grid>
-            <Grid item xs={6} >
+            <Grid size={{ xs: 6 }}>
               <InfoRow label="Type de visite"
                 value={visite.type === "AUTRE" && visite.typeAutre
                   ? `Autre — ${visite.typeAutre}`
@@ -328,7 +328,7 @@ export default function VisiteConsultationPage() {
             />
             <Divider sx={{ mb: 2 }} />
             <Grid container spacing={2} sx={{ width: "100%" }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoRow label="Date prévue"
                   value={dayjs(visite.convocation.datePrevue).format("DD/MM/YYYY")} />
                 <InfoRow label="Date réalisée"
@@ -338,7 +338,7 @@ export default function VisiteConsultationPage() {
                 <InfoRow label="Statut"
                   value={<Chip size="small" label={CONV_LABELS[visite.convocation.statut]} variant="outlined" />} />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoRow label="Type" value={visite.convocation.convocationType} />
                 <InfoRow label="Bordereau"
                   value={visite.convocation.bordereau
@@ -380,7 +380,7 @@ export default function VisiteConsultationPage() {
 
           {visite.formulaire ? (
             <Grid container spacing={2} sx={{ width: "100%" }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoRow label="Statut"
                   value={
                     <Chip
@@ -396,7 +396,7 @@ export default function VisiteConsultationPage() {
                     ? `${visite.formulaire.filledBy.firstName} ${visite.formulaire.filledBy.lastName}`
                     : "—"} />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <InfoRow label="Soumis le"
                   value={visite.formulaire.submittedAt
                     ? dayjs(visite.formulaire.submittedAt).format("DD/MM/YYYY")

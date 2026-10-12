@@ -27,7 +27,7 @@ interface Visite {
   dateFin?: string | null;
   personnel: { id: string; firstName: string; lastName: string };
   convocation?: { id: string; datePrevue: string | null } | null;
-  createdBy: { id: string; name?: string | null };
+  createdBy: { id: string; firstName?: string | null; lastName?: string | null };
   createdAt: string;
 }
 

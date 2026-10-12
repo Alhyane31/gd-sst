@@ -77,16 +77,16 @@ export default function PersonnelFormStepper() {
         {/* 🔹 STEP 1 */}
         {activeStep === 0 && (
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField fullWidth label="Nom" name="nom" onChange={handleChange} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField fullWidth label="Prénom" name="prenom" onChange={handleChange} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField fullWidth label="Formation" name="formation" onChange={handleChange} />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <TextField fullWidth label="Service" name="service" onChange={handleChange} />
             </Grid>
           </Grid>
@@ -108,13 +108,13 @@ export default function PersonnelFormStepper() {
 
             {formData.autreEtablissement === "oui" && (
               <Grid container spacing={2} mt={1}>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <TextField fullWidth label="Lieu de travail" name="lieuTravail" onChange={handleChange} />
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <TextField fullWidth label="Durée" name="duree" onChange={handleChange} />
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <TextField fullWidth label="Horaires" name="horaires" onChange={handleChange} />
                 </Grid>
               </Grid>
@@ -149,10 +149,10 @@ export default function PersonnelFormStepper() {
 
             {formData.travailGarde === "oui" && (
               <Grid container spacing={2} mt={1}>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField fullWidth label="Nombre d’heures" name="heuresGarde" onChange={handleChange} />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField fullWidth label="Rythme" name="rythmeGarde" onChange={handleChange} />
                 </Grid>
               </Grid>

@@ -177,10 +177,10 @@ const fromDatetimeLocalToISO = (value: string) => {
  
 </Box>
       <Paper sx={{ p: 3 }}>
-        <Grid container spacing={2} fullWidth>
+        <Grid container spacing={2}>
           
 
-          <Grid item xs={12}  md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField select fullWidth size="small" label="Statut" name="statut" value={form.statut} onChange={handleChange}>
               <MenuItem value="A_CONVOQUER">À convoquer</MenuItem>
               <MenuItem value="CONVOCATION_GENEREE">Convocation générée</MenuItem>
@@ -189,7 +189,7 @@ const fromDatetimeLocalToISO = (value: string) => {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               select
               fullWidth
@@ -207,7 +207,7 @@ const fromDatetimeLocalToISO = (value: string) => {
           </Grid>
 
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               fullWidth
               size="small"
@@ -220,7 +220,7 @@ const fromDatetimeLocalToISO = (value: string) => {
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               fullWidth
               
@@ -236,7 +236,7 @@ const fromDatetimeLocalToISO = (value: string) => {
 
        
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
   <Box
     sx={{
       
@@ -244,7 +244,7 @@ const fromDatetimeLocalToISO = (value: string) => {
       
       mt: 1
     }}>
-           <Grid item xs={12} md={6}>
+           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               
               
@@ -260,7 +260,7 @@ const fromDatetimeLocalToISO = (value: string) => {
               onChange={handleChange}
             />
            
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
   <Box sx={{ height: 30
    }} /> {/* espace visuel clair */}
 </Grid>

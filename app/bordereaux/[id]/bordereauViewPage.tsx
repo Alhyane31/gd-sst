@@ -30,6 +30,7 @@ type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
   | "ENVOYEE"
+  | "A_TRAITER"
   | "A_RELANCER"
   | "RELANCEE"
   | "REALISEE"
@@ -75,7 +76,9 @@ export default function BordereauDetailPage() {
       const cs: ConvocationRow[] = data.convocations ?? data.convocations ?? data.convocation ?? data.convocations ?? data.convocations ?? data.convocations;
 
       setBordereau(b);
-      setConvocations(Array.isArray(cs) ? cs : b?.["convocations"] ?? []);
+      setConvocations(
+        Array.isArray(cs) ? cs : (b as BordereauDetail & { convocations?: ConvocationRow[] })?.convocations ?? []
+      );
     } catch (e) {
       console.error("GET bordereau detail error", e);
       setBordereau(null);

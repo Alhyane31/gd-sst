@@ -429,7 +429,7 @@ export async function PUT(
       nextStatut = "VERIFIED";
     }
 
-    const pathologiesToAdd = Array.isArray(body.pathologiesToAdd)
+    const pathologiesToAdd: PathologieItem[] = Array.isArray(body.pathologiesToAdd)
       ? body.pathologiesToAdd
       : [];
 
@@ -539,7 +539,9 @@ export async function PUT(
     // Pré-charger les codes CIM-11 avant la transaction pour éviter des requêtes imbriquées
     let cim11Map = new Map<string, string>(); // code → id
     if (currentStatut !== "VERIFIED" && pathologiesToAdd.length > 0) {
-      const codes = pathologiesToAdd.map((p) => p.cim11Code).filter(Boolean);
+      const codes = pathologiesToAdd
+        .map((p) => p.cim11Code)
+        .filter((c): c is string => !!c);
       if (codes.length > 0) {
         const nodes = await prisma.cim11Node.findMany({
           where: { code: { in: codes } },
@@ -696,7 +698,7 @@ export async function PUT(
           .filter((p) => p.cim11Code && cim11Map.has(p.cim11Code))
           .map((p) => ({
             personnelId: visite.personnelId,
-            cim11NodeId: cim11Map.get(p.cim11Code)!,
+            cim11NodeId: cim11Map.get(p.cim11Code!)!,
             formulaireId: formulaire.id,
             date: parseDate(p.date) ?? new Date(),
             commentaire: p.commentaire ?? null,

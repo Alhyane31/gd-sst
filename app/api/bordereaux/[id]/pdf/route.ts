@@ -110,7 +110,7 @@ export async function GET(
   const docxBuffer = doc.getZip().generate({ type: "nodebuffer" });
   const baseName   = `bordereau_${b.serialNumber}`;
 
-  return new NextResponse(docxBuffer, {
+  return new NextResponse(new Uint8Array(docxBuffer), {
     status: 200,
     headers: {
       "Content-Type":        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

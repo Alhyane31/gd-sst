@@ -193,15 +193,15 @@ export default function PersonnelEditPage() {
 
       <Paper sx={{ p: 3 }} elevation={3}>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label="Prénom" name="firstName" value={form.firstName} onChange={handleChange} />
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label="Nom" name="lastName" value={form.lastName} onChange={handleChange} />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField select fullWidth label="Poste" name="posteId" value={form.posteId} onChange={handleChange}>
               {postes.map((x) => (
                 <MenuItem key={x.id} value={x.id}>
@@ -211,7 +211,7 @@ export default function PersonnelEditPage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField select fullWidth label="Formation" name="formationId" value={form.formationId} onChange={handleChange}>
               {formations.map((x) => (
                 <MenuItem key={x.id} value={x.id}>
@@ -221,7 +221,7 @@ export default function PersonnelEditPage() {
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               select
               fullWidth
@@ -240,7 +240,7 @@ export default function PersonnelEditPage() {
           </Grid>
 
           {/* ✅ Catégorie */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField select fullWidth label="Catégorie" name="categorie" value={form.categorie} onChange={handleChange}>
               <MenuItem value="VP">VP (Visite Périodique)</MenuItem>
               <MenuItem value="SMR">SMR (Surveillance Médicale Rapprochée)</MenuItem>
@@ -248,25 +248,25 @@ export default function PersonnelEditPage() {
           </Grid>
 
           {/* ✅ Statut actif */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField select fullWidth label="Statut" name="isActive" value={String(form.isActive)} onChange={handleChange}>
               <MenuItem value="true">Actif</MenuItem>
               <MenuItem value="false">Inactif</MenuItem>
             </TextField>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Divider sx={{ my: 1 }} />
           </Grid>
 
           {/* ✅ Tags */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" mb={1}>
               Tags
             </Typography>
 
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={8}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <TextField
                   fullWidth
                   label="Ajouter un tag"
@@ -281,13 +281,13 @@ export default function PersonnelEditPage() {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={4} display="flex" justifyContent="flex-end">
+              <Grid size={{ xs: 12, md: 4 }} sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddTagClick}>
                   Ajouter
                 </Button>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 {tags.length === 0 ? (
                   <Typography color="text.secondary">Aucun tag</Typography>
                 ) : (
@@ -305,7 +305,7 @@ export default function PersonnelEditPage() {
               </Grid>
 
               {/* suggestions */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant="body2" color="text.secondary" mb={1}>
                   Suggestions :
                 </Typography>
@@ -319,7 +319,7 @@ export default function PersonnelEditPage() {
           </Grid>
 
           {/* actions */}
-          <Grid item xs={12} display="flex" gap={2} justifyContent="flex-end" mt={1}>
+          <Grid size={{ xs: 12 }} sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 1 }}>
             <Button variant="outlined" onClick={() => router.push(`/personnel/${id}`)}>
               Annuler
             </Button>

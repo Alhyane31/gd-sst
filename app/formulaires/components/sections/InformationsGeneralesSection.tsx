@@ -148,7 +148,7 @@ export default function InformationsGeneralesSection({
     <Grid container spacing={2}>
     <Box sx={{ width: "100%", display: "flex", gap: 3, alignItems: "flex-start" }}>
     <Grid container spacing={2} sx={{ flex: 1 }}>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Nom"
@@ -158,7 +158,7 @@ export default function InformationsGeneralesSection({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           sx={{ minWidth: 220 }}
@@ -168,7 +168,7 @@ export default function InformationsGeneralesSection({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           type="date"
@@ -180,7 +180,7 @@ export default function InformationsGeneralesSection({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
        <TextField
   select
   fullWidth
@@ -197,7 +197,7 @@ export default function InformationsGeneralesSection({
 </TextField>
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           sx={{ minWidth: 220 }}
@@ -207,7 +207,7 @@ export default function InformationsGeneralesSection({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           sx={{ minWidth: 220 }}
@@ -226,7 +226,7 @@ export default function InformationsGeneralesSection({
   <>
   
   
-    <Grid item xs={12}>
+    <Grid size={{ xs: 12 }}>
       
 <Divider sx={{ my: 3 }} />
       <Typography variant="h6" mt={2} mb={2}>

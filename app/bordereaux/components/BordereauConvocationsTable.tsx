@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 type ConvocationStatut =
   | "A_CONVOQUER"
   | "CONVOCATION_GENEREE"
+  | "ENVOYEE"
   | "A_TRAITER"
   | "A_RELANCER"
   | "RELANCEE"
@@ -137,7 +138,7 @@ export default function BordereauConvocationsTable({
                       <TableCell>
                         <Chip size="small" label={STATUT_LABELS[r.statut] ?? r.statut}  variant="outlined" />
                       </TableCell>
-                      <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType] ?? r.convocationType}</TableCell>
+                      <TableCell>{CONVOCATION_TYPE_LABELS[r.convocationType ?? ""] ?? r.convocationType}</TableCell>
                       <TableCell align="right" sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
                         <Tooltip title="Télécharger convocation PDF">
                           <IconButton

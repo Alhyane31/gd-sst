@@ -147,7 +147,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
     <RadioGroup
       row
       value={data.horairesTravail ?? ""}
-      onChange={(e) => onChange("horairesTravail", e.target.value)}
+      onChange={(e) => onChange("horairesTravail", e.target.value as FormData["horairesTravail"])}
     >
       <FormControlLabel
         value="SEMAINE_STANDARD"
@@ -341,7 +341,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
   row
   value={data.posteNuitFixe ?? ""}
   onChange={(e) => {
-    onChange("posteNuitFixe", e.target.value);
+    onChange("posteNuitFixe", e.target.value as FormData["posteNuitFixe"]);
 
     if (e.target.value === "non") {
       onChange("rythmeTravailNuit", "");
@@ -362,7 +362,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
     </Typography>
 
     <Grid container spacing={2} mt={1}>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Typography variant="subtitle1" mb={1}>
           Préciser le rythme du travail de nuit effectué *
         </Typography>
@@ -370,7 +370,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
         <RadioGroup
           row
           value={data.rythmeTravailNuit ?? ""}
-          onChange={(e) => onChange("rythmeTravailNuit", e.target.value)}
+          onChange={(e) => onChange("rythmeTravailNuit", e.target.value as FormData["rythmeTravailNuit"])}
         >
           <FormControlLabel value="3x8" control={<Radio />} label="3×8" />
           <FormControlLabel value="2x12" control={<Radio />} label="2×12" />
@@ -387,7 +387,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
         </RadioGroup>
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           type="number"
@@ -407,7 +407,7 @@ const updateGarde = (index: number, patch: Partial<GardeItem>) =>
 </Typography>
 
 <Grid container spacing={2} mt={1}>
-  <Grid item xs={12} md={8}>
+  <Grid size={{ xs: 12, md: 8 }}>
     <TextField
       fullWidth
       type="number"
