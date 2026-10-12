@@ -154,7 +154,7 @@ export default function PersonnelFormStepper({
             <ConstantesSection data={formData} onChange={onFieldChange} ctx={examCtx} />
           )}
           {stepKey === "EXAMEN_CLINIQUE_APTITUDE" && (
-            <ExamenCliniqueAptitudeSection data={formData} onChange={onFieldChange} />
+            <ExamenCliniqueAptitudeSection data={formData} onChange={onFieldChange} ctx={examCtx} />
           )}
           {stepKey === "SUIVI_RAPPROCHE" && (
             <SuiviRapprocheSection data={formData} onChange={onFieldChange} categoriePersonnel={categoriePersonnel} />
