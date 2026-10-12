@@ -20,12 +20,16 @@ import SuiviRapprocheSection from "./sections/SuiviRapprocheSection";
 import CertificatMedicalSection from "./sections/CertificatMedicalSection";
 import IdentificationExpertiseSection from "./sections/IdentificationExpertiseSection";
 import ResultatExpertiseSection from "./sections/ResultatExpertiseSection";
+import ConstantesSection from "./sections/ConstantesSection";
+import type { ExamCtx } from "../examen/types";
 import { getSectionsForVisiteType } from "../visiteSectionsConfig";
 
 type Props = {
   mode: "create" | "edit";
   readOnly?: boolean;
   initialData: FormData;
+  /** id de la visite : pièces jointes */
+  visiteId?: string;
   title?: string;
   saving?: boolean;
   validateLabel?: string;
@@ -39,6 +43,7 @@ export default function PersonnelFormStepper({
   mode,
   readOnly = false,
   initialData,
+  visiteId,
   categoriePersonnel,
   title,
   saving = false,
@@ -60,6 +65,15 @@ export default function PersonnelFormStepper({
   );
 
   const stepKey = useMemo(() => steps[activeStep]?.key, [activeStep, steps]);
+
+  // contexte des examens structurés : conditions d'affichage et alertes
+  const examCtx: ExamCtx = {
+    visiteId,
+    visiteType: formData.typeVisite,
+    sexe: formData.sexe,
+    posteCode: formData.posteCode,
+    readOnly,
+  };
 
   const onFieldChange: ChangeHandler = (name, value) => {
     if (readOnly) return;
@@ -135,6 +149,9 @@ export default function PersonnelFormStepper({
           )}
           {stepKey === "ANTECEDENTS" && (
             <AntecedentsSection data={formData} onChange={onFieldChange} readOnly={readOnly} />
+          )}
+          {stepKey === "CONSTANTES" && (
+            <ConstantesSection data={formData} onChange={onFieldChange} ctx={examCtx} />
           )}
           {stepKey === "EXAMEN_CLINIQUE_APTITUDE" && (
             <ExamenCliniqueAptitudeSection data={formData} onChange={onFieldChange} />

@@ -26,6 +26,7 @@ const S_INFOS_PRO:            SectionConfig = { key: "INFORMATIONS_PROFESSIONNEL
 const S_RENS_PRO:               SectionConfig = { key: "RENSEIGNEMENTS_PROFESSIONNELS", label: "Renseignements professionnels" };
 const S_ACTIVITES_CONTRAINTES:  SectionConfig = { key: "ACTIVITES_CONTRAINTES_PROFESSIONNELLES", label: "Activités et contraintes professionnelles" };
 const S_ANTECEDENTS:            SectionConfig = { key: "ANTECEDENTS",                   label: "Antécédents" };
+const S_CONSTANTES:             SectionConfig = { key: "CONSTANTES",                    label: "Constantes" };
 const S_EXAMEN_CLINIQUE:        SectionConfig = { key: "EXAMEN_CLINIQUE_APTITUDE",      label: "Examens clinique et paracliniques" };
 const S_SUIVI_RAPPROCHE:        SectionConfig = { key: "SUIVI_RAPPROCHE",               label: "Décision d'aptitude et suivi" };
 const S_CERTIFICAT_MEDICALE:    SectionConfig = { key: "CERTIFICAT_MEDICALE",           label: "Certificat médical" };
@@ -38,6 +39,7 @@ const SECTIONS_STANDARD: SectionConfig[] = [
   S_RENS_PRO,
   S_ACTIVITES_CONTRAINTES,
   S_ANTECEDENTS,
+  S_CONSTANTES,
   S_EXAMEN_CLINIQUE,
   S_SUIVI_RAPPROCHE,
 ];
@@ -59,6 +61,7 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_RENS_PRO,
     S_ACTIVITES_CONTRAINTES,
     S_ANTECEDENTS,
+    S_CONSTANTES,
     S_EXAMEN_CLINIQUE,
     S_SUIVI_RAPPROCHE,
   ],
@@ -69,6 +72,7 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_RENS_PRO,
     S_ACTIVITES_CONTRAINTES,
     S_ANTECEDENTS,
+    S_CONSTANTES,
     S_EXAMEN_CLINIQUE,
     S_CERTIFICAT_MEDICALE,
   ],
@@ -80,6 +84,7 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_RENS_PRO,
     S_ACTIVITES_CONTRAINTES,
     S_ANTECEDENTS,
+    S_CONSTANTES,
     S_EXAMEN_CLINIQUE,
     S_RESULTAT_EXPERTISE,
   ],

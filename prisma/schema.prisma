@@ -134,6 +134,7 @@ model Personnel {
   matricule     String?       @unique
   dateNaissance DateTime?
   statutSocial  StatutSocial?
+  sexe          Sexe?
   isActive      Boolean       @default(true)
 
   posteId String
@@ -479,6 +480,9 @@ enum FormulaireStatut {
 
 enum FormSectionKey {
   INFORMATIONS_GENERALES
+  PARCOURS_ACADEMIQUE
+  CONSTANTES
+  EXAMEN_PARACLINIQUE
   INFORMATIONS_PROFESSIONNELLES
   ANTECEDENTS
   RENSEIGNEMENTS_PROFESSIONNELS
@@ -516,6 +520,11 @@ enum ExpertiseDecision {
   DECISION_DIFFEREE
   APTITUDE_REPRISE
   INAPTITUDE_REPRISE
+}
+
+enum Sexe {
+  H
+  F
 }
 
 enum StatutSocial {

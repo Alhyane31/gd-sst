@@ -199,6 +199,21 @@ export default function InformationsGeneralesSection({
 
       <Grid size={{ xs: 12, md: 6 }}>
         <TextField
+          select
+          fullWidth
+          sx={{ minWidth: 220 }}
+          label="Sexe"
+          value={data.sexe ?? ""}
+          onChange={(e) => onChange("sexe", e.target.value as FormData["sexe"])}
+        >
+          <MenuItem value="">Sélectionner</MenuItem>
+          <MenuItem value="H">Homme</MenuItem>
+          <MenuItem value="F">Femme</MenuItem>
+        </TextField>
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <TextField
           fullWidth
           sx={{ minWidth: 220 }}
           label="PPR"

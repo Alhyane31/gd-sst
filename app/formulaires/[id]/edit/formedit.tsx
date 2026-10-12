@@ -120,6 +120,7 @@ export default function VisiteEditPage() {
         readOnly={isClosed}
         title={`${VISITE_LABELS[data.typeVisite ?? ""] ?? "Visite"} — ${data.nom} ${data.prenom}`.trim()}
         initialData={data}
+        visiteId={id}
         saving={saving}
         categoriePersonnel={categoriePersonnel}
         onSave={handleSave}

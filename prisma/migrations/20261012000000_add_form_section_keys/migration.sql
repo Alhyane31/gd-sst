@@ -1,0 +1,4 @@
+-- Nouvelles sections du formulaire (non destructif)
+ALTER TYPE "FormSectionKey" ADD VALUE IF NOT EXISTS 'PARCOURS_ACADEMIQUE';
+ALTER TYPE "FormSectionKey" ADD VALUE IF NOT EXISTS 'CONSTANTES';
+ALTER TYPE "FormSectionKey" ADD VALUE IF NOT EXISTS 'EXAMEN_PARACLINIQUE';

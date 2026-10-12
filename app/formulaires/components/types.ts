@@ -4,6 +4,8 @@ export type OuiNon = "oui" | "non";
 
 export type FormSectionKey =
   | "INFORMATIONS_GENERALES"
+  | "CONSTANTES"
+  | "EXAMEN_PARACLINIQUE"
   | "PARCOURS_ACADEMIQUE"
   | "INFORMATIONS_PROFESSIONNELLES"
   | "RENSEIGNEMENTS_PROFESSIONNELS"
@@ -72,6 +74,7 @@ export type FormData = {
   dateNaissance: string; // ISO yyyy-mm-dd
   statutSocial: string;
   matricule: string; // PPR
+  sexe?: "H" | "F" | "";
   nombreEnfants?: string;
   motifConsultation?: string;
   typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "EMBAUCHE" | "AUTRE" | "";
@@ -98,6 +101,7 @@ export type FormData = {
   detailPosteId?: string;
 
   categorieForm?: "A" | "B" | "C" | "D" | "";
+  posteCode?: string;
 
   grade?: Grade;
   anneeEtude?: string; // médecin résident (1-5) / interne (1-2)
@@ -145,6 +149,10 @@ joursReposAnnee?: string;
   antecedentsChirurgicaux?: string;
   antecedentsFamiliaux?: MembreFamille[];
   antecedentsProfessionnels?: Record<string, unknown>;
+
+  // EXAMENS STRUCTURÉS : { [sectionId]: { [champId]: valeur } }
+  examen?: Record<string, Record<string, unknown>>;       // constantes 4.0 + examen clinique 4.1–4.14
+  paraclinique?: Record<string, Record<string, unknown>>; // examen paraclinique 5.x
 
   // EXAMEN CLINIQUE ET PARACLINIQUES
   examenCliniqueComplet: string;

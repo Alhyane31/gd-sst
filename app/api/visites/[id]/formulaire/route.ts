@@ -207,6 +207,8 @@ type FormPayload = {
   antecedentsChirurgicaux?: string;
   antecedentsFamiliaux?: Prisma.InputJsonValue[];
   antecedentsProfessionnels?: Prisma.InputJsonObject;
+  examen?: Prisma.InputJsonObject;
+  paraclinique?: Prisma.InputJsonObject;
 };
 
 function parseDate(value?: string | null) {
@@ -299,6 +301,8 @@ export async function POST(
       antecedentsChirurgicaux: body.antecedentsChirurgicaux ?? "",
       antecedentsFamiliaux: Array.isArray(body.antecedentsFamiliaux) ? body.antecedentsFamiliaux : [],
       antecedentsProfessionnels: body.antecedentsProfessionnels ?? {},
+      examen: body.examen ?? {},
+      paraclinique: body.paraclinique ?? {},
       pathologiesToAdd: body.pathologiesToAdd ?? [],
       raw: body,
     };
@@ -516,6 +520,8 @@ export async function PUT(
       antecedentsChirurgicaux: body.antecedentsChirurgicaux ?? "",
       antecedentsFamiliaux: Array.isArray(body.antecedentsFamiliaux) ? body.antecedentsFamiliaux : [],
       antecedentsProfessionnels: body.antecedentsProfessionnels ?? {},
+      examen: body.examen ?? {},
+      paraclinique: body.paraclinique ?? {},
       pathologiesToAdd,
       certMedical: {
         typeCertificat: body.cmTypeCertificat  || null,
@@ -693,6 +699,7 @@ export async function PUT(
             matricule: body.matricule ?? visite.personnel.matricule,
             dateNaissance: parseDate(body.dateNaissance),
             statutSocial,
+            sexe: body.sexe === "H" || body.sexe === "F" ? body.sexe : visite.personnel.sexe,
 
             formationId: body.formationId ?? visite.personnel.formationId,
             serviceId: body.serviceId ?? visite.personnel.serviceId,

@@ -101,6 +101,7 @@ export function mapApiToFormData(payload: any): FormData {
     statutSocial:  (f.statutSocial ?? p.statutSocial ?? "") as any,
     typeVisite:    payload?.visite.type,
     nombreEnfants: raw?.nombreEnfants ?? "",
+    sexe:          raw?.sexe || p.sexe || "",
 
     // ---- PARCOURS ACADEMIQUE ----
     bacObtenu: pa?.bacObtenu ?? raw?.bacObtenu ?? "",
@@ -131,6 +132,7 @@ export function mapApiToFormData(payload: any): FormData {
     detailPoste:   f.detailPoste   ?? raw?.detailPoste   ?? p.posteDetail?.libelle             ?? "",
 
     categorieForm: p.poste?.categorieForm ?? "",
+    posteCode:     p.poste?.code ?? "",
 
     grade:      raw?.grade      ?? "",
     anneeEtude: raw?.anneeEtude ?? "",
@@ -226,6 +228,10 @@ export function mapApiToFormData(payload: any): FormData {
     antecedentsChirurgicaux:   raw?.antecedentsChirurgicaux ?? "",
     antecedentsFamiliaux:      Array.isArray(raw?.antecedentsFamiliaux) ? raw.antecedentsFamiliaux : [],
     antecedentsProfessionnels: raw?.antecedentsProfessionnels ?? {},
+
+    // ---- EXAMENS STRUCTURÉS ----
+    examen:       raw?.examen ?? {},
+    paraclinique: raw?.paraclinique ?? {},
 
     // ---- SUIVI RAPPROCHÉ ----
     necessitatSuiviRapproche: f.necessitatSuiviRapproche ?? null,
