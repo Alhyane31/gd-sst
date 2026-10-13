@@ -28,6 +28,17 @@ import { AesCalendrierStep, AesConsultationsStep, AesDeclarationStep, useDossier
 import { contexteAes } from "@/lib/aes/contexte";
 import { REFERENTIEL_AES_DEFAUT } from "@/lib/aes/referentiel";
 import { libellesManquants, manquantsDeclaration, type Manquants } from "@/app/aes/validation";
+import AnnexesDrawer, { type CleAnnexe } from "@/app/aes/components/AnnexesDrawer";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+
+/** Annexes utiles par étape AES (mises en avant dans le panneau) */
+const ANNEXES_PAR_ETAPE: Partial<Record<string, CleAnnexe[]>> = {
+  AES_SOURCE: ["B", "C"],
+  AES_VHB: ["C", "D"],
+  AES_PRISE_EN_CHARGE: ["A", "B", "C"],
+  AES_CALENDRIER: ["E", "F"],
+  AES_CONSULTATIONS: ["E", "F", "G"],
+};
 
 type Props = {
   mode: "create" | "edit";
@@ -76,8 +87,23 @@ export default function PersonnelFormStepper({
   const { dossier: dossierAes, recharger: rechargerAes, majDeclaration: majDeclarationAes } = useDossierAes(visiteId, estAes);
   const declarationAes = dossierAes?.declaration ?? null;
   const referentielAes = dossierAes?.referentiel ?? REFERENTIEL_AES_DEFAUT;
+  // panneau des annexes (consultable pendant la saisie)
+  const [annexesOuvertes, setAnnexesOuvertes] = useState(false);
+  const [annexe, setAnnexe] = useState<CleAnnexe>("A");
+  const annexesUtiles = (stepKey && ANNEXES_PAR_ETAPE[stepKey]) || [];
+  const ouvrirAnnexe = (cle?: string) => {
+    setAnnexe((cle as CleAnnexe) ?? annexesUtiles[0] ?? "A");
+    setAnnexesOuvertes(true);
+  };
+
   const aesCtx = useMemo(
-    () => contexteAes(declarationAes, referentielAes, readOnly || declarationAes?.statut === "CLOTUREE"),
+    () => ({
+      ...contexteAes(declarationAes, referentielAes, readOnly || declarationAes?.statut === "CLOTUREE"),
+      onAide: (cle: string) => {
+        setAnnexe(cle as CleAnnexe);
+        setAnnexesOuvertes(true);
+      },
+    }),
     [declarationAes, referentielAes, readOnly]
   );
   const [aesManquants, setAesManquants] = useState<Manquants>({});
@@ -229,6 +255,13 @@ export default function PersonnelFormStepper({
           )}
 
           {/* ── Visite AES ── */}
+          {estAes && stepKey?.startsWith("AES_") && (
+            <Box display="flex" justifyContent="flex-end" mb={1}>
+              <Button size="small" variant="outlined" startIcon={<MenuBookIcon />} onClick={() => ouvrirAnnexe()}>
+                Annexes{annexesUtiles.length ? ` (${annexesUtiles.join(", ")})` : ""}
+              </Button>
+            </Box>
+          )}
           {stepKey && AES_SECTION_PAR_ETAPE[stepKey] && (
             <AesDeclarationStep
               sectionId={AES_SECTION_PAR_ETAPE[stepKey]!}
@@ -254,7 +287,18 @@ export default function PersonnelFormStepper({
               referentiel={referentielAes}
               onSaved={majDeclarationAes}
               onValider={validerAes}
+              onAide={aesCtx.onAide}
               readOnly={readOnly}
+            />
+          )}
+          {estAes && (
+            <AnnexesDrawer
+              open={annexesOuvertes}
+              onClose={() => setAnnexesOuvertes(false)}
+              referentiel={referentielAes}
+              annexe={annexe}
+              onAnnexe={setAnnexe}
+              utiles={annexesUtiles}
             />
           )}
 

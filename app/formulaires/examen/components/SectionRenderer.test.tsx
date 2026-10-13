@@ -78,3 +78,17 @@ describe("SectionRenderer : suggestions et obligatoires", () => {
     expect(screen.getByText("Obligatoire")).toBeTruthy();
   });
 });
+
+describe("SectionRenderer : liens d'aide", () => {
+  const s: SectionDef = { id: "aide", title: "Aide", fields: [{ kind: "text", id: "t", label: "Champ", aide: "A" }] };
+
+  it("affiche « Voir l'annexe » seulement si le contexte sait ouvrir l'aide", () => {
+    const onAide = vi.fn();
+    const { unmount } = render(<SectionRenderer section={s} values={{}} onChange={() => {}} ctx={{ onAide }} champPrefix="x" />);
+    fireEvent.click(screen.getByText("Voir l'annexe A"));
+    expect(onAide).toHaveBeenCalledWith("A");
+    unmount();
+    render(<SectionRenderer section={s} values={{}} onChange={() => {}} ctx={{}} champPrefix="x" />);
+    expect(screen.queryByText("Voir l'annexe A")).toBeNull();
+  });
+});

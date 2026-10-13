@@ -18,11 +18,14 @@ export default function DeclarationForm({
   declaration,
   referentiel,
   onSaved,
+  onAide,
 }: {
   visiteId: string;
   declaration: DeclarationApi | null;
   referentiel: ReferentielAes;
   onSaved: (d: DeclarationApi) => void;
+  /** ouvre une annexe (liens « Voir l'annexe ») */
+  onAide?: (cle: string) => void;
 }) {
   const [values, setValues] = useState<SectionValues>((declaration?.data as SectionValues) ?? {});
   const [manquants, setManquants] = useState<Manquants>({});
@@ -35,7 +38,7 @@ export default function DeclarationForm({
 
   const statut = declaration?.statut ?? "BROUILLON";
   const readOnly = statut === "CLOTUREE";
-  const ctx = useMemo(() => contexteAes(declaration, referentiel, readOnly), [declaration, referentiel, readOnly]);
+  const ctx = useMemo(() => ({ ...contexteAes(declaration, referentiel, readOnly), onAide }), [declaration, referentiel, readOnly, onAide]);
 
   const enregistrer = async (action: "brouillon" | "valider") => {
     setMessage(null);

@@ -41,6 +41,7 @@ export const CONSULTATION_AES: SectionDef = {
       id: "resultats",
       label: "Résultats",
       help: "Lignes affichées selon les bilans prévus pour la visite",
+      aide: "E",
       rows: BILANS.map((b) => ({ value: b, label: BILAN_LIBELLES[b] })),
       columns: opts(["NEGATIF", "Négatif/Normal", true], ["POSITIF", "Positif/Anormal"], ["NON_FAIT", "Non fait"], ["EN_ATTENTE", "En attente"]),
       rowsFilter: (row, v, ctx) => bilanPrevu(row.value, v, ctx),
@@ -117,7 +118,7 @@ export const CONSULTATION_AES: SectionDef = {
         ["FIN_SUIVI", "Fin du suivi"]
       ),
     },
-    { kind: "date", id: "prochaineConsultation", label: "Prochaine consultation", help: "Proposée selon le calendrier" },
+    { kind: "date", id: "prochaineConsultation", label: "Prochaine consultation", help: "Proposée selon le calendrier", aide: "F" },
     {
       kind: "checkboxes",
       id: "objetProchaine",

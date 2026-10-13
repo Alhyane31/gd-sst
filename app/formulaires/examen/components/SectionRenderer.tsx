@@ -8,6 +8,7 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
+  Link,
   MenuItem,
   Radio,
   RadioGroup,
@@ -295,6 +296,11 @@ export default function SectionRenderer({
           .map((f) => (
             <Box key={f.id} sx={WIDE_KINDS.has(f.kind) ? { flexBasis: "100%" } : undefined}>
               {renderField(f)}
+              {f.kind !== "heading" && f.aide && ctx.onAide && (
+                <Link component="button" type="button" variant="caption" onClick={() => ctx.onAide!(f.aide!)} sx={{ display: "block", mt: 0.25 }}>
+                  Voir l&apos;annexe {f.aide}
+                </Link>
+              )}
             </Box>
           ))}
       </Box>

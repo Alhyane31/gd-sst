@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Annexes from "../components/Annexes";
+import AnnexesDrawer, { type CleAnnexe } from "../components/AnnexesDrawer";
 import CalendrierSuivi from "../components/CalendrierSuivi";
 import ClotureAes from "../components/ClotureAes";
 import Consultations from "../components/Consultations";
@@ -36,6 +37,7 @@ export default function AesDossierPage() {
   const [data, setData] = useState<DossierAesApi | null>(null);
   const [erreur, setErreur] = useState("");
   const [onglet, setOnglet] = useState(1);
+  const [annexe, setAnnexe] = useState<CleAnnexe | null>(null);
 
   useEffect(() => {
     fetch(`/api/aes/${visiteId}`)
@@ -92,13 +94,35 @@ export default function AesDossierPage() {
 
       <Box hidden={onglet !== 0}>{onglet === 0 && <DossierLectureSeule data={data} />}</Box>
       <Box hidden={onglet !== 1}>
-        <DeclarationForm visiteId={visiteId} declaration={declaration} referentiel={data.referentiel} onSaved={majDeclaration} />
+        <DeclarationForm
+          visiteId={visiteId}
+          declaration={declaration}
+          referentiel={data.referentiel}
+          onSaved={majDeclaration}
+          onAide={(c) => setAnnexe(c as CleAnnexe)}
+        />
       </Box>
       <Box hidden={onglet !== 2}>{onglet === 2 && <CalendrierSuivi visiteId={visiteId} declaration={declaration} onSaved={majDeclaration} />}</Box>
       <Box hidden={onglet !== 3}>
-        {onglet === 3 && <Consultations visiteId={visiteId} declaration={declaration} referentiel={data.referentiel} onSaved={majDeclaration} />}
+        {onglet === 3 && (
+          <Consultations
+            visiteId={visiteId}
+            declaration={declaration}
+            referentiel={data.referentiel}
+            onSaved={majDeclaration}
+            onAide={(c) => setAnnexe(c as CleAnnexe)}
+          />
+        )}
       </Box>
       <Box hidden={onglet !== 4}>{onglet === 4 && <Annexes referentiel={data.referentiel} />}</Box>
+
+      <AnnexesDrawer
+        open={annexe !== null}
+        onClose={() => setAnnexe(null)}
+        referentiel={data.referentiel}
+        annexe={annexe ?? "A"}
+        onAnnexe={setAnnexe}
+      />
 
     </Box>
   );

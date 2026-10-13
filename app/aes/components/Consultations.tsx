@@ -24,11 +24,14 @@ export default function Consultations({
   declaration,
   referentiel,
   onSaved,
+  onAide,
 }: {
   visiteId: string;
   declaration: DeclarationApi | null;
   referentiel: ReferentielAes;
   onSaved: (d: DeclarationApi) => void;
+  /** ouvre une annexe (liens « Voir l'annexe ») */
+  onAide?: (cle: string) => void;
 }) {
   const [edition, setEdition] = useState<Edition>(null);
   const [manquants, setManquants] = useState<string[]>([]);
@@ -36,7 +39,7 @@ export default function Consultations({
   const [erreur, setErreur] = useState("");
 
   const readOnly = declaration?.statut === "CLOTUREE";
-  const ctx = useMemo(() => contexteAes(declaration, referentiel, readOnly), [declaration, referentiel, readOnly]);
+  const ctx = useMemo(() => ({ ...contexteAes(declaration, referentiel, readOnly), onAide }), [declaration, referentiel, readOnly, onAide]);
 
   if (!declaration || declaration.statut === "BROUILLON") {
     return <Alert severity="info">Les consultations de résultats sont disponibles après validation de la déclaration.</Alert>;

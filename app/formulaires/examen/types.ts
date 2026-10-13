@@ -23,6 +23,8 @@ export type ExamCtx = {
   options?: Record<string, Option[]>;
   /** données propres à un module (ex. AES : TPE accepté, bilans prévus de la visite) */
   extra?: Record<string, unknown>;
+  /** ouvre une aide de référence (ex. annexe AES) ; absent : pas de lien affiché */
+  onAide?: (aide: string) => void;
 };
 
 type Condition = (values: SectionValues, ctx: ExamCtx) => boolean;
@@ -37,6 +39,8 @@ type BaseField = {
   required?: boolean;
   /** obligatoire selon les réponses ou le contexte */
   requiredIf?: Condition;
+  /** aide de référence associée (ex. "A" pour l'annexe A), ouverte par ctx.onAide */
+  aide?: string;
 };
 
 /** Grille lignes × colonnes (une seule réponse par ligne, non obligatoire) */

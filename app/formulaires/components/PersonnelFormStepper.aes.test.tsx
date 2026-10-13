@@ -52,3 +52,26 @@ describe("formulaire de visite AES", () => {
     await waitFor(() => expect(screen.getByText("1. Circonstances")).toBeTruthy());
   });
 });
+
+describe("annexes pendant la saisie AES", () => {
+  it("le bouton « Annexes » ouvre le panneau sur l'annexe utile à l'étape", async () => {
+    monter();
+    fireEvent.click(screen.getByText("AES – Prise en charge"));
+    fireEvent.click(screen.getByText("Annexes (A, B, C)"));
+    expect(await screen.findByText("Annexe A – Niveau de risque")).toBeTruthy();
+    expect(screen.getByText("Utiles pour cette étape :")).toBeTruthy();
+  });
+
+  it("le lien « Voir l'annexe B » à côté du TPE ouvre l'annexe B et les schémas", async () => {
+    monter();
+    fireEvent.click(screen.getByText("AES – Prise en charge"));
+    fireEvent.click(screen.getByText("Voir l'annexe B"));
+    expect(await screen.findByText("Annexe B – Indication du TPE VIH (délai < 72 h)")).toBeTruthy();
+    expect(screen.getByText("Schémas de TPE VIH (protocole du P23, paramétrable)")).toBeTruthy();
+  });
+
+  it("pas de bouton « Annexes » sur les étapes non AES", () => {
+    monter();
+    expect(screen.queryByRole("button", { name: /^Annexes/ })).toBeNull();
+  });
+});

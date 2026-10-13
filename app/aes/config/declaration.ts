@@ -432,6 +432,7 @@ export const S8_VHB: SectionDef = {
       id: "vaccinationVhb",
       label: "Vaccination hépatite B",
       required: true,
+      aide: "D",
       options: opts(["COMPLETE", "Complète"], ["INCOMPLETE", "Incomplète"], ["NON_VACCINE", "Non vacciné"], ["INCONNUE", "Inconnue"]),
     },
     {
@@ -491,7 +492,7 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       id: "niveauRisque",
       label: "Niveau de risque retenu",
       required: true,
-      help: "Aide : annexe A (onglet Aides)",
+      aide: "A",
       options: opts(["IMPORTANT", "Important"], ["INTERMEDIAIRE", "Intermédiaire"], ["MINIME", "Minime"], ["PAS_DE_RISQUE", "Pas de risque"]),
     },
     {
@@ -514,10 +515,10 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       id: "tpe",
       label: "TPE VIH",
       required: true,
-      help: "Aide : annexe B (onglet Aides)",
+      aide: "B",
       options: opts(["NON_INDIQUE", "Non indiqué"], ["ACCEPTE", "Proposé et accepté"], ["REFUSE", "Proposé et refusé"]),
     },
-    { kind: "select", id: "schemaTpe", label: "Schéma prescrit", optionsKey: "schemasTpe", options: [], showIf: tpeAccepte, help: "Selon protocole du P23 (liste paramétrable)" },
+    { kind: "select", id: "schemaTpe", label: "Schéma prescrit", optionsKey: "schemasTpe", options: [], showIf: tpeAccepte, help: "Selon protocole du P23 (liste paramétrable)", aide: "B" },
     { kind: "datetime", id: "dateHeurePremierePrise", label: "Date et heure de la première prise", showIf: tpeAccepte },
     {
       kind: "computed",
@@ -545,7 +546,7 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       id: "prophylaxieVhb",
       label: "Prophylaxie VHB",
       exclusive: "NON_INDIQUEE",
-      help: "Aide : annexe C (onglet Aides)",
+      aide: "C",
       options: opts(
         ["NON_INDIQUEE", "Non indiquée"],
         ["IMMUNOGLOBULINES", "Immunoglobulines anti-HBs"],

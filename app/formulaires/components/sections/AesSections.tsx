@@ -120,6 +120,7 @@ export function AesConsultationsStep({
   referentiel,
   onSaved,
   onValider,
+  onAide,
   readOnly,
 }: {
   visiteId: string;
@@ -127,6 +128,7 @@ export function AesConsultationsStep({
   referentiel: ReferentielAes;
   onSaved: (d: DeclarationApi) => void;
   onValider: () => void;
+  onAide?: (cle: string) => void;
   readOnly: boolean;
 }) {
   return (
@@ -138,7 +140,7 @@ export function AesConsultationsStep({
         <DeclarationNonValidee onValider={onValider} readOnly={readOnly} />
       ) : (
         <>
-          <Consultations visiteId={visiteId} declaration={declaration} referentiel={referentiel} onSaved={onSaved} />
+          <Consultations visiteId={visiteId} declaration={declaration} referentiel={referentiel} onSaved={onSaved} onAide={onAide} />
           {declaration.statut === "VALIDEE" && (
             <>
               <Divider sx={{ my: 3 }} />
