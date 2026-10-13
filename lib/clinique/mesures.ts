@@ -9,7 +9,12 @@ export type RegleMesure = {
 
 export type Severite = "info" | "success" | "warning" | "error";
 
-export type Alerte = { severite: Severite; message: string };
+export type Alerte = {
+  severite: Severite;
+  message: string;
+  /** suggestion modifiable : valeurs proposées, appliquées seulement si l'utilisateur clique */
+  appliquer?: { libelle: string; valeurs: Record<string, unknown> };
+};
 
 /**
  * Convertit une saisie en nombre ("36,5" et "36.5" acceptés).

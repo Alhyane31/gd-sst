@@ -55,3 +55,26 @@ describe("SectionRenderer", () => {
     expect(screen.getByText("Maximum 260")).toBeTruthy();
   });
 });
+
+describe("SectionRenderer : suggestions et obligatoires", () => {
+  const s: SectionDef = {
+    id: "sugg",
+    title: "Sugg",
+    fields: [{ kind: "choice", id: "risque", label: "Risque", required: true, options: [{ value: "IMPORTANT", label: "Important" }, { value: "MINIME", label: "Minime" }] }],
+    alerts: (v) => (v.risque ? [] : [{ severite: "info", message: "Suggestion : Important", appliquer: { libelle: "Appliquer", valeurs: { risque: "IMPORTANT" } } }]),
+  };
+
+  it("la suggestion n'est appliquée que sur clic, et reste modifiable", () => {
+    const onChange = vi.fn();
+    render(<SectionRenderer section={s} values={{}} onChange={onChange} ctx={{}} champPrefix="aes" />);
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("Appliquer"));
+    expect(onChange).toHaveBeenCalledWith({ risque: "IMPORTANT" });
+  });
+
+  it("marque les champs obligatoires et signale ceux qui manquent", () => {
+    render(<SectionRenderer section={s} values={{}} onChange={() => {}} ctx={{}} champPrefix="aes" missing={["risque"]} />);
+    expect(screen.getByText("Risque *")).toBeTruthy();
+    expect(screen.getByText("Obligatoire")).toBeTruthy();
+  });
+});

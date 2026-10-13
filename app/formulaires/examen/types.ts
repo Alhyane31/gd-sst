@@ -19,6 +19,8 @@ export type ExamCtx = {
   sexe?: string;
   posteCode?: string;
   readOnly?: boolean;
+  /** listes paramétrables (référentiel) : { [optionsKey]: options } */
+  options?: Record<string, Option[]>;
 };
 
 type Condition = (values: SectionValues, ctx: ExamCtx) => boolean;
@@ -29,6 +31,8 @@ type BaseField = {
   /** texte d'aide / valeurs usuelles affichées sous le champ */
   help?: string;
   showIf?: Condition;
+  /** obligatoire : validation bloquante (grille = toutes les lignes, cases = au moins une) */
+  required?: boolean;
 };
 
 /** Grille lignes × colonnes (une seule réponse par ligne, non obligatoire) */
@@ -65,18 +69,20 @@ export type MobilityFieldDef = BaseField & {
 
 export type EvaFieldDef = BaseField & { kind: "eva" };
 
-export type ChoiceFieldDef = BaseField & { kind: "choice"; options: Option[] };
+/** `optionsKey` : options lues dans ctx.options (liste paramétrable), à la place de `options` */
+type WithOptions = { options: Option[]; optionsKey?: string };
 
-export type CheckboxesFieldDef = BaseField & {
+export type ChoiceFieldDef = BaseField & WithOptions & { kind: "choice" };
+
+export type CheckboxesFieldDef = BaseField & WithOptions & {
   kind: "checkboxes";
-  options: Option[];
   /** option qui exclut les autres (ex. « Aucun ») */
   exclusive?: string;
 };
 
-export type SelectFieldDef = BaseField & { kind: "select"; options: Option[] };
+export type SelectFieldDef = BaseField & WithOptions & { kind: "select" };
 
-export type TextFieldDef = BaseField & { kind: "text" | "textarea" | "date" };
+export type TextFieldDef = BaseField & { kind: "text" | "textarea" | "date" | "time" | "datetime" };
 
 export type AttachmentFieldDef = BaseField & { kind: "attachment" };
 
@@ -107,6 +113,8 @@ export type SectionDef = {
   fields: FieldDef[];
   alerts?: (values: SectionValues, ctx: ExamCtx) => Alerte[];
   showIf?: (ctx: ExamCtx) => boolean;
+  /** affichage selon les réponses (sections partageant les mêmes valeurs) */
+  when?: (values: SectionValues, ctx: ExamCtx) => boolean;
 };
 
 /** Pièce jointe référencée dans les valeurs d'un champ "attachment" */

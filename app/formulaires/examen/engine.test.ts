@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countAnomalies, isVisible, pruneHidden, sectionErrors, visibleSections } from "./engine";
+import { countAnomalies, isVisible, missingRequired, pruneHidden, resolveOptions, sectionErrors, visibleSections } from "./engine";
 import { COL_TESTS, opts, SI_OUI } from "./config/presets";
 import type { SectionDef } from "./types";
 
@@ -52,5 +52,40 @@ describe("erreurs de saisie", () => {
     expect(errors.fc).toBe("Maximum 220");
     expect(errors["mob.FLEX.AD"]).toBe("Maximum 180");
     expect(errors["mob.FLEX.AG"]).toBeUndefined();
+  });
+});
+
+describe("champs obligatoires et options paramétrables", () => {
+  const s: SectionDef = {
+    id: "req",
+    title: "Req",
+    fields: [
+      { kind: "date", id: "date", label: "Date", required: true },
+      { kind: "choice", id: "type", label: "Type", options: opts(["A", "A"], ["B", "B"]), required: true },
+      { kind: "text", id: "detail", label: "Détail", required: true, showIf: (v) => v.type === "B" },
+      { kind: "checkboxes", id: "zones", label: "Zones", options: opts(["X", "X"]), required: true },
+      { kind: "grid", id: "statut", label: "Statut", rows: opts(["VIH", "VIH"], ["VHC", "VHC"]), columns: COL_TESTS, required: true },
+      { kind: "select", id: "schema", label: "Schéma", options: [], optionsKey: "schemas" },
+    ],
+  };
+
+  it("liste les obligatoires vides ; la grille exige toutes ses lignes", () => {
+    expect(missingRequired(s, {})).toEqual(["date", "type", "zones", "statut"]);
+    expect(missingRequired(s, { date: "2026-01-01", type: "A", zones: ["X"], statut: { VIH: "NORMAL" } })).toEqual(["statut"]);
+  });
+
+  it("un champ obligatoire masqué n'est pas exigé", () => {
+    expect(missingRequired(s, { date: "d", type: "A", zones: ["X"], statut: { VIH: "NORMAL", VHC: "NORMAL" } })).toEqual([]);
+    expect(missingRequired(s, { date: "d", type: "B", zones: ["X"], statut: { VIH: "NORMAL", VHC: "NORMAL" } })).toEqual(["detail"]);
+  });
+
+  it("une section masquée (when) n'exige rien", () => {
+    expect(missingRequired({ ...s, when: () => false }, {})).toEqual([]);
+  });
+
+  it("les options paramétrables viennent du contexte", () => {
+    const f = s.fields[5] as { options: []; optionsKey: string };
+    expect(resolveOptions(f, { options: { schemas: opts(["S1", "Schéma 1"]) } })).toEqual([{ value: "S1", label: "Schéma 1" }]);
+    expect(resolveOptions(f, {})).toEqual([]);
   });
 });

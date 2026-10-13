@@ -1,6 +1,6 @@
 // Fonctions pures du moteur d'examen (conditions, anomalies, validation) — testables sans React
 import { validerMesure } from "@/lib/clinique/mesures";
-import type { ExamCtx, FieldDef, SectionDef, SectionValues } from "./types";
+import type { ExamCtx, FieldDef, Option, SectionDef, SectionValues } from "./types";
 
 export const NON_FAIT = "NON_FAIT";
 
@@ -72,4 +72,32 @@ export function pruneHidden(section: SectionDef, values: SectionValues, ctx: Exa
     if (field.kind !== "heading" && !isVisible(field, values, ctx)) delete next[field.id];
   }
   return next;
+}
+
+/** Options d'un champ : liste paramétrable du contexte si `optionsKey`, sinon options de la config */
+export function resolveOptions(field: { options: Option[]; optionsKey?: string }, ctx: ExamCtx): Option[] {
+  return field.optionsKey ? ctx.options?.[field.optionsKey] ?? field.options : field.options;
+}
+
+function estVide(field: FieldDef, value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "string") return value.trim() === "";
+  if (Array.isArray(value)) return value.length === 0;
+  if (field.kind === "grid") {
+    const grid = value as Record<string, unknown>;
+    return field.rows.some((r) => !grid[r.value]);
+  }
+  return false;
+}
+
+/**
+ * Champs obligatoires visibles non renseignés (validation bloquante).
+ * Grille : toutes les lignes ; cases à cocher : au moins une.
+ */
+export function missingRequired(section: SectionDef, values: SectionValues, ctx: ExamCtx = {}): string[] {
+  if (section.when && !section.when(values, ctx)) return [];
+  return section.fields
+    .filter((f) => f.kind !== "heading" && f.required && isVisible(f, values, ctx))
+    .filter((f) => estVide(f, values[f.id]))
+    .map((f) => f.id);
 }

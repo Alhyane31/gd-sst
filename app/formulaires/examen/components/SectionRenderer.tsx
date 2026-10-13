@@ -20,7 +20,7 @@ import EvaScale from "./EvaScale";
 import ExamGrid, { type GridValue } from "./ExamGrid";
 import MeasureInput from "./MeasureInput";
 import MobilityTable, { type MobilityValue } from "./MobilityTable";
-import { isVisible, pruneHidden } from "../engine";
+import { isVisible, pruneHidden, resolveOptions } from "../engine";
 import type { ExamCtx, FieldDef, SectionDef, SectionValues } from "../types";
 
 const WIDE_KINDS = new Set(["grid", "mobility", "textarea", "checkboxes", "choice", "heading", "attachment", "eva"]);
@@ -31,6 +31,7 @@ export default function SectionRenderer({
   onChange,
   ctx,
   champPrefix,
+  missing = [],
 }: {
   section: SectionDef;
   values: SectionValues | undefined;
@@ -38,6 +39,8 @@ export default function SectionRenderer({
   ctx: ExamCtx;
   /** préfixe des pièces jointes, ex. "examen" ou "paraclinique" */
   champPrefix: string;
+  /** champs obligatoires non renseignés, mis en évidence après une tentative de validation */
+  missing?: string[];
 }) {
   const v = values ?? {};
   const readOnly = !!ctx.readOnly;
@@ -52,6 +55,18 @@ export default function SectionRenderer({
 
   const alertes = section.alerts ? section.alerts(v, ctx) : [];
 
+  // suggestion acceptée par l'utilisateur : ses valeurs sont appliquées (toujours modifiables ensuite)
+  const appliquer = (valeurs: Record<string, unknown>) => onChange(pruneHidden(section, { ...v, ...valeurs }, ctx));
+
+  const manquant = (id: string) => missing.includes(id);
+  const libelle = (f: { label: string; required?: boolean }) => `${f.label}${f.required ? " *" : ""}`;
+  const obligatoire = (id: string) =>
+    manquant(id) ? (
+      <Typography variant="caption" color="error" display="block">
+        Obligatoire
+      </Typography>
+    ) : null;
+
   const renderField = (f: FieldDef) => {
     switch (f.kind) {
       case "heading":
@@ -63,8 +78,9 @@ export default function SectionRenderer({
 
       case "grid":
         return (
+          <>
           <ExamGrid
-            label={f.label}
+            label={libelle(f)}
             rows={f.rows}
             columns={f.columns}
             help={f.help}
@@ -72,12 +88,14 @@ export default function SectionRenderer({
             value={v[f.id] as GridValue | undefined}
             onChange={(next) => set(f.id, Object.keys(next).length ? next : undefined)}
           />
+          {obligatoire(f.id)}
+          </>
         );
 
       case "measure":
         return (
           <MeasureInput
-            label={f.label}
+            label={libelle(f)}
             unit={f.unit}
             min={f.min}
             max={f.max}
@@ -108,11 +126,11 @@ export default function SectionRenderer({
       case "choice":
         return (
           <Box>
-            <Typography variant="subtitle2" fontWeight={600}>
-              {f.label}
+            <Typography variant="subtitle2" fontWeight={600} color={manquant(f.id) ? "error" : undefined}>
+              {libelle(f)}
             </Typography>
             <RadioGroup row value={(v[f.id] as string) ?? ""}>
-              {f.options.map((o) => (
+              {resolveOptions(f, ctx).map((o) => (
                 <FormControlLabel
                   key={o.value}
                   value={o.value}
@@ -133,6 +151,7 @@ export default function SectionRenderer({
                 {f.help}
               </Typography>
             )}
+            {obligatoire(f.id)}
           </Box>
         );
 
@@ -145,11 +164,11 @@ export default function SectionRenderer({
         };
         return (
           <Box>
-            <Typography variant="subtitle2" fontWeight={600}>
-              {f.label}
+            <Typography variant="subtitle2" fontWeight={600} color={manquant(f.id) ? "error" : undefined}>
+              {libelle(f)}
             </Typography>
             <FormGroup row>
-              {f.options.map((o) => (
+              {resolveOptions(f, ctx).map((o) => (
                 <FormControlLabel
                   key={o.value}
                   label={o.label}
@@ -158,6 +177,12 @@ export default function SectionRenderer({
                 />
               ))}
             </FormGroup>
+            {f.help && (
+              <Typography variant="caption" color="text.secondary">
+                {f.help}
+              </Typography>
+            )}
+            {obligatoire(f.id)}
           </Box>
         );
       }
@@ -167,15 +192,16 @@ export default function SectionRenderer({
           <TextField
             select
             size="small"
-            label={f.label}
-            sx={{ width: 240 }}
+            label={libelle(f)}
+            sx={{ width: 280 }}
             disabled={readOnly}
-            helperText={f.help}
+            error={manquant(f.id)}
+            helperText={manquant(f.id) ? "Obligatoire" : f.help}
             value={(v[f.id] as string) ?? ""}
             onChange={(e) => set(f.id, e.target.value)}
           >
             <MenuItem value="">—</MenuItem>
-            {f.options.map((o) => (
+            {resolveOptions(f, ctx).map((o) => (
               <MenuItem key={o.value} value={o.value}>
                 {o.label}
               </MenuItem>
@@ -185,19 +211,24 @@ export default function SectionRenderer({
 
       case "text":
       case "date":
+      case "time":
+      case "datetime": {
+        const type = { text: "text", date: "date", time: "time", datetime: "datetime-local" }[f.kind];
         return (
           <TextField
             size="small"
-            type={f.kind === "date" ? "date" : "text"}
-            label={f.label}
-            sx={{ width: f.kind === "date" ? 200 : 320 }}
+            type={type}
+            label={libelle(f)}
+            sx={{ width: { text: 320, date: 200, time: 150, datetime: 240 }[f.kind] }}
             disabled={readOnly}
-            helperText={f.help}
+            error={manquant(f.id)}
+            helperText={manquant(f.id) ? "Obligatoire" : f.help}
             value={(v[f.id] as string) ?? ""}
             onChange={(e) => set(f.id, e.target.value)}
-            slotProps={f.kind === "date" ? { inputLabel: { shrink: true } } : undefined}
+            slotProps={f.kind !== "text" ? { inputLabel: { shrink: true } } : undefined}
           />
         );
+      }
 
       case "textarea":
         return (
@@ -206,9 +237,10 @@ export default function SectionRenderer({
             multiline
             minRows={2}
             size="small"
-            label={f.label}
+            label={libelle(f)}
             disabled={readOnly}
-            helperText={f.help}
+            error={manquant(f.id)}
+            helperText={manquant(f.id) ? "Obligatoire" : f.help}
             value={(v[f.id] as string) ?? ""}
             onChange={(e) => set(f.id, e.target.value)}
           />
@@ -269,7 +301,7 @@ export default function SectionRenderer({
 
       {alertes.length > 0 && (
         <Box mt={2}>
-          <AlertList alertes={alertes} />
+          <AlertList alertes={alertes} onApply={readOnly ? undefined : appliquer} />
         </Box>
       )}
     </Box>
