@@ -26,6 +26,7 @@ const VISITE_TYPE_LABELS: Record<string, string> = {
   CM:        "Certificat médical",
   ETUDEP:    "Étude de poste",
   EMBAUCHE:  "Visite d'embauche",
+  AES:       "Accident d'exposition au sang (AES)",
   AUTRE:     "Autre",
 };
 

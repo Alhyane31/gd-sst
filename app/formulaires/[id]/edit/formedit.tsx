@@ -17,6 +17,7 @@ const VISITE_LABELS: Record<string, string> = {
   LD: "Longue durée",
   MD: "Mi-durée",
   EMBAUCHE: "Visite d'embauche",
+  AES: "Accident d'exposition au sang (AES)",
   AUTRE: "Autre visite",
 };
 

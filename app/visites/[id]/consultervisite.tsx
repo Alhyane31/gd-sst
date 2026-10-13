@@ -15,12 +15,13 @@ import AssignmentIcon from "@mui/icons-material/Assignment";
 import EventIcon from "@mui/icons-material/Event";
 import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import WorkIcon from "@mui/icons-material/Work";
+import BloodtypeIcon from "@mui/icons-material/Bloodtype";
 import DeleteIcon from "@mui/icons-material/Delete";
 import RateReviewIcon from "@mui/icons-material/RateReview";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type VisiteType    = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "EMBAUCHE" | "AUTRE";
+type VisiteType    = "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "EXPERTISE" | "EMBAUCHE" | "AES" | "AUTRE";
 type VisiteStatut  = "BROUILLON" | "EN_COURS" | "CLOTUREE" | "ANNULEE";
 type ConvStatut    = "A_CONVOQUER" | "CONVOCATION_GENEREE" | "A_TRAITER" | "A_RELANCER" | "RELANCEE" | "REALISEE" | "ANNULEE";
 type FormStatut    = "DRAFT" | "SUBMITTED" | "VERIFIED";
@@ -68,7 +69,7 @@ interface VisiteDetail {
 
 const TYPE_LABELS: Record<VisiteType, string> = {
   ANNUELLE: "Annuelle", RAPPROCHEE: "Rapprochée", SPONTANNE: "Spontanée",
-  EXPERTISE: "Expertise", EMBAUCHE: "Visite d'embauche", AUTRE: "Autre",
+  EXPERTISE: "Expertise", EMBAUCHE: "Visite d'embauche", AES: "Accident d'exposition au sang (AES)", AUTRE: "Autre",
 };
 
 const STATUT_LABELS: Record<VisiteStatut, string> = {
@@ -239,7 +240,7 @@ export default function VisiteConsultationPage() {
     );
   }
 
-  const peutCloturer = visite.statut === "EN_COURS" || visite.statut === "BROUILLON";
+  const peutCloturer = (visite.statut === "EN_COURS" || visite.statut === "BROUILLON") && visite.type !== "AES"; // AES : clôture depuis le dossier AES
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -350,7 +351,24 @@ export default function VisiteConsultationPage() {
           </Paper>
         ) : null}
 
+        {/* ── Bloc AES : déclaration et suivi (remplace le formulaire standard) ── */}
+        {visite.type === "AES" && (
+          <Paper sx={{ p: 3 }} elevation={3}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <SectionTitle icon={<BloodtypeIcon color="error" />} title="Dossier AES" />
+              <Button variant="contained" color="error" startIcon={<BloodtypeIcon />} onClick={() => router.push(`/aes/${id}`)}>
+                Ouvrir le dossier AES
+              </Button>
+            </Stack>
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              Déclaration, prise en charge, calendrier de suivi et consultations de résultats. La clôture se fait depuis le
+              dossier AES, après la visite S12 ou un arrêt justifié du suivi.
+            </Typography>
+          </Paper>
+        )}
+
         {/* ── Bloc 3 : Formulaire ─────────────────────────────────────────── */}
+        {visite.type !== "AES" && (
         <Paper sx={{ p: 3 }} elevation={3}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
             <SectionTitle
@@ -470,6 +488,7 @@ export default function VisiteConsultationPage() {
             </Box>
           )}
         </Paper>
+        )}
 
         {/* ── Bloc Avis spécialisés ─────────────────────────────────────────── */}
         <Paper sx={{ p: 3 }} elevation={3}>
