@@ -89,3 +89,39 @@ describe("champs obligatoires et options paramétrables", () => {
     expect(resolveOptions(f, {})).toEqual([]);
   });
 });
+
+describe("lignes filtrées et obligatoire conditionnel", () => {
+  const s: SectionDef = {
+    id: "consult",
+    title: "Consultation",
+    fields: [
+      {
+        kind: "grid",
+        id: "resultats",
+        label: "Résultats",
+        required: true,
+        rows: opts(["VIH", "VIH"], ["VHC", "VHC"], ["ALAT", "ALAT"]),
+        columns: COL_TESTS,
+        rowsFilter: (r, _v, ctx) => ((ctx.extra?.bilans as string[]) ?? []).includes(r.value),
+      },
+      { kind: "choice", id: "at", label: "AT", options: opts(["FAITE", "Faite"]), requiredIf: (_v, ctx) => !ctx.extra?.atFaite },
+    ],
+  };
+
+  it("n'exige que les lignes prévues pour la visite", () => {
+    const ctx = { extra: { bilans: ["VIH"], atFaite: true } };
+    expect(missingRequired(s, { resultats: { VIH: "NORMAL" } }, ctx)).toEqual([]);
+    expect(missingRequired(s, { resultats: {} }, ctx)).toEqual(["resultats"]);
+  });
+
+  it("obligatoire tant que la condition est vraie", () => {
+    const grilleOk = { resultats: { VIH: "NORMAL" } };
+    expect(missingRequired(s, grilleOk, { extra: { bilans: ["VIH"], atFaite: false } })).toEqual(["at"]);
+    expect(missingRequired(s, grilleOk, { extra: { bilans: ["VIH"], atFaite: true } })).toEqual([]);
+  });
+
+  it("les anomalies ne comptent que les lignes visibles", () => {
+    const v = { resultats: { VIH: "ANORMAL_D", VHC: "ANORMAL_D" } };
+    expect(countAnomalies(s, v, { extra: { bilans: ["VIH"] } })).toBe(1);
+  });
+});

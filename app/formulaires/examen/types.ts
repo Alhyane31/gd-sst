@@ -21,6 +21,8 @@ export type ExamCtx = {
   readOnly?: boolean;
   /** listes paramétrables (référentiel) : { [optionsKey]: options } */
   options?: Record<string, Option[]>;
+  /** données propres à un module (ex. AES : TPE accepté, bilans prévus de la visite) */
+  extra?: Record<string, unknown>;
 };
 
 type Condition = (values: SectionValues, ctx: ExamCtx) => boolean;
@@ -33,10 +35,18 @@ type BaseField = {
   showIf?: Condition;
   /** obligatoire : validation bloquante (grille = toutes les lignes, cases = au moins une) */
   required?: boolean;
+  /** obligatoire selon les réponses ou le contexte */
+  requiredIf?: Condition;
 };
 
 /** Grille lignes × colonnes (une seule réponse par ligne, non obligatoire) */
-export type GridFieldDef = BaseField & { kind: "grid"; rows: Option[]; columns: Option[] };
+export type GridFieldDef = BaseField & {
+  kind: "grid";
+  rows: Option[];
+  columns: Option[];
+  /** lignes affichées selon le contexte (ex. bilans prévus pour la visite) */
+  rowsFilter?: (row: Option, values: SectionValues, ctx: ExamCtx) => boolean;
+};
 
 export type MeasureFieldDef = BaseField & {
   kind: "measure";

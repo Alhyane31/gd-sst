@@ -1,11 +1,22 @@
 // Fonctions pures du moteur d'examen (conditions, anomalies, validation) — testables sans React
 import { validerMesure } from "@/lib/clinique/mesures";
-import type { ExamCtx, FieldDef, Option, SectionDef, SectionValues } from "./types";
+import type { ExamCtx, FieldDef, GridFieldDef, Option, SectionDef, SectionValues } from "./types";
 
 export const NON_FAIT = "NON_FAIT";
 
 export function isVisible(field: FieldDef, values: SectionValues, ctx: ExamCtx): boolean {
   return field.showIf ? field.showIf(values, ctx) : true;
+}
+
+/** Obligatoire, de façon fixe ou selon les réponses / le contexte */
+export function isRequired(field: FieldDef, values: SectionValues, ctx: ExamCtx): boolean {
+  if (field.kind === "heading") return false;
+  return !!field.required || !!field.requiredIf?.(values, ctx);
+}
+
+/** Lignes visibles d'une grille (filtre éventuel selon le contexte) */
+export function visibleRows(field: GridFieldDef, values: SectionValues, ctx: ExamCtx): Option[] {
+  return field.rowsFilter ? field.rows.filter((r) => field.rowsFilter!(r, values, ctx)) : field.rows;
 }
 
 export function visibleSections(sections: SectionDef[], ctx: ExamCtx): SectionDef[] {
@@ -26,7 +37,7 @@ export function countAnomalies(section: SectionDef, values: SectionValues, ctx: 
       const normals = field.columns.filter((c) => c.normal).map((c) => c.value);
       if (normals.length === 0) continue;
       const grid = (values[field.id] ?? {}) as Record<string, unknown>;
-      for (const row of field.rows) {
+      for (const row of visibleRows(field, values, ctx)) {
         const v = grid[row.value];
         if (typeof v === "string" && v && v !== NON_FAIT && !normals.includes(v)) count++;
       }
@@ -79,14 +90,14 @@ export function resolveOptions(field: { options: Option[]; optionsKey?: string }
   return field.optionsKey ? ctx.options?.[field.optionsKey] ?? field.options : field.options;
 }
 
-function estVide(field: FieldDef, value: unknown): boolean {
+function estVide(field: FieldDef, value: unknown, values: SectionValues, ctx: ExamCtx): boolean {
+  if (field.kind === "grid") {
+    const grid = (value ?? {}) as Record<string, unknown>;
+    return visibleRows(field, values, ctx).some((r) => !grid[r.value]);
+  }
   if (value === undefined || value === null) return true;
   if (typeof value === "string") return value.trim() === "";
   if (Array.isArray(value)) return value.length === 0;
-  if (field.kind === "grid") {
-    const grid = value as Record<string, unknown>;
-    return field.rows.some((r) => !grid[r.value]);
-  }
   return false;
 }
 
@@ -97,7 +108,7 @@ function estVide(field: FieldDef, value: unknown): boolean {
 export function missingRequired(section: SectionDef, values: SectionValues, ctx: ExamCtx = {}): string[] {
   if (section.when && !section.when(values, ctx)) return [];
   return section.fields
-    .filter((f) => f.kind !== "heading" && f.required && isVisible(f, values, ctx))
-    .filter((f) => estVide(f, values[f.id]))
+    .filter((f) => isRequired(f, values, ctx) && isVisible(f, values, ctx))
+    .filter((f) => estVide(f, values[f.id], values, ctx))
     .map((f) => f.id);
 }

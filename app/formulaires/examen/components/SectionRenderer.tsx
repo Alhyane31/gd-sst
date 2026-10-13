@@ -20,7 +20,7 @@ import EvaScale from "./EvaScale";
 import ExamGrid, { type GridValue } from "./ExamGrid";
 import MeasureInput from "./MeasureInput";
 import MobilityTable, { type MobilityValue } from "./MobilityTable";
-import { isVisible, pruneHidden, resolveOptions } from "../engine";
+import { isRequired, isVisible, pruneHidden, resolveOptions, visibleRows } from "../engine";
 import type { ExamCtx, FieldDef, SectionDef, SectionValues } from "../types";
 
 const WIDE_KINDS = new Set(["grid", "mobility", "textarea", "checkboxes", "choice", "heading", "attachment", "eva"]);
@@ -59,7 +59,7 @@ export default function SectionRenderer({
   const appliquer = (valeurs: Record<string, unknown>) => onChange(pruneHidden(section, { ...v, ...valeurs }, ctx));
 
   const manquant = (id: string) => missing.includes(id);
-  const libelle = (f: { label: string; required?: boolean }) => `${f.label}${f.required ? " *" : ""}`;
+  const libelle = (f: FieldDef) => `${f.label}${isRequired(f, v, ctx) ? " *" : ""}`;
   const obligatoire = (id: string) =>
     manquant(id) ? (
       <Typography variant="caption" color="error" display="block">
@@ -81,7 +81,7 @@ export default function SectionRenderer({
           <>
           <ExamGrid
             label={libelle(f)}
-            rows={f.rows}
+            rows={visibleRows(f, v, ctx)}
             columns={f.columns}
             help={f.help}
             readOnly={readOnly}
