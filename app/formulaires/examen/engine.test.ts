@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { countAnomalies, isVisible, missingRequired, pruneHidden, resolveOptions, sectionErrors, visibleSections } from "./engine";
 import { COL_TESTS, opts, SI_OUI } from "./config/presets";
-import type { SectionDef } from "./types";
+import type { SectionDef, SelectFieldDef } from "./types";
 
 const section: SectionDef = {
   id: "test",
@@ -84,7 +84,7 @@ describe("champs obligatoires et options paramétrables", () => {
   });
 
   it("les options paramétrables viennent du contexte", () => {
-    const f = s.fields[5] as { options: []; optionsKey: string };
+    const f = s.fields[5] as SelectFieldDef;
     expect(resolveOptions(f, { options: { schemas: opts(["S1", "Schéma 1"]) } })).toEqual([{ value: "S1", label: "Schéma 1" }]);
     expect(resolveOptions(f, {})).toEqual([]);
   });
