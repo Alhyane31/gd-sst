@@ -25,6 +25,7 @@ import SecurityIcon from "@mui/icons-material/Security";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import BloodtypeIcon from "@mui/icons-material/Bloodtype";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -57,6 +58,7 @@ const REF_ITEMS: NavItem[] = [
   { label: "Postes",      icon: <WorkIcon />,               path: "/referentiels/postes",     menuKey: "REF_POSTES" },
   { label: "Formations",  icon: <SchoolIcon />,             path: "/referentiels/formations", menuKey: "REF_FORMATIONS" },
   { label: "Services",    icon: <ApartmentIcon />,          path: "/referentiels/services",   menuKey: "REF_SERVICES" },
+  { label: "AES",         icon: <BloodtypeIcon />,          path: "/referentiels/aes",        menuKey: "REF_AES" },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [

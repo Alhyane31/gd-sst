@@ -10,6 +10,7 @@ export const MENU_KEYS = {
   REF_POSTES:     "REF_POSTES",
   REF_FORMATIONS: "REF_FORMATIONS",
   REF_SERVICES:   "REF_SERVICES",
+  REF_AES:        "REF_AES",
   ADMIN_USERS:    "ADMIN_USERS",
   ADMIN_ROLES:    "ADMIN_ROLES",
 } as const;
@@ -30,6 +31,7 @@ export const MENU_LABELS: Record<string, string> = {
   REF_POSTES:     "Postes",
   REF_FORMATIONS: "Formations",
   REF_SERVICES:   "Services",
+  REF_AES:        "Référentiel AES",
   ADMIN_USERS:    "Utilisateurs",
   ADMIN_ROLES:    "Rôles",
 };
