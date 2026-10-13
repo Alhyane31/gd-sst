@@ -95,6 +95,14 @@ export default function ReferentielAesPage() {
             value={ref.seuils.antiHbsRepondeur}
             onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, antiHbsRepondeur: Number(e.target.value) } })}
           />
+          <TextField
+            type="number"
+            size="small"
+            label="Rappel à la victime (jours avant la visite)"
+            helperText="Envoi non actif : aucun canal e-mail / SMS configuré"
+            value={ref.seuils.rappelJoursAvant}
+            onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, rappelJoursAvant: Number(e.target.value) } })}
+          />
           <Button variant="contained" startIcon={<SaveIcon />} onClick={() => enregistrer("seuils", ref.seuils)}>
             Enregistrer
           </Button>
