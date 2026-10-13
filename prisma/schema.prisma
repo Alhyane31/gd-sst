@@ -46,6 +46,12 @@ model User {
   formulairesVerifies Formulaire[]          @relation("FormVerifiedBy")
   pathologiesAjoutees PersonnelPathologie[] @relation("PersonnelPathologieCreatedBy")
   piecesJointes       PieceJointe[]         @relation("PieceJointeUploadedBy")
+  aesCrees            AesDeclaration[]      @relation("AesCreatedBy")
+  aesModifies         AesDeclaration[]      @relation("AesUpdatedBy")
+  aesValides          AesDeclaration[]      @relation("AesValidatedBy")
+  aesClotures         AesDeclaration[]      @relation("AesClotureBy")
+  aesConsultations    AesConsultation[]     @relation("AesConsultationCreatedBy")
+  aesConsultationsMod AesConsultation[]     @relation("AesConsultationUpdatedBy")
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 }
@@ -164,6 +170,7 @@ posteDetailId String?
   pathologies  PersonnelPathologie[]
   expertises    Expertise[]
   etudesDePoste EtudeDePoste[]
+  aesDeclarations AesDeclaration[]
   createdAt    DateTime                      @default(now())
   updatedAt    DateTime                      @updatedAt
 }
@@ -246,6 +253,7 @@ model Visite {
   etudeDePoste     EtudeDePoste?
   avisSpecialises  AvisSpecialise[]
   piecesJointes    PieceJointe[]
+  aesDeclaration   AesDeclaration?
 
   // ✅ AUDIT
   createdById String
@@ -360,6 +368,7 @@ enum VisiteType {
   LD
   MD
   EMBAUCHE
+  AES
   AUTRE
 }
 enum ConvocationStatut {
@@ -662,4 +671,121 @@ model PieceJointe {
   createdAt    DateTime @default(now())
 
   @@index([visiteId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Module AES (accident d'exposition au sang) — visite de type AES
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AesStatut {
+  BROUILLON
+  VALIDEE
+  CLOTUREE
+}
+
+enum AesSuiviCode {
+  J1_J7
+  S2
+  S6
+  S12
+}
+
+enum AesSuiviStatut {
+  PREVUE
+  FAITE
+  NON_INDIQUEE
+  NON_FAITE
+}
+
+// Déclaration AES (sections 1 à 9) : réponses complètes dans `data` (config déclarative),
+// colonnes dédiées pour le tableau de bord et les règles.
+model AesDeclaration {
+  id          String    @id @default(uuid())
+
+  visiteId    String    @unique
+  visite      Visite    @relation(fields: [visiteId], references: [id])
+
+  personnelId String
+  personnel   Personnel @relation(fields: [personnelId], references: [id])
+
+  statut      AesStatut @default(BROUILLON)
+  data        Json?
+
+  dateHeureAes         DateTime?
+  dateHeureDeclaration DateTime?
+  lieu                 String?
+  service              String?
+  geste                String?
+  typeExposition       String?
+  niveauRisque         String?
+  tpe                  String?
+  declarationAT        String?
+  causes               String[]  @default([])
+
+  motifArretSuivi      String?
+
+  createdById   String
+  createdBy     User      @relation("AesCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?     @relation("AesUpdatedBy", fields: [updatedById], references: [id])
+  validatedAt   DateTime?
+  validatedById String?
+  validatedBy   User?     @relation("AesValidatedBy", fields: [validatedById], references: [id])
+  clotureAt     DateTime?
+  clotureById   String?
+  clotureBy     User?     @relation("AesClotureBy", fields: [clotureById], references: [id])
+
+  suivis        AesSuiviVisite[]
+  consultations AesConsultation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personnelId])
+  @@index([statut])
+}
+
+// Section 10 : calendrier de suivi (généré à la validation, modifiable)
+model AesSuiviVisite {
+  id            String         @id @default(uuid())
+  declarationId String
+  declaration   AesDeclaration @relation(fields: [declarationId], references: [id])
+
+  code          AesSuiviCode
+  datePrevue    DateTime
+  statut        AesSuiviStatut @default(PREVUE)
+  bilans        String[]       @default([])
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([declarationId, code])
+}
+
+// Section 11 : consultations de résultats (répétables)
+model AesConsultation {
+  id               String         @id @default(uuid())
+  declarationId    String
+  declaration      AesDeclaration @relation(fields: [declarationId], references: [id])
+
+  visite           String         // J1_J7, S2, S6, S12 ou NON_PROGRAMMEE
+  dateConsultation DateTime
+  data             Json?
+
+  createdById String
+  createdBy   User    @relation("AesConsultationCreatedBy", fields: [createdById], references: [id])
+  updatedById String?
+  updatedBy   User?   @relation("AesConsultationUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([declarationId])
+}
+
+// Annexes paramétrables (schémas de TPE, calendrier, seuils, textes d'aide) : le protocole du P23 prime
+model AesReferentiel {
+  cle         String   @id
+  valeur      Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
 }
