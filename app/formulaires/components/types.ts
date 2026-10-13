@@ -15,7 +15,19 @@ export type FormSectionKey =
   | "SUIVI_RAPPROCHE"
   | "CERTIFICAT_MEDICALE"
   | "IDENTIFICATION_EXPERTISE"
-  | "RESULTAT_EXPERTISE";
+  | "RESULTAT_EXPERTISE"
+  // visite AES (accident d'exposition au sang)
+  | "AES_CIRCONSTANCES"
+  | "AES_GESTE"
+  | "AES_EXPOSITION"
+  | "AES_PLAIE"
+  | "AES_PROJECTION"
+  | "AES_CONDUITE"
+  | "AES_SOURCE"
+  | "AES_VHB"
+  | "AES_PRISE_EN_CHARGE"
+  | "AES_CALENDRIER"
+  | "AES_CONSULTATIONS";
 
 export type Cim11Option = {
   id: string;
@@ -77,7 +89,7 @@ export type FormData = {
   sexe?: "H" | "F" | "";
   nombreEnfants?: string;
   motifConsultation?: string;
-  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "EMBAUCHE" | "AUTRE" | "";
+  typeVisite?: "ANNUELLE" | "RAPPROCHEE" | "SPONTANNE" | "CM" | "EXPERTISE" | "ETUDEP" | "LD" | "MD" | "EMBAUCHE" | "AES" | "AUTRE" | "";
 
   // PARCOURS_ACADEMIQUE
   bacObtenu: OuiNon | "";
@@ -153,6 +165,10 @@ joursReposAnnee?: string;
   // EXAMENS STRUCTURÉS : { [sectionId]: { [champId]: valeur } }
   examen?: Record<string, Record<string, unknown>>;       // constantes 4.0 + examen clinique 4.1–4.14
   paraclinique?: Record<string, Record<string, unknown>>; // examen paraclinique 5.x
+
+  // VISITE AES : réponses de la déclaration (sections 1 à 9), enregistrées dans AesDeclaration
+  aes?: Record<string, unknown>;
+  aesStatut?: "BROUILLON" | "VALIDEE" | "CLOTUREE" | "";
 
   // EXAMEN CLINIQUE ET PARACLINIQUES
   examenCliniqueComplet: string;

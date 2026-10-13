@@ -85,6 +85,9 @@ export function mapApiToFormData(payload: any): FormData {
   const p = payload?.personnel;
   const f = payload?.formulaire;
   const raw = f?.raw ?? f?.data?.raw ?? {};
+  // visite AES : antécédents non encore saisis repris du formulaire précédent (dernières données renseignées)
+  const precedent = (payload?.visite?.type === "AES" ? f?.precedentRaw : null) ?? {};
+  const repris = (cle: string) => (raw?.[cle] !== undefined ? raw[cle] : precedent?.[cle]);
   const rp = f?.renseignementsProfessionnels ?? f?.data?.renseignementsProfessionnels ?? {};
   const pa = f?.parcoursAcademique ?? f?.data?.parcoursAcademique ?? {};
 
@@ -224,10 +227,14 @@ export function mapApiToFormData(payload: any): FormData {
         }))
       : [],
 
-    antecedents: f.antecedents ?? raw?.antecedents ?? "",
-    antecedentsChirurgicaux:   raw?.antecedentsChirurgicaux ?? "",
-    antecedentsFamiliaux:      Array.isArray(raw?.antecedentsFamiliaux) ? raw.antecedentsFamiliaux : [],
-    antecedentsProfessionnels: raw?.antecedentsProfessionnels ?? {},
+    antecedents: f.antecedents || repris("antecedents") || "",
+    antecedentsChirurgicaux:   repris("antecedentsChirurgicaux") ?? "",
+    antecedentsFamiliaux:      Array.isArray(repris("antecedentsFamiliaux")) ? repris("antecedentsFamiliaux") : [],
+    antecedentsProfessionnels: repris("antecedentsProfessionnels") ?? {},
+
+    // ---- VISITE AES ----
+    aes:       f.aes ?? raw?.aes ?? {},
+    aesStatut: f.aesStatut ?? "",
 
     // ---- EXAMENS STRUCTURÉS ----
     examen:       raw?.examen ?? {},

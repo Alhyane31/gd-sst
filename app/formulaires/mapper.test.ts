@@ -54,3 +54,32 @@ describe("compatibilité des dossiers v1", () => {
     expect(f.antecedentsProfessionnels).toEqual({});
   });
 });
+
+describe("visite AES : déclaration et dernières données renseignées", () => {
+  const precedentRaw = {
+    antecedents: "HTA",
+    antecedentsChirurgicaux: "Appendicectomie",
+    antecedentsFamiliaux: [{ id: "PERE", lien: "PERE", libelle: "Père", pathologies: [] }],
+    antecedentsProfessionnels: { at: "OUI" },
+  };
+
+  it("pré-remplit les antécédents depuis le formulaire précédent (nouveau formulaire)", () => {
+    const f = mapApiToFormData({ ...base, visite: { type: "AES" }, formulaire: { raw: {}, precedentRaw, aes: { typeExposition: "PIQURE" }, aesStatut: "BROUILLON" } });
+    expect(f.antecedents).toBe("HTA");
+    expect(f.antecedentsChirurgicaux).toBe("Appendicectomie");
+    expect(f.antecedentsProfessionnels).toEqual({ at: "OUI" });
+    expect(f.aes).toEqual({ typeExposition: "PIQURE" });
+    expect(f.aesStatut).toBe("BROUILLON");
+  });
+
+  it("une saisie déjà faite dans ce formulaire n'est pas écrasée", () => {
+    const f = mapApiToFormData({ ...base, visite: { type: "AES" }, formulaire: { raw: { antecedentsChirurgicaux: "" }, precedentRaw } });
+    expect(f.antecedentsChirurgicaux).toBe("");
+  });
+
+  it("autres types de visite : pas de reprise du formulaire précédent", () => {
+    const f = mapApiToFormData({ ...base, visite: { type: "ANNUELLE" }, formulaire: { raw: {}, precedentRaw } });
+    expect(f.antecedentsChirurgicaux).toBe("");
+    expect(f.aes).toEqual({});
+  });
+});

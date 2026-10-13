@@ -1,7 +1,8 @@
 // Contrôleur central : modifier ici pour changer les sections d'un type de visite
 // sans toucher au stepper ni aux composants de sections.
 
-import type { FormSectionKey } from "./components/types";
+import type { FormData, FormSectionKey } from "./components/types";
+import { S4_PLAIE, S5_PROJECTION } from "@/app/aes/config/declaration";
 
 export type VisiteType =
   | "ANNUELLE"
@@ -13,11 +14,14 @@ export type VisiteType =
   | "LD"
   | "MD"
   | "EMBAUCHE"
+  | "AES"
   | "AUTRE";
 
 export type SectionConfig = {
   key: FormSectionKey;
   label: string;
+  /** étape affichée selon les réponses (ex. AES : plaie ou projection selon le type d'exposition) */
+  when?: (data: FormData) => boolean;
 };
 
 const S_INFOS_GENERALES:        SectionConfig = { key: "INFORMATIONS_GENERALES",        label: "Informations générales" };
@@ -33,6 +37,22 @@ const S_SUIVI_RAPPROCHE:        SectionConfig = { key: "SUIVI_RAPPROCHE",       
 const S_CERTIFICAT_MEDICALE:    SectionConfig = { key: "CERTIFICAT_MEDICALE",           label: "Certificat médical" };
 const S_IDENTIFICATION_EXPERTISE: SectionConfig = { key: "IDENTIFICATION_EXPERTISE",   label: "Identification expertise" };
 const S_RESULTAT_EXPERTISE:     SectionConfig = { key: "RESULTAT_EXPERTISE",            label: "Résultat de l'expertise" };
+
+// Visite AES : sections de la déclaration (docs/Module_AES_specifications.md)
+const aes = (data: FormData) => (data.aes ?? {}) as Record<string, unknown>;
+const SECTIONS_AES: SectionConfig[] = [
+  { key: "AES_CIRCONSTANCES",   label: "AES – Circonstances" },
+  { key: "AES_GESTE",           label: "AES – Le geste en cause" },
+  { key: "AES_EXPOSITION",      label: "AES – Type d'exposition" },
+  { key: "AES_PLAIE",           label: "AES – Description de la plaie", when: (d) => !!S4_PLAIE.when?.(aes(d), {}) },
+  { key: "AES_PROJECTION",      label: "AES – Description de la projection", when: (d) => !!S5_PROJECTION.when?.(aes(d), {}) },
+  { key: "AES_CONDUITE",        label: "AES – Conduite immédiate" },
+  { key: "AES_SOURCE",          label: "AES – Patient source" },
+  { key: "AES_VHB",             label: "AES – Statut vaccinal VHB" },
+  { key: "AES_PRISE_EN_CHARGE", label: "AES – Prise en charge" },
+  { key: "AES_CALENDRIER",      label: "AES – Calendrier de suivi" },
+  { key: "AES_CONSULTATIONS",   label: "AES – Consultations de résultats" },
+];
 
 const SECTIONS_STANDARD: SectionConfig[] = [
   S_INFOS_GENERALES,
@@ -54,6 +74,9 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
   LD:         SECTIONS_STANDARD,
   MD:         SECTIONS_STANDARD,
   AUTRE:      SECTIONS_STANDARD,
+
+  // Visite AES : renseignements personnels et antécédents (modifiables), puis la déclaration AES
+  AES: [S_INFOS_GENERALES, S_INFOS_PRO, S_ANTECEDENTS, ...SECTIONS_AES],
 
   // Visite d'embauche : seule visite avec le parcours académique
   EMBAUCHE: [
@@ -93,6 +116,24 @@ export const VISITE_SECTIONS: Record<VisiteType, SectionConfig[]> = {
     S_PARACLINIQUE,
     S_RESULTAT_EXPERTISE,
   ],
+};
+
+/** Étapes affichées pour un formulaire (sections conditionnelles filtrées) */
+export function getVisibleSections(data: FormData): SectionConfig[] {
+  return getSectionsForVisiteType(data.typeVisite).filter((s) => !s.when || s.when(data));
+}
+
+/** Section de la déclaration AES correspondant à une étape du formulaire */
+export const AES_SECTION_PAR_ETAPE: Partial<Record<FormSectionKey, string>> = {
+  AES_CIRCONSTANCES: "circonstances",
+  AES_GESTE: "geste",
+  AES_EXPOSITION: "exposition",
+  AES_PLAIE: "plaie",
+  AES_PROJECTION: "projection",
+  AES_CONDUITE: "conduite",
+  AES_SOURCE: "source",
+  AES_VHB: "vhb",
+  AES_PRISE_EN_CHARGE: "priseEnCharge",
 };
 
 export function getSectionsForVisiteType(type?: string | null): SectionConfig[] {

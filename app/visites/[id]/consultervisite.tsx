@@ -351,7 +351,7 @@ export default function VisiteConsultationPage() {
           </Paper>
         ) : null}
 
-        {/* ── Bloc AES : déclaration et suivi (remplace le formulaire standard) ── */}
+        {/* ── Bloc AES : accès au dossier AES (même données que les sections AES du formulaire) ── */}
         {visite.type === "AES" && (
           <Paper sx={{ p: 3 }} elevation={3}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -361,14 +361,14 @@ export default function VisiteConsultationPage() {
               </Button>
             </Stack>
             <Typography variant="body2" color="text.secondary" mt={1}>
-              Déclaration, prise en charge, calendrier de suivi et consultations de résultats. La clôture se fait depuis le
-              dossier AES, après la visite S12 ou un arrêt justifié du suivi.
+              Les sections AES (déclaration, calendrier de suivi, consultations) font partie du formulaire de visite ci-dessous.
+              Le dossier AES présente les mêmes données par onglets, avec l&apos;impression du compte rendu. Clôture après la
+              visite S12 ou un arrêt justifié du suivi.
             </Typography>
           </Paper>
         )}
 
         {/* ── Bloc 3 : Formulaire ─────────────────────────────────────────── */}
-        {visite.type !== "AES" && (
         <Paper sx={{ p: 3 }} elevation={3}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
             <SectionTitle
@@ -488,7 +488,6 @@ export default function VisiteConsultationPage() {
             </Box>
           )}
         </Paper>
-        )}
 
         {/* ── Bloc Avis spécialisés ─────────────────────────────────────────── */}
         <Paper sx={{ p: 3 }} elevation={3}>

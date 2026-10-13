@@ -23,7 +23,11 @@ import ResultatExpertiseSection from "./sections/ResultatExpertiseSection";
 import ConstantesSection from "./sections/ConstantesSection";
 import ExamenParacliniqueSection from "./sections/ExamenParacliniqueSection";
 import type { ExamCtx } from "../examen/types";
-import { getSectionsForVisiteType } from "../visiteSectionsConfig";
+import { AES_SECTION_PAR_ETAPE, getVisibleSections } from "../visiteSectionsConfig";
+import { AesCalendrierStep, AesConsultationsStep, AesDeclarationStep, useDossierAes } from "./sections/AesSections";
+import { contexteAes } from "@/lib/aes/contexte";
+import { REFERENTIEL_AES_DEFAUT } from "@/lib/aes/referentiel";
+import { libellesManquants, manquantsDeclaration, type Manquants } from "@/app/aes/validation";
 
 type Props = {
   mode: "create" | "edit";
@@ -60,12 +64,48 @@ export default function PersonnelFormStepper({
     setActiveStep(0);
   }, [initialData]);
 
-  const steps = useMemo(
-    () => getSectionsForVisiteType(formData.typeVisite),
-    [formData.typeVisite]
-  );
+  // étapes du type de visite ; sections conditionnelles filtrées (ex. AES : plaie ou projection)
+  const steps = useMemo(() => getVisibleSections(formData), [formData]);
 
-  const stepKey = useMemo(() => steps[activeStep]?.key, [activeStep, steps]);
+  // étape courante bornée : une section conditionnelle peut disparaître
+  const currentStep = Math.min(activeStep, Math.max(steps.length - 1, 0));
+  const stepKey = steps[currentStep]?.key;
+
+  // ── Visite AES ──────────────────────────────────────────────────────────────
+  const estAes = formData.typeVisite === "AES";
+  const { dossier: dossierAes, recharger: rechargerAes, majDeclaration: majDeclarationAes } = useDossierAes(visiteId, estAes);
+  const declarationAes = dossierAes?.declaration ?? null;
+  const referentielAes = dossierAes?.referentiel ?? REFERENTIEL_AES_DEFAUT;
+  const aesCtx = useMemo(
+    () => contexteAes(declarationAes, referentielAes, readOnly || declarationAes?.statut === "CLOTUREE"),
+    [declarationAes, referentielAes, readOnly]
+  );
+  const [aesManquants, setAesManquants] = useState<Manquants>({});
+  const [aesErreur, setAesErreur] = useState("");
+
+  /** Champs obligatoires AES : bloque la validation et ouvre la première étape incomplète */
+  const controlerAes = (): boolean => {
+    const m = manquantsDeclaration(formData.aes ?? {}, aesCtx);
+    setAesManquants(m);
+    if (Object.keys(m).length === 0) {
+      setAesErreur("");
+      return true;
+    }
+    setAesErreur(`AES — champs obligatoires manquants : ${libellesManquants(m).join(", ")}`);
+    const premiere = steps.findIndex((st) => {
+      const sid = AES_SECTION_PAR_ETAPE[st.key];
+      return sid !== undefined && m[sid]?.length;
+    });
+    if (premiere >= 0) setActiveStep(premiere);
+    return false;
+  };
+
+  /** Valide la déclaration AES sans quitter le formulaire (génère le calendrier de suivi) */
+  const validerAes = async () => {
+    if (!controlerAes()) return;
+    await onSave({ ...formData, aesAction: "valider" } as FormData);
+    await rechargerAes();
+  };
 
   // contexte des examens structurés : conditions d'affichage et alertes
   const examCtx: ExamCtx = {
@@ -81,12 +121,21 @@ export default function PersonnelFormStepper({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleNext = () => setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const handleBack = () => setActiveStep((prev) => Math.max(prev - 1, 0));
-  const handleSave   = async () => await onSave(formData);
-  const handleSubmit = async () => await onSubmit(formData);
+  const handleNext = () => setActiveStep(Math.min(currentStep + 1, steps.length - 1));
+  const handleBack = () => setActiveStep(Math.max(currentStep - 1, 0));
+  const handleSave = async () => {
+    await onSave(formData);
+    if (estAes) await rechargerAes();
+  };
+  const handleSubmit = async () => {
+    if (estAes) {
+      if (!controlerAes()) return;
+      return onSubmit({ ...formData, aesAction: "valider" } as FormData);
+    }
+    return onSubmit(formData);
+  };
 
-  const isLastStep = activeStep === steps.length - 1;
+  const isLastStep = currentStep === steps.length - 1;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", px: "0.5cm", pt: 2, pb: 2 }}>
@@ -106,10 +155,16 @@ export default function PersonnelFormStepper({
 
       {saving && <LinearProgress sx={{ mb: 2 }} />}
 
+      {estAes && aesErreur && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setAesErreur("")}>
+          {aesErreur}
+        </Alert>
+      )}
+
       <Box display="flex" gap={2} alignItems="flex-start" flex={1} minHeight={0}>
         {/* Sidebar */}
         <Box sx={{ width: 180, flexShrink: 0, position: "sticky", top: 16 }}>
-          <Stepper activeStep={activeStep} orientation="vertical" nonLinear>
+          <Stepper activeStep={currentStep} orientation="vertical" nonLinear>
             {steps.map((s, index) => (
               <Step key={s.key}>
                 <StepLabel
@@ -118,7 +173,7 @@ export default function PersonnelFormStepper({
                     cursor: "pointer",
                     "& .MuiStepLabel-label": {
                       fontSize: "0.78rem",
-                      fontWeight: activeStep === index ? 700 : 400,
+                      fontWeight: currentStep === index ? 700 : 400,
                       whiteSpace: "normal",
                       lineHeight: 1.3,
                     },
@@ -173,8 +228,38 @@ export default function PersonnelFormStepper({
             <ResultatExpertiseSection data={formData} onChange={onFieldChange} />
           )}
 
+          {/* ── Visite AES ── */}
+          {stepKey && AES_SECTION_PAR_ETAPE[stepKey] && (
+            <AesDeclarationStep
+              sectionId={AES_SECTION_PAR_ETAPE[stepKey]!}
+              values={formData.aes}
+              onChange={(next) => onFieldChange("aes", next)}
+              ctx={aesCtx}
+              missing={aesManquants[AES_SECTION_PAR_ETAPE[stepKey]!]}
+            />
+          )}
+          {stepKey === "AES_CALENDRIER" && visiteId && (
+            <AesCalendrierStep
+              visiteId={visiteId}
+              declaration={declarationAes}
+              onSaved={majDeclarationAes}
+              onValider={validerAes}
+              readOnly={readOnly}
+            />
+          )}
+          {stepKey === "AES_CONSULTATIONS" && visiteId && (
+            <AesConsultationsStep
+              visiteId={visiteId}
+              declaration={declarationAes}
+              referentiel={referentielAes}
+              onSaved={majDeclarationAes}
+              onValider={validerAes}
+              readOnly={readOnly}
+            />
+          )}
+
           <Box mt={4} display="flex" justifyContent="space-between" alignItems="center">
-            <Button disabled={activeStep === 0 || saving} onClick={handleBack}>
+            <Button disabled={currentStep === 0 || saving} onClick={handleBack}>
               Précédent
             </Button>
 

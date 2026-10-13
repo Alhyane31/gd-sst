@@ -6,15 +6,10 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Paper,
   Stack,
   Tab,
   Tabs,
-  TextField,
   Typography,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -23,10 +18,9 @@ import PrintIcon from "@mui/icons-material/Print";
 import dayjs from "dayjs";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { suivisPourRegles } from "@/lib/aes/contexte";
-import { peutCloturer } from "@/lib/aes/suivi";
 import Annexes from "../components/Annexes";
 import CalendrierSuivi from "../components/CalendrierSuivi";
+import ClotureAes from "../components/ClotureAes";
 import Consultations from "../components/Consultations";
 import DeclarationForm from "../components/DeclarationForm";
 import DossierLectureSeule from "../components/DossierLectureSeule";
@@ -42,9 +36,6 @@ export default function AesDossierPage() {
   const [data, setData] = useState<DossierAesApi | null>(null);
   const [erreur, setErreur] = useState("");
   const [onglet, setOnglet] = useState(1);
-  const [cloture, setCloture] = useState(false);
-  const [motif, setMotif] = useState("");
-  const [erreurCloture, setErreurCloture] = useState("");
 
   useEffect(() => {
     fetch(`/api/aes/${visiteId}`)
@@ -69,27 +60,6 @@ export default function AesDossierPage() {
   const majDeclaration = (d: DeclarationApi) => setData((x) => (x ? { ...x, declaration: d } : x));
   const p = data.visite.personnel;
 
-  const verifCloture = declaration
-    ? peutCloturer(
-        suivisPourRegles(declaration),
-        declaration.consultations.map((c) => ({ visite: c.visite, conduite: c.data?.conduite })),
-        motif || declaration.motifArretSuivi
-      )
-    : { ok: false };
-
-  const cloturer = async () => {
-    setErreurCloture("");
-    const res = await fetch(`/api/aes/${visiteId}/cloture`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ motifArretSuivi: motif }),
-    });
-    const payload = await res.json().catch(() => ({}));
-    if (!res.ok) return setErreurCloture(payload?.message ?? "Clôture impossible");
-    majDeclaration(payload.declaration);
-    setCloture(false);
-  };
-
   return (
     <Box p={2}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" useFlexGap spacing={1}>
@@ -108,11 +78,7 @@ export default function AesDossierPage() {
           <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.open(`/aes/${visiteId}/imprimer`, "_blank")} disabled={!declaration}>
             Imprimer
           </Button>
-          {declaration?.statut === "VALIDEE" && (
-            <Button variant="contained" color="success" startIcon={<LockIcon />} onClick={() => setCloture(true)}>
-              Clôturer le dossier
-            </Button>
-          )}
+          <ClotureAes visiteId={visiteId} declaration={declaration} onClosed={majDeclaration} />
         </Stack>
       </Stack>
 
@@ -134,39 +100,6 @@ export default function AesDossierPage() {
       </Box>
       <Box hidden={onglet !== 4}>{onglet === 4 && <Annexes referentiel={data.referentiel} />}</Box>
 
-      <Dialog open={cloture} onClose={() => setCloture(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Clôturer le dossier AES</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" mb={2}>
-            La clôture est possible après la visite S12, ou après un arrêt justifié du suivi (consultation avec « Fin du suivi » ou
-            « Arrêt du TPE (source négative) ») : dans ce cas, indiquez le motif. La visite sera également clôturée.
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            label="Motif de l'arrêt du suivi (si avant S12)"
-            value={motif}
-            onChange={(e) => setMotif(e.target.value)}
-          />
-          {!verifCloture.ok && "raison" in verifCloture && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              {verifCloture.raison}
-            </Alert>
-          )}
-          {erreurCloture && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {erreurCloture}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCloture(false)}>Annuler</Button>
-          <Button variant="contained" color="success" disabled={!verifCloture.ok} onClick={cloturer}>
-            Clôturer
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }

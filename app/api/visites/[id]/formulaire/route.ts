@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { ecrireDeclarationAes, preparerDeclarationAes, type PreparationAes } from "@/lib/aes/synchro";
 
 // /api/visites/[id]/formulaire
 export async function GET(
@@ -49,6 +50,7 @@ export async function GET(
             },
           },
         },
+        aesDeclaration: { select: { data: true, statut: true } },
       },
     });
 
@@ -65,6 +67,16 @@ export async function GET(
 
     // Extraire les sections du JSON data
     const data = (v.formulaire.data ?? {}) as Record<string, any>;
+
+    // Visite AES : dernières données renseignées (formulaire précédent du personnel) pour pré-remplir les antécédents
+    const precedent =
+      v.type === "AES"
+        ? await prisma.formulaire.findFirst({
+            where: { personnelId: v.personnelId, id: { not: v.formulaire.id } },
+            orderBy: { updatedAt: "desc" },
+            select: { data: true },
+          })
+        : null;
     const renseignements       = data.renseignementsProfessionnels ?? {};
     const activitesContraintes = data.activitesContraintes ?? {};
     const examenClinique       = data.examenClinique ?? {};
@@ -159,6 +171,11 @@ export async function GET(
 
         // saisie complète (champs sans colonne ni bloc dédié : grade, enfants, examen structuré...)
         raw: data.raw ?? {},
+
+        // visite AES : déclaration (source de vérité : table AesDeclaration) et données précédentes
+        aes: v.aesDeclaration?.data ?? null,
+        aesStatut: v.aesDeclaration?.statut ?? null,
+        precedentRaw: (precedent?.data as Prisma.JsonObject | null)?.raw ?? null,
       },
     });
   } catch (e: any) {
@@ -433,6 +450,14 @@ export async function PUT(
       );
     }
 
+    // Visite AES : déclaration enregistrée avec le formulaire ; validation bloquante si « valider »
+    let aesPrep: Extract<PreparationAes, { ok: true }> | null = null;
+    if (visite.type === "AES" && body.aes && typeof body.aes === "object") {
+      const prep = await preparerDeclarationAes(visiteId, body.aes, body.aesAction === "valider" ? "valider" : "brouillon");
+      if (!prep.ok) return NextResponse.json(prep.body, { status: prep.status });
+      aesPrep = prep;
+    }
+
     const currentStatut = visite.formulaire.statut;
     const archiveV1 = (visite.formulaire.data as Prisma.JsonObject | null)?.archiveV1 as Prisma.InputJsonValue | undefined;
 
@@ -583,6 +608,10 @@ export async function PUT(
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      if (aesPrep) {
+        await ecrireDeclarationAes(tx, { visiteId, personnelId: visite.personnelId, userId: user.id, prep: aesPrep });
+      }
+
       const formulaire = await tx.formulaire.update({
         where: { id: visite.formulaire!.id },
         data: {

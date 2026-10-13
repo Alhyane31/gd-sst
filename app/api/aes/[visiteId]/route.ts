@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { genererCalendrier } from "@/lib/aes/calendrier";
-import { chargerContexte, colonnesDeclaration, includeDeclaration, utilisateurCourant } from "@/lib/aes/serveur";
-import { libellesManquants, manquantsDeclaration, nettoyerDeclaration } from "@/app/aes/validation";
+import { chargerContexte, includeDeclaration, utilisateurCourant } from "@/lib/aes/serveur";
+import { ecrireDeclarationAes, preparerDeclarationAes } from "@/lib/aes/synchro";
 
 type Params = { params: Promise<{ visiteId: string }> };
 
@@ -94,68 +93,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json({ message: "Données manquantes" }, { status: 400 });
   }
 
-  const { declaration, ref, ctx } = await chargerContexte(visiteId);
-  if (declaration?.statut === "CLOTUREE") {
-    return NextResponse.json({ message: "Dossier AES clôturé : modification impossible" }, { status: 409 });
-  }
-
-  const data = nettoyerDeclaration(body.data as Record<string, unknown>, ctx);
-  const valider = body.action === "valider" || declaration?.statut === "VALIDEE";
-
-  if (valider) {
-    const manquants = manquantsDeclaration(data, ctx);
-    if (Object.keys(manquants).length) {
-      return NextResponse.json(
-        { message: `Champs obligatoires manquants : ${libellesManquants(manquants).join(", ")}`, manquants },
-        { status: 422 }
-      );
-    }
-  }
-
-  const colonnes = colonnesDeclaration(data);
-  const premiereValidation = valider && declaration?.statut !== "VALIDEE";
+  const prep = await preparerDeclarationAes(visiteId, body.data, body.action === "valider" ? "valider" : "brouillon");
+  if (!prep.ok) return NextResponse.json(prep.body, { status: prep.status });
 
   const resultat = await prisma.$transaction(async (tx) => {
-    const d = declaration
-      ? await tx.aesDeclaration.update({
-          where: { id: declaration.id },
-          data: {
-            data: data as Prisma.InputJsonValue,
-            ...colonnes,
-            updatedById: user.id,
-            ...(premiereValidation ? { statut: "VALIDEE", validatedAt: new Date(), validatedById: user.id } : {}),
-          },
-        })
-      : await tx.aesDeclaration.create({
-          data: {
-            visiteId,
-            personnelId: visite.personnelId,
-            data: data as Prisma.InputJsonValue,
-            ...colonnes,
-            createdById: user.id,
-            ...(premiereValidation ? { statut: "VALIDEE", validatedAt: new Date(), validatedById: user.id } : {}),
-          },
-        });
-
-    // calendrier de suivi généré à la première validation (dates et bilans modifiables ensuite)
-    if (premiereValidation && (declaration?.suivis.length ?? 0) === 0) {
-      const calendrier = genererCalendrier(data, ref) ?? [];
-      await tx.aesSuiviVisite.createMany({
-        data: calendrier.map((s) => ({
-          declarationId: d.id,
-          code: s.code,
-          datePrevue: new Date(`${s.datePrevue}T00:00:00Z`),
-          statut: s.statut,
-          bilans: s.bilans,
-        })),
-      });
-    }
-
+    const id = await ecrireDeclarationAes(tx, { visiteId, personnelId: visite.personnelId, userId: user.id, prep });
     if (visite.statut === "BROUILLON") {
       await tx.visite.update({ where: { id: visiteId }, data: { statut: "EN_COURS" } });
     }
-
-    return tx.aesDeclaration.findUnique({ where: { id: d.id }, include: includeDeclaration });
+    return tx.aesDeclaration.findUnique({ where: { id }, include: includeDeclaration });
   });
 
   return NextResponse.json({ declaration: resultat });
