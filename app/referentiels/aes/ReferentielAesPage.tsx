@@ -84,14 +84,28 @@ export default function ReferentielAesPage() {
           <TextField
             type="number"
             size="small"
-            label="Délai maximal du TPE VIH (heures)"
+            label="TPE VIH au plus tard (heures)"
             value={ref.seuils.delaiTpeHeures}
             onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, delaiTpeHeures: Number(e.target.value) } })}
           />
           <TextField
             type="number"
             size="small"
-            label="Anti-HBs : répondeur si ≥ (mUI/mL)"
+            label="Délai optimal de prise en charge (heures)"
+            value={ref.seuils.delaiOptimalHeures}
+            onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, delaiOptimalHeures: Number(e.target.value) } })}
+          />
+          <TextField
+            type="number"
+            size="small"
+            label="Déclaration au service et AT dans les (heures)"
+            value={ref.seuils.delaiDeclarationHeures}
+            onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, delaiDeclarationHeures: Number(e.target.value) } })}
+          />
+          <TextField
+            type="number"
+            size="small"
+            label="Anti-HBs : répondeur si > (mUI/mL)"
             value={ref.seuils.antiHbsRepondeur}
             onChange={(e) => setRef({ ...ref, seuils: { ...ref.seuils, antiHbsRepondeur: Number(e.target.value) } })}
           />

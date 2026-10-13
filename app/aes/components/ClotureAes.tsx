@@ -6,6 +6,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import { useState } from "react";
 import { suivisPourRegles } from "@/lib/aes/contexte";
 import { peutCloturer } from "@/lib/aes/suivi";
+import { estPasDAes } from "@/lib/aes/codes";
 import type { DeclarationApi } from "../types";
 
 export default function ClotureAes({
@@ -26,7 +27,8 @@ export default function ClotureAes({
   const verif = peutCloturer(
     suivisPourRegles(declaration),
     declaration.consultations.map((c) => ({ visite: c.visite, conduite: c.data?.conduite })),
-    motif || declaration.motifArretSuivi
+    motif || declaration.motifArretSuivi,
+    estPasDAes(declaration.data ?? {})
   );
 
   const cloturer = async () => {

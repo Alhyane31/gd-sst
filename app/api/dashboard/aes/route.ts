@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { utilisateurCourant } from "@/lib/aes/serveur";
 import { calculerStatistiques } from "@/lib/aes/statistiques";
+import { estPasDAes } from "@/lib/aes/codes";
 import { S2_GESTE, S9_PRISE_EN_CHARGE } from "@/app/aes/config/declaration";
 
 /** Libellés des options d'un champ de la config, pour les graphiques */
@@ -23,6 +24,7 @@ export async function GET() {
       causes: true,
       declarationAT: true,
       statut: true,
+      data: true,
       personnel: { select: { service: { select: { libelle: true } } } },
       suivis: { select: { code: true, statut: true, datePrevue: true } },
       consultations: { select: { visite: true } },
@@ -38,6 +40,7 @@ export async function GET() {
       statut: d.statut,
       suivis: d.suivis.map((s) => ({ code: s.code, statut: s.statut, datePrevue: s.datePrevue.toISOString().slice(0, 10) })),
       consultations: d.consultations,
+      pasDAes: estPasDAes((d.data ?? {}) as Record<string, unknown>),
     })),
     new Date().toISOString().slice(0, 10),
     { gestes: libelles(S2_GESTE, "geste"), causes: libelles(S9_PRISE_EN_CHARGE, "causes") }

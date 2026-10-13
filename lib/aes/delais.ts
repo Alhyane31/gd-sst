@@ -2,23 +2,12 @@
 
 export type Tranche = { max: number; libelle: string };
 
-/** Champ 4 : délai AES → déclaration */
-export const TRANCHES_DECLARATION: Tranche[] = [
-  { max: 1, libelle: "< 1 h" },
-  { max: 4, libelle: "1–4 h" },
-  { max: 24, libelle: "4–24 h" },
-  { max: 48, libelle: "24–48 h" },
-  { max: 72, libelle: "48–72 h" },
-  { max: Infinity, libelle: "> 72 h" },
-];
-
-/** Champ 48 : délai AES → consultation P23 */
-export const TRANCHES_P23: Tranche[] = [
+/** Champs 4 et 48 (V2) : mêmes tranches pour AES → déclaration et AES → consultation P23 */
+export const TRANCHES_DELAI: Tranche[] = [
   { max: 4, libelle: "< 4 h" },
   { max: 24, libelle: "4–24 h" },
   { max: 48, libelle: "24–48 h" },
-  { max: 72, libelle: "48–72 h" },
-  { max: Infinity, libelle: "> 72 h" },
+  { max: Infinity, libelle: "> 48 h" },
 ];
 
 /** "2026-10-12" + "14:30" → Date locale ; null si incomplet ou invalide */

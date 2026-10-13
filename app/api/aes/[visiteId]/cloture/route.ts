@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { chargerContexte, includeDeclaration, suivisPourRegles, utilisateurCourant } from "@/lib/aes/serveur";
 import { peutCloturer } from "@/lib/aes/suivi";
+import { estPasDAes } from "@/lib/aes/codes";
 
 type Params = { params: Promise<{ visiteId: string }> };
 
@@ -25,7 +26,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   const verif = peutCloturer(
     suivisPourRegles(declaration),
     declaration.consultations.map((c) => ({ visite: c.visite, conduite: (c.data as Record<string, unknown> | null)?.conduite })),
-    motif || declaration.motifArretSuivi
+    motif || declaration.motifArretSuivi,
+    estPasDAes((declaration.data ?? {}) as Record<string, unknown>)
   );
   if (!verif.ok) return NextResponse.json({ message: verif.raison }, { status: 409 });
 

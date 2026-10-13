@@ -88,11 +88,11 @@ describe("compte rendu : valeurs lisibles", () => {
     expect(lignes).toEqual(
       expect.arrayContaining([
         { label: "Date de l'AES", valeur: "12/10/2026" },
-        { label: "Délai AES → déclaration", valeur: "1–4 h (2 h 30 min)" },
+        { label: "Délai AES → déclaration", valeur: "< 4 h (2 h 30 min)" },
         { label: "Lieu", valeur: "Bloc opératoire" },
       ])
     );
     const tpe = lignesSection(S9_PRISE_EN_CHARGE, { tpe: "ACCEPTE", schemaTpe: "OMS_2024" }, ctx);
-    expect(tpe.find((l) => l.label === "Schéma prescrit")?.valeur).toContain("Préféré (OMS 2024)");
+    expect(tpe.find((l) => l.label === "Schéma prescrit")?.valeur).toContain("Actuel (OMS 2024)");
   });
 });

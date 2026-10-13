@@ -14,11 +14,21 @@ export function resultatsPositifs(c: ConsultationData): Bilan[] {
     .map(([b]) => b as Bilan);
 }
 
+/** Marqueurs dont la positivité chez la victime signe une séroconversion (et la sérologie initiale correspondante) */
+const SEROCONVERSION: Partial<Record<Bilan, string>> = { VIH: "VIH", VHC: "VHC", ARN_VHC: "VHC", AG_HBS: "AG_HBS" };
+
+export const MESSAGE_MALADIE_PRO =
+  "déclaration en maladie professionnelle (secteur privé : VHB et VHC indemnisables, VIH maladie à caractère professionnel ; secteur public : statut de la fonction publique).";
+
 /**
- * Alertes d'une consultation : résultat positif/anormal (orientation P23 proposée),
- * signes de primo-infection, rappel de déclaration AT tant qu'elle n'est pas faite.
+ * Alertes d'une consultation : résultat positif/anormal (orientation P23 proposée), séroconversion
+ * (déclaration en maladie professionnelle), soutien psychologique, signes de primo-infection,
+ * rappel de déclaration AT tant qu'elle n'est pas faite.
  */
-export function alertesConsultation(c: ConsultationData, ctx: { atFaite: boolean }): Alerte[] {
+export function alertesConsultation(
+  c: ConsultationData,
+  ctx: { atFaite: boolean; serologiesVictime?: Record<string, string> }
+): Alerte[] {
   const alertes: Alerte[] = [];
 
   const positifs = resultatsPositifs(c);
@@ -31,6 +41,20 @@ export function alertesConsultation(c: ConsultationData, ctx: { atFaite: boolean
         ? {}
         : { appliquer: { libelle: "Orienter P23", valeurs: { conduite: [...conduite, "ORIENTATION_P23"] } } }),
     });
+  }
+
+  // séroconversion : positif à une visite alors que la sérologie initiale (champ 50) ne l'était pas
+  const initiales = ctx.serologiesVictime ?? {};
+  const seroconversions = positifs.filter((b) => SEROCONVERSION[b] && initiales[SEROCONVERSION[b]!] !== "POSITIF");
+  if (seroconversions.length) {
+    alertes.push({
+      severite: "error",
+      message: `Séroconversion (${seroconversions.map((b) => BILAN_LIBELLES[b]).join(", ")}) : ${MESSAGE_MALADIE_PRO}`,
+    });
+  }
+
+  if (c.retentissementPsy === "ANXIETE_MODEREE" || c.retentissementPsy === "ANXIETE_IMPORTANTE") {
+    alertes.push({ severite: "info", message: "Prise en charge psychologique : 3 entretiens proposés au cours du premier mois." });
   }
 
   const signes = liste(c.primoInfection).filter((s) => s !== "AUCUN");
@@ -62,8 +86,11 @@ export const CONDUITES_ARRET = ["FIN_SUIVI", "ARRET_TPE"];
 export function peutCloturer(
   suivis: EtatSuivi[],
   consultations: ConsultationResume[],
-  motifArret?: string | null
+  motifArret?: string | null,
+  /** « Pas d'AES » : pas de suivi, clôture possible immédiatement */
+  pasDAes = false
 ): { ok: boolean; raison?: string } {
+  if (pasDAes) return { ok: true };
   const s12Faite = suivis.some((s) => s.code === "S12" && s.statut === "FAITE") || consultations.some((c) => c.visite === "S12");
   if (s12Faite) return { ok: true };
 

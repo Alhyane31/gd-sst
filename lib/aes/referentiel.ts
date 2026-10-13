@@ -1,5 +1,5 @@
-// Référentiel AES paramétrable (table AesReferentiel). Ces valeurs par défaut reprennent les annexes
-// de la spécification ; le protocole du P23 prime : tout est modifiable depuis /referentiels/aes.
+// Référentiel AES paramétrable (table AesReferentiel). Valeurs par défaut = annexes de la spécification V2
+// (docs/Module_AES_specifications_V2.md). Le protocole du P23 prime : tout est modifiable depuis /referentiels/aes.
 import type { Bilan, SuiviCode } from "./codes";
 
 export type SchemaTpe = {
@@ -21,6 +21,7 @@ export const CONDITIONS_BILAN = {
   TPE: "Si indication de TPE (TPE accepté)",
   TPE_COMORBIDITE: "Si TPE et comorbidité ou crainte de iatrogénie",
   S6_VIH: "Si TPE, ou sans TPE si source VIH inconnue ou VIH+ avec charge virale détectable",
+  SOURCE_VHC_POSITIF: "Si source VHC positive (ARN VHC chez la source)",
   SOURCE_ARN_VHC_POSITIF: "Si ARN VHC positif chez la source",
   NON_IMMUNISE_SOURCE_HBS: "Si victime non immunisée et source Ag HBs+ ou inconnue",
 } as const;
@@ -39,9 +40,13 @@ export type ReferentielAes = {
   schemasTpe: SchemaTpe[];
   calendrier: VisiteCalendrier[];
   seuils: {
-    /** au-delà, TPE VIH en principe hors délai */
+    /** TPE VIH « au plus tard » (heures) : au-delà, hors délai */
     delaiTpeHeures: number;
-    /** anti-HBs : répondeur si ≥ seuil (mUI/mL) */
+    /** délai optimal de prise en charge (heures) */
+    delaiOptimalHeures: number;
+    /** déclaration au service et déclaration AT : dans ce délai (heures) */
+    delaiDeclarationHeures: number;
+    /** anti-HBs : répondeur si titre STRICTEMENT supérieur (mUI/mL) ; égal = non-répondeur */
     antiHbsRepondeur: number;
     /** rappel à la victime n jours avant chaque visite (point d'extension, voir lib/aes/rappels.ts) */
     rappelJoursAvant: number;
@@ -52,8 +57,15 @@ export type ReferentielAes = {
 
 export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
   schemasTpe: [
-    { code: "OMS_2024", libelle: "Préféré (OMS 2024)", molecules: "Ténofovir + lamivudine ou emtricitabine + dolutégravir", remarques: "Trithérapie, 28 jours", contientTenofovir: true, actif: true },
-    { code: "US_2025", libelle: "Préféré (US 2025)", molecules: "Bictégravir / ténofovir alafénamide / emtricitabine", remarques: "Un comprimé par jour", contientTenofovir: true, actif: true },
+    {
+      code: "COURS",
+      libelle: "Cours",
+      molecules: "2 INTI : zidovudine + lamivudine (Combivir®) + 1 IP : nelfinavir (Viracept®) ou ritonavir (Norvir®)",
+      remarques: "Effets secondaires +++ ; référence d'enseignement",
+      contientTenofovir: false,
+      actif: false,
+    },
+    { code: "OMS_2024", libelle: "Actuel (OMS 2024)", molecules: "Ténofovir + lamivudine ou emtricitabine + dolutégravir", remarques: "Trithérapie, 28 jours ; mieux tolérée", contientTenofovir: true, actif: true },
     { code: "ALTERNATIF", libelle: "Alternatif", molecules: "Ténofovir + FTC ou 3TC + darunavir boosté", remarques: "Plus d'interactions", contientTenofovir: true, actif: true },
     { code: "POSSIBLE", libelle: "Possible", molecules: "Ténofovir + FTC + raltégravir", remarques: "Plus de comprimés", contientTenofovir: true, actif: true },
     { code: "NEVIRAPINE", libelle: "Contre-indiqué", molecules: "Névirapine", remarques: "Toxicité hépatique", contientTenofovir: false, actif: false },
@@ -91,8 +103,9 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
       decalageJours: 42,
       bilans: [
         { bilan: "VIH", condition: "S6_VIH" },
-        { bilan: "ALAT", condition: "SOURCE_ARN_VHC_POSITIF" },
-        { bilan: "ARN_VHC", condition: "SOURCE_ARN_VHC_POSITIF" },
+        // V2, partie 2 : source VHC positive → ALAT et ARN VHC à S6 (couvre aussi « ARN VHC positif » de l'annexe E)
+        { bilan: "ALAT", condition: "SOURCE_VHC_POSITIF" },
+        { bilan: "ARN_VHC", condition: "SOURCE_VHC_POSITIF" },
       ],
     },
     {
@@ -109,27 +122,31 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
     },
   ],
 
-  seuils: { delaiTpeHeures: 72, antiHbsRepondeur: 10, rappelJoursAvant: 3 },
+  seuils: { delaiTpeHeures: 48, delaiOptimalHeures: 4, delaiDeclarationHeures: 24, antiHbsRepondeur: 10, rappelJoursAvant: 3 },
 
   annexes: {
     A: {
       titre: "Annexe A – Niveau de risque",
       entetes: ["Risque", "Type d'exposition"],
       lignes: [
-        ["Important", "Piqûre profonde, aiguille creuse, intravasculaire, matériel visiblement souillé de sang"],
-        ["Intermédiaire", "Coupure au bistouri ; piqûre IM ou SC ; aiguille pleine ; contact cutanéo-muqueux prolongé (> 15 min)"],
-        ["Minime", "Autres cas : seringue abandonnée, morsure, griffure, projection brève"],
+        ["Important", "Piqûre profonde, aiguille creuse, dispositif intravasculaire (artériel ou veineux)"],
+        ["Intermédiaire", "Coupure avec bistouri ; piqûre avec aiguille IM ou SC ; piqûre avec aiguille pleine ; exposition cutanéo-muqueuse avec temps de contact > 15 min"],
+        ["Minime", "Autres cas ; morsures ou griffures"],
+        ["Pas d'AES", "Projection sur peau saine ; urines ou selles non souillées de sang"],
       ],
     },
     B: {
-      titre: "Annexe B – Indication du TPE VIH (délai < 72 h)",
+      titre: "Annexe B – Indication du TPE VIH (au mieux < 4 h, au plus tard 48 h)",
       entetes: ["Statut VIH de la source", "Indication"],
       lignes: [
-        ["Positif", "TPE recommandé quel que soit le niveau de risque (si charge virale indétectable : décision partagée avec l'expert)"],
-        ["Inconnu", "TPE recommandé uniquement si risque important et source à risque : affection opportuniste ou signes évocateurs, partenaires multiples ou HSH, usage de drogues IV, polytransfusion, enfant de mère séropositive"],
+        ["Positif", "Risque important ou intermédiaire : TPE recommandé. Risque minime : TPE non recommandé."],
+        [
+          "Inconnu",
+          "Risque important : TPE recommandé uniquement si source ou situation reconnue à risque (affection opportuniste majeure ou signes évocateurs, partenaires multiples, homo- ou bisexuel, usage de drogues IV, polytransfusion, enfant né de mère séropositive). Risque intermédiaire ou minime : TPE non recommandé.",
+        ],
         ["Négatif", "Pas de TPE"],
       ],
-      notes: ["Le schéma zidovudine + lamivudine + nelfinavir du cours est ancien ; vérifier le schéma en vigueur au P23."],
+      notes: ["Le schéma du cours reste la référence d'enseignement ; la liste des schémas est paramétrable pour suivre le protocole en vigueur au P23."],
     },
     C: {
       titre: "Annexe C – TPE VHB",
@@ -141,7 +158,7 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
       ],
       notes: [
         "* Immunoglobulines non nécessaires si ADN VHB indétectable chez la source et ténofovir utilisé dans le TPE.",
-        "** Immunoglobulines légitimes sans ténofovir dans le TPE si la source vient d'une zone de haute ou moyenne endémicité, ou est usager de drogues IV, HSH ou a des partenaires multiples. En l'absence d'immunoglobulines : ténofovir 28 jours si pas déjà sous TPE VIH.",
+        "** Immunoglobulines légitimes en l'absence de ténofovir dans le TPE et si la source est originaire d'un pays de haute (Afrique subsaharienne, Asie) ou moyenne (Outre-mer, Europe de l'Est et du Sud, Afrique du Nord, Moyen-Orient, sous-continent indien, Amérique du Sud) endémicité pour le VHB et/ou usager de drogues IV et/ou HSH et/ou avec partenaires multiples.",
       ],
     },
     D: {
@@ -150,7 +167,8 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
       lignes: [
         ["Standard", "M0 · M1 · M6", "Cas habituel"],
         ["Accéléré", "J0 · J7 · J21 + rappel M12", "Protection rapide nécessaire"],
-        ["Contrôle", "Anti-HBs 1 à 2 mois après la dernière dose", "Tout soignant"],
+        ["Contrôle", "Anti-HBs 1 mois après la dernière dose", "Tout soignant ; protégé si > 10 mUI/mL"],
+        ["Non-répondeur", "Anti-HBs < 10 mUI/mL 1 mois après le rappel : doses supplémentaires", "Contrôle après chaque dose"],
       ],
     },
     E: {
@@ -173,9 +191,10 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
       entetes: ["Moment", "Objet"],
       lignes: [
         ["J0", "Déclaration, évaluation du risque, prélèvements, TPE si indiqué"],
-        ["J3 (≤ 72 h)", "Réévaluation, résultats de la source, arrêt du TPE si source négative"],
+        ["J2–J3 (48–72 h)", "Réévaluation par le médecin référent, résultats de la source, arrêt du TPE si source négative"],
         ["S2", "Tolérance et observance du TPE, bilan si indiqué"],
         ["S4 (fin du TPE)", "Bilan de fin de traitement, soutien"],
+        ["1er mois", "Soutien psychologique : 3 entretiens"],
         ["S6", "Résultats S6"],
         ["S12", "Résultats finaux, clôture si tout est négatif"],
       ],
@@ -184,7 +203,7 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
       titre: "Annexe G – Conseils à la victime",
       entetes: ["Conseil", "Durée"],
       lignes: [
-        ["Rapports sexuels protégés", "Jusqu'au dernier test VIH (S12)"],
+        ["Rapports sexuels protégés", "Jusqu'au dernier test VIH"],
         ["Pas de don de sang, d'organes ou de tissus", "Jusqu'à la fin du suivi"],
         ["Observance stricte du TPE", "28 jours"],
         ["Signaler fièvre, éruption, effets secondaires", "Pendant tout le suivi"],

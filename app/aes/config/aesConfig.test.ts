@@ -161,3 +161,59 @@ describe("section 11 : consultations répétables", () => {
     expect(nettoyerConsultation({ visite: "S12", resultats: { VIH: "NEGATIF", ALAT: "NEGATIF" } }, ctx).resultats).toEqual({ VIH: "NEGATIF" });
   });
 });
+
+describe("conformité V2 : options et libellés", () => {
+  const tous = [...DECLARATION_AES, CONSULTATION_AES].flatMap((s) => s.fields);
+  const labels = (id: string) => {
+    const f = tous.find((x) => x.id === id) as { options?: { label: string }[] } | undefined;
+    return f?.options?.map((o) => o.label);
+  };
+
+  it("7 — geste en cours : 17 options V2", () => {
+    expect(labels("geste")).toEqual([
+      "Prélèvement veineux", "Prélèvement artériel", "Hémoculture", "Prélèvement capillaire (glycémie)", "Prélèvement intra-tubulaire",
+      "Pose ou dépose de perfusion", "Pose ou retrait de voie centrale", "Injection IV", "Injection IM ou SC", "Suture",
+      "Plaie peropératoire (instrument chirurgical)", "Ponction", "Recapuchonnage", "Élimination du matériel", "Nettoyage ou rangement",
+      "Manipulation de linge ou déchets", "Autre",
+    ]);
+  });
+
+  it("12 — liquide en cause : 6 options", () => {
+    expect(labels("liquide")).toHaveLength(6);
+    expect(labels("liquide")?.[4]).toBe("Urines ou selles non souillées de sang (risque nul)");
+  });
+
+  it("29, 30 — durée de lavage 2 options ; antisepsie sans chlorhexidine", () => {
+    expect(labels("dureeLavage")).toEqual(["< 5 min", "≥ 5 min"]);
+    expect(labels("antisepsie")).toEqual([
+      "Non faite", "Dakin", "Eau de Javel diluée (12° au 1/10e ou 9° au 1/5e)", "Polyvidone iodée en solution dermique", "Alcool à 70° (à défaut)", "Autre",
+    ]);
+  });
+
+  it("38 — 7 facteurs, affiché si VIH OU Ag HBs inconnu", () => {
+    expect(labels("facteursRisque")).toHaveLength(7);
+    const f = champ(S7_SOURCE, "facteursRisque");
+    expect(isVisible(f, { statutSource: { VIH: "NEGATIF", AG_HBS: "INCONNU" } }, {})).toBe(true);
+    expect(isVisible(f, { statutSource: { VIH: "NEGATIF", AG_HBS: "NEGATIF" } }, {})).toBe(false);
+  });
+
+  it("44, 47, 49, 55, 59, 75 — libellés V2", () => {
+    expect(labels("resultatAntiHbs")?.[0]).toBe("Répondeur : > 10 mUI/mL, ou > 100 mUI/mL dans les antécédents");
+    expect(champ(S9_PRISE_EN_CHARGE, "consultationP23").label).toBe("Consultation du médecin référent (P23)");
+    expect(labels("niveauRisque")).toEqual(["Important", "Intermédiaire", "Minime", "Pas d'AES"]);
+    expect(labels("prophylaxieVhb")).toEqual(["Non indiquée", "Immunoglobulines anti-VHB", "Dose de vaccin", "Schéma vaccinal à débuter"]);
+    expect(labels("causes")).toHaveLength(10);
+    expect(labels("causes")).toEqual(expect.arrayContaining(["Non-respect des précautions standard", "Absence de gants ou d'EPI"]));
+    expect(labels("conduite")).toContain("Orientation P23, infectiologie ou hépatologie");
+  });
+
+  it("4 — alerte si délai AES → déclaration > 24 h", () => {
+    const a = DECLARATION_AES[0].alerts!({ dateAes: "2026-10-12", heureAes: "08:00", dateHeureDeclaration: "2026-10-13T09:00" }, {});
+    expect(a[0].message).toContain("> 24 h");
+    expect(DECLARATION_AES[0].alerts!({ dateAes: "2026-10-12", heureAes: "08:00", dateHeureDeclaration: "2026-10-13T07:00" }, {})).toHaveLength(0);
+  });
+
+  it("11, 12 — message « pas d'AES » dans la section Type d'exposition", () => {
+    expect(DECLARATION_AES[2].alerts!({ typeExposition: "PROJ_PEAU_SAINE" }, {})[0].message).toContain("pas de suivi");
+  });
+});

@@ -37,7 +37,9 @@ function verifier(cle: CleReferentiel, valeur: unknown): string | null {
   }
   if (cle === "seuils") {
     const s = valeur as ReferentielAes["seuils"];
-    if (!(s?.delaiTpeHeures > 0) || !(s?.antiHbsRepondeur > 0)) return "seuils : valeurs positives attendues";
+    const valeurs = [s?.delaiTpeHeures, s?.delaiOptimalHeures, s?.delaiDeclarationHeures, s?.antiHbsRepondeur];
+    if (valeurs.some((v) => v !== undefined && !(v > 0))) return "seuils : valeurs positives attendues";
+    if (!(s?.delaiTpeHeures > 0) || !(s?.antiHbsRepondeur > 0)) return "seuils : délai du TPE et seuil anti-HBs obligatoires";
   }
   if (cle === "annexes" && (typeof valeur !== "object" || valeur === null)) return "annexes : objet attendu";
   return null;

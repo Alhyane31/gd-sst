@@ -12,6 +12,8 @@ export type ContexteConsultation = {
   /** bilans prévus par visite du calendrier */
   bilansParVisite: Partial<Record<SuiviCode, string[]>>;
   suivis: { code: SuiviCode; datePrevue: string; statut: SuiviStatut }[];
+  /** sérologies initiales de la victime (champ 50) : détection d'une séroconversion */
+  serologiesVictime?: Record<string, string>;
 };
 
 const extra = (ctx: ExamCtx) => (ctx.extra ?? {}) as Partial<ContexteConsultation>;
@@ -114,7 +116,7 @@ export const CONSULTATION_AES: SectionDef = {
         ["ARRET_TPE", "Arrêt du TPE (source négative)"],
         ["ADAPTATION_TPE", "Adaptation du TPE"],
         ["VACCINATION_VHB", "Vaccination VHB"],
-        ["ORIENTATION_P23", "Orientation P23 ou infectiologie"],
+        ["ORIENTATION_P23", "Orientation P23, infectiologie ou hépatologie"],
         ["FIN_SUIVI", "Fin du suivi"]
       ),
     },
@@ -134,7 +136,7 @@ export const CONSULTATION_AES: SectionDef = {
   ],
   alerts: (v, ctx) => {
     const e = extra(ctx);
-    const alertes: Alerte[] = alertesConsultation(v, { atFaite: !!e.atFaite });
+    const alertes: Alerte[] = alertesConsultation(v, { atFaite: !!e.atFaite, serologiesVictime: e.serologiesVictime });
     // prochaine consultation proposée selon le calendrier (modifiable)
     if (!v.prochaineConsultation && typeof v.dateConsultation === "string" && e.suivis?.length) {
       const prochaine = prochaineVisite(e.suivis, v.dateConsultation);

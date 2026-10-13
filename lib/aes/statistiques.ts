@@ -9,6 +9,8 @@ export type DeclarationStat = {
   statut: string;
   suivis: { code: string; statut: string; datePrevue: string }[];
   consultations: { visite: string }[];
+  /** « Pas d'AES » : pas de suivi, exclu du taux de suivi complet */
+  pasDAes?: boolean;
 };
 
 export type Comptage = { cle: string; libelle: string; nombre: number };
@@ -21,7 +23,7 @@ export type StatistiquesAes = {
   /** déclarations AT faites / déclarations */
   tauxDeclarationAT: number | null;
   declarationsATFaites: number;
-  /** suivis complets (S12 faite) / suivis arrivés à échéance (S12 prévue passée ou dossier clôturé) */
+  /** suivis complets (S12 faite) / suivis arrivés à échéance (S12 prévue passée ou dossier clôturé), hors « pas d'AES » */
   tauxSuiviComplet: number | null;
   suivisComplets: number;
   suivisEchus: number;
@@ -47,6 +49,7 @@ export function calculerStatistiques(
   libelles: { gestes?: Record<string, string>; causes?: Record<string, string> } = {}
 ): StatistiquesAes {
   const echus = declarations.filter((d) => {
+    if (d.pasDAes) return false;
     const s12 = d.suivis.find((s) => s.code === "S12");
     return d.statut === "CLOTUREE" || (s12 ? s12.datePrevue <= aujourdhui : false);
   });

@@ -71,3 +71,17 @@ export function sourceInconnue(statut: string | undefined): boolean {
 }
 
 export const liste = (v: unknown): string[] => (Array.isArray(v) ? (v as string[]) : []);
+
+/** Champ 38 : facteurs retenus par l'annexe B pour le TPE VIH (la zone d'endémie VHB n'en fait pas partie) */
+export const FACTEURS_RISQUE_VIH = ["OPPORTUNISTE", "PARTENAIRES_HSH", "DROGUES_IV", "POLYTRANSFUSION", "ENFANT_MERE_VIH"];
+
+/** Champ 38 : facteurs de la note ** de l'annexe C (immunoglobulines légitimes sans ténofovir) */
+export const FACTEURS_RISQUE_VHB_IG = ["ZONE_ENDEMIE", "DROGUES_IV", "PARTENAIRES_HSH"];
+
+/**
+ * « Ne correspond pas à la définition d'un AES » (V2) : projection sur peau saine, urines ou selles
+ * non souillées de sang, ou niveau de risque retenu « Pas d'AES ». Lavage simple, pas de suivi.
+ */
+export function estPasDAes(d: DeclarationData): boolean {
+  return d.typeExposition === EXPOSITION.PROJ_PEAU_SAINE || d.liquide === "URINES_SELLES" || d.niveauRisque === "PAS_D_AES";
+}

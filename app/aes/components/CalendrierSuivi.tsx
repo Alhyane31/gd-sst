@@ -21,7 +21,7 @@ import {
 import SaveIcon from "@mui/icons-material/Save";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { useEffect, useState } from "react";
-import { BILAN_LIBELLES, BILANS, SUIVI_LIBELLES, SUIVI_STATUT_LIBELLES, SUIVI_STATUTS, type SuiviCode } from "@/lib/aes/codes";
+import { estPasDAes, BILAN_LIBELLES, BILANS, SUIVI_LIBELLES, SUIVI_STATUT_LIBELLES, SUIVI_STATUTS, type SuiviCode } from "@/lib/aes/codes";
 import type { DeclarationApi, SuiviApi } from "../types";
 
 type Ligne = { code: string; datePrevue: string; statut: string; bilans: string[] };
@@ -48,6 +48,9 @@ export default function CalendrierSuivi({
     return <Alert severity="info">Le calendrier de suivi est généré à la validation de la déclaration.</Alert>;
   }
   const readOnly = declaration.statut === "CLOTUREE";
+  if (estPasDAes(declaration.data ?? {}) && lignes.length === 0) {
+    return <Alert severity="info">Ne correspond pas à la définition d&apos;un AES : lavage simple, pas de suivi. Le dossier peut être clôturé.</Alert>;
+  }
 
   const maj = (code: string, patch: Partial<Ligne>) => setLignes((ls) => ls.map((l) => (l.code === code ? { ...l, ...patch } : l)));
 

@@ -1,11 +1,18 @@
+// Logique métier AES — spécification V2
 import { describe, expect, it } from "vitest";
 import { bilansPrevus, genererCalendrier } from "./calendrier";
-import { ajouterJours, combinerDateHeure, heuresEntre, parseDateHeure, tranche, TRANCHES_DECLARATION, TRANCHES_P23 } from "./delais";
+import { estPasDAes } from "./codes";
+import { ajouterJours, combinerDateHeure, heuresEntre, parseDateHeure, tranche, TRANCHES_DELAI } from "./delais";
 import { REFERENTIEL_AES_DEFAUT as REF, fusionnerReferentiel } from "./referentiel";
 import {
+  alerteDeclarationAt,
+  alertePasDAes,
+  alerteSaignementProvoque,
+  alertesDelaiPriseEnCharge,
+  alertesDureesConduite,
+  alerteSourceVhc,
   alertesTpe,
   alertesVhb,
-  alerteSaignementProvoque,
   delaiDeclarationHeures,
   statutVhbVictime,
   suggererNiveauRisque,
@@ -14,29 +21,26 @@ import {
 } from "./regles";
 import { alertesConsultation, declarationAtFaite, peutCloturer, prochaineVisite } from "./suivi";
 
-const source = (vih: string, hbs = "NEGATIF") => ({ statutSource: { VIH: vih, AG_HBS: hbs, ANTI_HBC: "NEGATIF", VHC: "NEGATIF" } });
+const source = (vih: string, hbs = "NEGATIF", vhc = "NEGATIF") => ({ statutSource: { VIH: vih, AG_HBS: hbs, ANTI_HBC: "NEGATIF", VHC: vhc } });
+const AES = { dateAes: "2026-10-12", heureAes: "08:00" };
+const apres = (heures: number) => new Date(new Date("2026-10-12T08:00").getTime() + heures * 3_600_000);
 
-describe("délais (champs 4, 48)", () => {
-  it("tranches AES → déclaration, borne basse incluse", () => {
-    expect(tranche(0.5, TRANCHES_DECLARATION)).toBe("< 1 h");
-    expect(tranche(1, TRANCHES_DECLARATION)).toBe("1–4 h");
-    expect(tranche(4, TRANCHES_DECLARATION)).toBe("4–24 h");
-    expect(tranche(72, TRANCHES_DECLARATION)).toBe("> 72 h");
-    expect(tranche(71.9, TRANCHES_DECLARATION)).toBe("48–72 h");
-  });
-
-  it("tranches AES → P23", () => {
-    expect(tranche(3, TRANCHES_P23)).toBe("< 4 h");
-    expect(tranche(30, TRANCHES_P23)).toBe("24–48 h");
+describe("délais (champs 4 et 48) : tranches V2", () => {
+  it("< 4 h · 4–24 h · 24–48 h · > 48 h, borne basse incluse", () => {
+    expect(tranche(3.9, TRANCHES_DELAI)).toBe("< 4 h");
+    expect(tranche(4, TRANCHES_DELAI)).toBe("4–24 h");
+    expect(tranche(24, TRANCHES_DELAI)).toBe("24–48 h");
+    expect(tranche(48, TRANCHES_DELAI)).toBe("> 48 h");
+    expect(TRANCHES_DELAI.map((t) => t.libelle)).toEqual(["< 4 h", "4–24 h", "24–48 h", "> 48 h"]);
   });
 
   it("délai négatif ou incomplet : pas de tranche", () => {
-    expect(tranche(-2, TRANCHES_DECLARATION)).toBeNull();
-    expect(tranche(null, TRANCHES_DECLARATION)).toBeNull();
+    expect(tranche(-2, TRANCHES_DELAI)).toBeNull();
+    expect(tranche(null, TRANCHES_DELAI)).toBeNull();
   });
 
-  it("calcule le délai AES → déclaration à partir des champs 1, 2 et 3", () => {
-    expect(delaiDeclarationHeures({ dateAes: "2026-10-12", heureAes: "08:00", dateHeureDeclaration: "2026-10-12T11:30" })).toBe(3.5);
+  it("délai AES → déclaration à partir des champs 1, 2 et 3", () => {
+    expect(delaiDeclarationHeures({ ...AES, dateHeureDeclaration: "2026-10-12T11:30" })).toBe(3.5);
     expect(delaiDeclarationHeures({ dateAes: "2026-10-12" })).toBeNull();
   });
 
@@ -52,13 +56,56 @@ describe("délais (champs 4, 48)", () => {
   });
 });
 
-describe("annexe A : niveau de risque suggéré", () => {
-  it("piqûre profonde → important", () => {
-    expect(suggererNiveauRisque({ typeExposition: "PIQURE", profondeur: "PROFONDE" })?.niveau).toBe("IMPORTANT");
+describe("délai de prise en charge (partie 2)", () => {
+  it("> 4 h sans consultation : délai optimal dépassé", () => {
+    expect(alertesDelaiPriseEnCharge(AES, REF, apres(5))[0].message).toContain("Délai optimal dépassé");
+    expect(alertesDelaiPriseEnCharge(AES, REF, apres(3))).toHaveLength(0);
+    expect(alertesDelaiPriseEnCharge({ ...AES, consultationP23: "FAITE" }, REF, apres(5))).toHaveLength(0);
   });
-  it("aiguille creuse intravasculaire ou souillée → important", () => {
+
+  it("> 48 h : TPE VIH hors délai (48 h), avis du P23 — plus de seuil à 72 h", () => {
+    const a = alertesDelaiPriseEnCharge(AES, REF, apres(49));
+    expect(a[0]).toMatchObject({ severite: "error" });
+    expect(a[0].message).toContain("hors délai (48 h)");
+  });
+
+  it("plus d'alerte une fois la décision de TPE renseignée", () => {
+    expect(alertesDelaiPriseEnCharge({ ...AES, tpe: "NON_INDIQUE" }, REF, apres(60))).toHaveLength(0);
+  });
+
+  it("déclaration AT non faite dans les 24 h : alerte, sinon rappel", () => {
+    expect(alerteDeclarationAt({ ...AES, declarationAT: "EN_COURS" }, REF, apres(25))[0].severite).toBe("warning");
+    expect(alerteDeclarationAt({ ...AES, declarationAT: "NON_FAITE" }, REF, apres(2))[0].severite).toBe("info");
+    expect(alerteDeclarationAt({ ...AES, declarationAT: "FAITE" }, REF, apres(25))).toHaveLength(0);
+  });
+});
+
+describe("« pas d'AES » (V2)", () => {
+  it("projection sur peau saine ou urines/selles non souillées : message et niveau « Pas d'AES »", () => {
+    for (const d of [{ typeExposition: "PROJ_PEAU_SAINE" }, { typeExposition: "PIQURE", liquide: "URINES_SELLES" }]) {
+      expect(alertePasDAes(d)[0].message).toContain("ne correspond pas à la définition d'un AES");
+      expect(suggererNiveauRisque(d)?.niveau).toBe("PAS_D_AES");
+      expect(estPasDAes(d)).toBe(true);
+    }
+  });
+
+  it("salive ou larmes : pas de message « pas d'AES »", () => {
+    expect(alertePasDAes({ typeExposition: "PROJ_MUQUEUSE", liquide: "SALIVE_LARMES" })).toHaveLength(0);
+  });
+
+  it("pas de calendrier de suivi et clôture possible sans S12", () => {
+    expect(genererCalendrier({ ...AES, typeExposition: "PROJ_PEAU_SAINE" }, REF)).toEqual([]);
+    expect(peutCloturer([], [], null, true).ok).toBe(true);
+  });
+});
+
+describe("annexe A : niveau de risque suggéré (V2)", () => {
+  it("piqûre profonde, ou aiguille creuse en intravasculaire → important", () => {
+    expect(suggererNiveauRisque({ typeExposition: "PIQURE", profondeur: "PROFONDE" })?.niveau).toBe("IMPORTANT");
     expect(suggererNiveauRisque({ typeExposition: "PIQURE", materiel: "AIGUILLE_CREUSE", intravasculaire: "OUI" })?.niveau).toBe("IMPORTANT");
-    expect(suggererNiveauRisque({ typeExposition: "PIQURE", materiel: "AIGUILLE_CREUSE", materielSouille: "OUI" })?.niveau).toBe("IMPORTANT");
+  });
+  it("« matériel souillé » n'est plus un critère d'important", () => {
+    expect(suggererNiveauRisque({ typeExposition: "PIQURE", materiel: "AIGUILLE_CREUSE", materielSouille: "OUI" })?.niveau).toBe("MINIME");
   });
   it("bistouri, IM/SC, aiguille pleine, contact > 15 min → intermédiaire", () => {
     expect(suggererNiveauRisque({ typeExposition: "COUPURE", materiel: "BISTOURI" })?.niveau).toBe("INTERMEDIAIRE");
@@ -66,73 +113,94 @@ describe("annexe A : niveau de risque suggéré", () => {
     expect(suggererNiveauRisque({ typeExposition: "PIQURE", materiel: "AIGUILLE_PLEINE" })?.niveau).toBe("INTERMEDIAIRE");
     expect(suggererNiveauRisque({ typeExposition: "PROJ_MUQUEUSE", dureeContact: "PLUS_15" })?.niveau).toBe("INTERMEDIAIRE");
   });
-  it("morsure, projection brève → minime ; peau saine → pas de risque", () => {
+  it("morsure, griffure, projection brève → minime", () => {
     expect(suggererNiveauRisque({ typeExposition: "MORSURE_GRIFFURE", profondeur: "PROFONDE" })?.niveau).toBe("MINIME");
     expect(suggererNiveauRisque({ typeExposition: "PROJ_PEAU_LESEE", dureeContact: "MOINS_5" })?.niveau).toBe("MINIME");
-    expect(suggererNiveauRisque({ typeExposition: "PROJ_PEAU_SAINE" })?.niveau).toBe("PAS_DE_RISQUE");
     expect(suggererNiveauRisque({})).toBeNull();
   });
 });
 
-describe("annexe B : TPE VIH", () => {
-  it("source VIH positive → recommandé quel que soit le risque", () => {
-    expect(suggererTpe({ ...source("POSITIF"), niveauRisque: "MINIME" })).toBe("RECOMMANDE");
+describe("annexe B : TPE VIH (V2)", () => {
+  it("source VIH positive : recommandé si risque important ou intermédiaire", () => {
+    expect(suggererTpe({ ...source("POSITIF"), niveauRisque: "IMPORTANT" })).toBe("RECOMMANDE");
+    expect(suggererTpe({ ...source("POSITIF"), niveauRisque: "INTERMEDIAIRE" })).toBe("RECOMMANDE");
   });
-  it("source inconnue + risque important + facteur de risque → à proposer", () => {
+  it("source VIH positive, risque minime : TPE non recommandé", () => {
+    expect(suggererTpe({ ...source("POSITIF"), niveauRisque: "MINIME" })).toBe("NON_RECOMMANDE");
+    expect(alertesTpe({ ...source("POSITIF"), niveauRisque: "MINIME" })[0].message).toContain("non recommandé");
+  });
+  it("source inconnue + risque important + situation à risque → à proposer", () => {
     expect(suggererTpe({ ...source("INCONNU"), niveauRisque: "IMPORTANT", facteursRisque: ["DROGUES_IV"] })).toBe("A_PROPOSER");
-    expect(suggererTpe({ ...source("EN_ATTENTE"), niveauRisque: "IMPORTANT", facteursRisque: ["PARTENAIRES_HSH"] })).toBe("A_PROPOSER");
+    expect(suggererTpe({ ...source("EN_ATTENTE"), niveauRisque: "IMPORTANT", facteursRisque: ["ENFANT_MERE_VIH"] })).toBe("A_PROPOSER");
   });
-  it("source inconnue sans facteur ou risque non important → non indiqué", () => {
-    expect(suggererTpe({ ...source("INCONNU"), niveauRisque: "IMPORTANT", facteursRisque: ["AUCUN"] })).toBe("NON_INDIQUE");
-    expect(suggererTpe({ ...source("INCONNU"), niveauRisque: "INTERMEDIAIRE", facteursRisque: ["DROGUES_IV"] })).toBe("NON_INDIQUE");
+  it("source inconnue sinon : TPE non recommandé ; la zone d'endémie VHB ne compte pas pour le VIH", () => {
+    expect(suggererTpe({ ...source("INCONNU"), niveauRisque: "IMPORTANT", facteursRisque: ["ZONE_ENDEMIE"] })).toBe("NON_RECOMMANDE");
+    expect(suggererTpe({ ...source("INCONNU"), niveauRisque: "INTERMEDIAIRE", facteursRisque: ["DROGUES_IV"] })).toBe("NON_RECOMMANDE");
   });
   it("source négative → pas de TPE", () => {
-    expect(suggererTpe(source("NEGATIF"))).toBe("NON_INDIQUE");
+    expect(suggererTpe(source("NEGATIF"))).toBe("PAS_DE_TPE");
   });
-  it("délai > 72 h → alerte hors délai", () => {
-    const a = alertesTpe({ dateAes: "2026-10-01", heureAes: "08:00", dateHeureDeclaration: "2026-10-05T08:00" }, REF);
-    expect(a[0].message).toContain("hors délai");
-  });
-  it("source devenue négative sous TPE → arrêt du TPE suggéré", () => {
-    expect(alertesTpe({ ...source("NEGATIF"), tpe: "ACCEPTE", bilanInitial: ["CREATININE", "BHCG"] }, REF).map((a) => a.message).join()).toContain("arrêt du TPE");
+  it("source devenue négative sous TPE → arrêt suggéré, sauf exposition récente à risque", () => {
+    const m = alertesTpe({ ...source("NEGATIF"), tpe: "ACCEPTE", bilanInitial: ["CREATININE", "BHCG"] }).map((a) => a.message).join();
+    expect(m).toContain("arrêt du TPE et du suivi VIH, sauf exposition récente à risque de la source");
   });
   it("TPE accepté → créatinine et β-hCG proposés au bilan initial (sans les imposer)", () => {
-    const a = alertesTpe({ ...source("POSITIF"), tpe: "ACCEPTE", bilanInitial: ["ALAT"] }, REF).find((x) => x.appliquer);
+    const a = alertesTpe({ ...source("POSITIF"), niveauRisque: "IMPORTANT", tpe: "ACCEPTE", bilanInitial: ["ALAT"] }).find((x) => x.appliquer);
     expect(a?.appliquer?.valeurs).toEqual({ bilanInitial: ["ALAT", "CREATININE", "BHCG"] });
   });
   it("CV indétectable : décision partagée avec l'expert", () => {
-    const a = alertesTpe({ ...source("POSITIF"), vihPositifDetails: ["CV_INDETECTABLE"] }, REF);
+    const a = alertesTpe({ ...source("POSITIF"), niveauRisque: "IMPORTANT", vihPositifDetails: ["CV_INDETECTABLE"] });
     expect(a.map((x) => x.message).join()).toContain("décision partagée");
   });
 });
 
-describe("annexe C : prophylaxie VHB", () => {
-  const victime = (v: Record<string, unknown>) => v;
+describe("annexe C : prophylaxie VHB (V2)", () => {
   it("répondeur → rien", () => {
-    expect(suggererProphylaxieVhb({ ...victime({ vaccinationVhb: "COMPLETE", resultatAntiHbs: "REPONDEUR" }), ...source("NEGATIF", "POSITIF") }, REF)).toEqual(["NON_INDIQUEE"]);
+    expect(suggererProphylaxieVhb({ vaccinationVhb: "COMPLETE", resultatAntiHbs: "REPONDEUR", ...source("NEGATIF", "POSITIF") }, REF)).toEqual(["NON_INDIQUEE"]);
   });
-  it("seuil répondeur ≥ 10 mUI/mL (titre)", () => {
-    expect(statutVhbVictime({ vaccinationVhb: "COMPLETE", titreAntiHbs: "10" }, REF)).toBe("REPONDEUR");
-    expect(statutVhbVictime({ vaccinationVhb: "COMPLETE", titreAntiHbs: "9,9" }, REF)).toBe("NON_REPONDEUR");
+  it("répondeur si titre > 10 ; 10 exactement = non-répondeur (prudence)", () => {
+    expect(statutVhbVictime({ vaccinationVhb: "COMPLETE", titreAntiHbs: "10,1" }, REF)).toBe("REPONDEUR");
+    expect(statutVhbVictime({ vaccinationVhb: "COMPLETE", titreAntiHbs: "10" }, REF)).toBe("NON_REPONDEUR");
   });
   it("non répondeur : Ig si source +, rien si inconnue", () => {
     const nr = { vaccinationVhb: "COMPLETE", resultatAntiHbs: "NON_REPONDEUR" };
     expect(suggererProphylaxieVhb({ ...nr, ...source("NEGATIF", "POSITIF") }, REF)).toEqual(["IMMUNOGLOBULINES"]);
     expect(suggererProphylaxieVhb({ ...nr, ...source("NEGATIF", "INCONNU") }, REF)).toEqual(["NON_INDIQUEE"]);
   });
-  it("non vacciné (ou incomplet / inconnu) : Ig + vaccin si source +, vaccin si inconnue", () => {
+  it("non vacciné : Ig + vaccin si source +, vaccin si inconnue", () => {
     expect(suggererProphylaxieVhb({ vaccinationVhb: "NON_VACCINE", ...source("NEGATIF", "POSITIF") }, REF)).toEqual(["IMMUNOGLOBULINES", "SCHEMA_VACCINAL"]);
     expect(suggererProphylaxieVhb({ vaccinationVhb: "INCOMPLETE", ...source("NEGATIF", "EN_ATTENTE") }, REF)).toEqual(["SCHEMA_VACCINAL"]);
-    expect(suggererProphylaxieVhb({ vaccinationVhb: "INCONNUE", ...source("NEGATIF", "NEGATIF") }, REF)).toEqual(["NON_INDIQUEE"]);
-  });
-  it("réponse inconnue : pas de suggestion automatique, renvoi à l'annexe C", () => {
-    expect(suggererProphylaxieVhb({ vaccinationVhb: "COMPLETE" }, REF)).toBeNull();
-    expect(alertesVhb({ vaccinationVhb: "COMPLETE" }, REF)[0].message).toContain("annexe C");
   });
   it("la suggestion s'applique sur demande et disparaît une fois appliquée", () => {
     const d = { vaccinationVhb: "NON_VACCINE", ...source("NEGATIF", "POSITIF") };
     expect(alertesVhb(d, REF)[0].appliquer?.valeurs).toEqual({ prophylaxieVhb: ["IMMUNOGLOBULINES", "SCHEMA_VACCINAL"] });
     expect(alertesVhb({ ...d, prophylaxieVhb: ["IMMUNOGLOBULINES", "SCHEMA_VACCINAL"] }, REF)).toHaveLength(0);
+  });
+  it("note * : Ig non nécessaires si TPE avec ténofovir", () => {
+    const d = { vaccinationVhb: "NON_VACCINE", ...source("POSITIF", "POSITIF"), tpe: "ACCEPTE", schemaTpe: "OMS_2024" };
+    expect(alertesVhb(d, REF).map((a) => a.message).join()).toContain("(*)");
+  });
+  it("note ** : Ig légitimes si source à risque et pas de ténofovir", () => {
+    const d = { vaccinationVhb: "NON_VACCINE", ...source("NEGATIF", "INCONNU"), facteursRisque: ["ZONE_ENDEMIE"] };
+    expect(alertesVhb(d, REF).map((a) => a.message).join()).toContain("(**)");
+    expect(alertesVhb({ ...d, tpe: "ACCEPTE", schemaTpe: "OMS_2024" }, REF).map((a) => a.message).join()).not.toContain("(**)");
+  });
+});
+
+describe("partie 2 : conduite immédiate, source VHC", () => {
+  it("saignement provoqué ou compression → geste déconseillé", () => {
+    expect(alerteSaignementProvoque({ saignementProvoque: "COMPRESSION" })[0].message).toContain("déconseillé");
+    expect(alerteSaignementProvoque({ saignementProvoque: "NON" })).toHaveLength(0);
+  });
+  it("rinçage de muqueuse ou contact de l'antiseptique < 5 min → « 5 min au minimum »", () => {
+    expect(alertesDureesConduite({ typeExposition: "PROJ_MUQUEUSE", dureeLavage: "MOINS_5" })[0].message).toContain("5 min au minimum");
+    expect(alertesDureesConduite({ lavage: "RINCAGE", dureeLavage: "MOINS_5" })).toHaveLength(1);
+    expect(alertesDureesConduite({ typeExposition: "PIQURE", lavage: "EAU_SAVON", dureeLavage: "MOINS_5" })).toHaveLength(0);
+    expect(alertesDureesConduite({ dureeAntiseptique: "MOINS_5" })[0].message).toContain("antiseptique");
+  });
+  it("source VHC positive : pas de prophylaxie, ARN VHC, ALAT + ARN VHC à S6", () => {
+    expect(alerteSourceVhc(source("NEGATIF", "NEGATIF", "POSITIF"))[0].message).toContain("pas de prophylaxie");
+    expect(bilansPrevus("S6", { ...AES, ...source("NEGATIF", "NEGATIF", "POSITIF") }, REF)).toEqual(["ALAT", "ARN_VHC"]);
   });
 });
 
@@ -180,18 +248,24 @@ describe("annexe E : bilans pré-cochés et calendrier", () => {
   });
 });
 
-describe("partie 2 : autres règles", () => {
-  it("saignement provoqué ou compression → geste déconseillé", () => {
-    expect(alerteSaignementProvoque({ saignementProvoque: "COMPRESSION" })[0].message).toContain("déconseillé");
-    expect(alerteSaignementProvoque({ saignementProvoque: "NON" })).toHaveLength(0);
-  });
-});
-
 describe("section 11 : consultations et clôture", () => {
   it("résultat positif → alerte + orientation P23 proposée", () => {
     const a = alertesConsultation({ resultats: { VIH: "NEGATIF", ALAT: "POSITIF" }, declarationAT: "FAITE" }, { atFaite: true });
     expect(a[0].message).toContain("ALAT");
     expect(a[0].appliquer?.valeurs).toEqual({ conduite: ["ORIENTATION_P23"] });
+  });
+  it("séroconversion VIH, VHB ou VHC → alerte « déclaration en maladie professionnelle »", () => {
+    const a = alertesConsultation({ resultats: { VHC: "POSITIF" } }, { atFaite: true, serologiesVictime: { VHC: "NEGATIF" } });
+    expect(a.map((x) => x.message).join()).toContain("déclaration en maladie professionnelle");
+    // déjà positif à l'inclusion : pas de séroconversion
+    const b = alertesConsultation({ resultats: { VHC: "POSITIF" } }, { atFaite: true, serologiesVictime: { VHC: "POSITIF" } });
+    expect(b.map((x) => x.message).join()).not.toContain("maladie professionnelle");
+    // ALAT anormale : pas une séroconversion
+    expect(alertesConsultation({ resultats: { ALAT: "POSITIF" } }, { atFaite: true }).map((x) => x.message).join()).not.toContain("maladie professionnelle");
+  });
+  it("retentissement psychologique → 3 entretiens proposés le premier mois", () => {
+    expect(alertesConsultation({ retentissementPsy: "ANXIETE_MODEREE" }, { atFaite: true })[0].message).toContain("3 entretiens");
+    expect(alertesConsultation({ retentissementPsy: "AUCUN" }, { atFaite: true })).toHaveLength(0);
   });
   it("signe de primo-infection → alerte", () => {
     expect(alertesConsultation({ primoInfection: ["FIEVRE"] }, { atFaite: true })[0].severite).toBe("error");
@@ -220,6 +294,24 @@ describe("section 11 : consultations et clôture", () => {
       { code: "S6" as const, datePrevue: "2026-11-23", statut: "PREVUE" as const },
     ];
     expect(prochaineVisite(suivis, "2026-10-19")).toEqual(suivis[2]);
+  });
+});
+
+describe("référentiel V2", () => {
+  it("schémas : « Cours » affiché mais non proposé, « Actuel (OMS 2024) », plus de schéma US 2025", () => {
+    const codes = REF.schemasTpe.map((s) => s.code);
+    expect(codes).toEqual(["COURS", "OMS_2024", "ALTERNATIF", "POSSIBLE", "NEVIRAPINE"]);
+    expect(REF.schemasTpe.find((s) => s.code === "COURS")?.actif).toBe(false);
+    expect(REF.schemasTpe.find((s) => s.code === "OMS_2024")?.libelle).toBe("Actuel (OMS 2024)");
+  });
+  it("seuils : TPE 48 h, délai optimal 4 h, déclaration 24 h", () => {
+    expect(REF.seuils).toMatchObject({ delaiTpeHeures: 48, delaiOptimalHeures: 4, delaiDeclarationHeures: 24, antiHbsRepondeur: 10 });
+  });
+  it("annexes : « Pas d'AES » (A), ligne Non-répondeur (D), 1er mois (F)", () => {
+    expect(REF.annexes.A.lignes.map((l) => l[0])).toContain("Pas d'AES");
+    expect(REF.annexes.D.lignes.map((l) => l[0])).toContain("Non-répondeur");
+    expect(REF.annexes.F.lignes.map((l) => l[0])).toEqual(expect.arrayContaining(["J2–J3 (48–72 h)", "1er mois"]));
+    expect(REF.annexes.G.lignes[0]).toEqual(["Rapports sexuels protégés", "Jusqu'au dernier test VIH"]);
   });
 });
 

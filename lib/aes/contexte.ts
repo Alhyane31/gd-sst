@@ -2,6 +2,7 @@
 import type { ExamCtx } from "@/app/formulaires/examen/types";
 import type { SuiviCode, SuiviStatut } from "./codes";
 import type { ReferentielAes } from "./referentiel";
+import { estPasDAes } from "./codes";
 import { declarationAtFaite } from "./suivi";
 
 /** Forme minimale d'une déclaration (Prisma côté serveur, JSON côté client) */
@@ -35,6 +36,8 @@ export function contexteAes(d: DeclarationPourContexte, ref: ReferentielAes, rea
       atFaite: declarationAtFaite(data, consultations),
       bilansParVisite: Object.fromEntries(suivis.map((s) => [s.code, s.bilans])),
       suivis,
+      serologiesVictime: (data.serologiesVictime ?? {}) as Record<string, string>,
+      pasDAes: estPasDAes(data),
     },
   };
 }

@@ -1,6 +1,6 @@
 // Section 10 : calendrier de suivi (champ 62) et bilans pré-cochés par visite (annexe E).
 import type { Bilan, DeclarationData, SuiviCode, SuiviStatut } from "./codes";
-import { liste, SOURCE, sourceInconnue, statutSource } from "./codes";
+import { estPasDAes, liste, SOURCE, sourceInconnue, statutSource } from "./codes";
 import { combinerDateHeure, ajouterJours } from "./delais";
 import type { ConditionBilan, ReferentielAes } from "./referentiel";
 import { statutHbsSource, statutVhbVictime } from "./regles";
@@ -34,6 +34,8 @@ export function conditionVraie(condition: ConditionBilan, d: DeclarationData, re
         sourceInconnue(vih) ||
         (vih === SOURCE.POSITIF && liste(d.vihPositifDetails).includes("CV_DETECTABLE"))
       );
+    case "SOURCE_VHC_POSITIF":
+      return statutSource(d, "VHC") === SOURCE.POSITIF || d.arnVhc === "POSITIF";
     case "SOURCE_ARN_VHC_POSITIF":
       return d.arnVhc === "POSITIF";
     case "NON_IMMUNISE_SOURCE_HBS":
@@ -54,11 +56,12 @@ export function bilansPrevus(code: SuiviCode, d: DeclarationData, ref: Referenti
 
 /**
  * Calendrier généré à la validation : J0 = date de l'AES, dates J0 + décalage (modifiables ensuite).
- * Une visite sans bilan prévu est « Non indiquée ».
+ * Une visite sans bilan prévu est « Non indiquée ». « Pas d'AES » : pas de suivi (calendrier vide).
  */
 export function genererCalendrier(d: DeclarationData, ref: ReferentielAes): SuiviPrevu[] | null {
   const j0 = combinerDateHeure(d.dateAes, d.heureAes ?? "00:00");
   if (!j0) return null;
+  if (estPasDAes(d)) return [];
   return ref.calendrier.map((v) => {
     const bilans = bilansPrevus(v.code, d, ref);
     return {

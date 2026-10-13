@@ -1,16 +1,21 @@
-// Déclaration AES — sections 1 à 9 (champs 1 à 61 de la spécification).
-// Libellés, options, ordre et conditions repris de docs/Module_AES_specifications.md.
+// Déclaration AES — sections 1 à 9 (champs 1 à 61 de la spécification V2).
+// Libellés, options, ordre et conditions repris de docs/Module_AES_specifications_V2.md (seule référence).
 // Ajouts (règles de la partie 2 sans champ de saisie) : date et heure de la consultation P23 (pour le champ 48),
 // comorbidité / crainte de iatrogénie (visite S2).
 import { opts } from "@/app/formulaires/examen/config/presets";
 import type { ExamCtx, SectionDef, SectionValues } from "@/app/formulaires/examen/types";
 import type { Alerte } from "@/lib/clinique/mesures";
 import { EXPOSITION, EXPOSITIONS_PLAIE, EXPOSITIONS_PROJECTION, liste, MATERIEL_AIGUILLE, SOURCE, statutSource } from "@/lib/aes/codes";
-import { formatDuree, heuresEntre, parseDateHeure, tranche, TRANCHES_DECLARATION, TRANCHES_P23, combinerDateHeure } from "@/lib/aes/delais";
+import { formatDuree, heuresEntre, parseDateHeure, tranche, TRANCHES_DELAI, combinerDateHeure } from "@/lib/aes/delais";
 import { REFERENTIEL_AES_DEFAUT, type ReferentielAes } from "@/lib/aes/referentiel";
 import {
+  alerteDeclarationAt,
   alerteNiveauRisque,
+  alertePasDAes,
   alerteSaignementProvoque,
+  alertesDelaiPriseEnCharge,
+  alertesDureesConduite,
+  alerteSourceVhc,
   alertesTpe,
   alertesVhb,
   delaiDeclarationHeures,
@@ -40,12 +45,13 @@ export const S1_CIRCONSTANCES: SectionDef = {
       id: "delaiDeclaration",
       label: "Délai AES → déclaration",
       help: "calculé à partir des champs 1 à 3",
-      compute: (v) => {
+      compute: (v, ctx) => {
         const h = delaiDeclarationHeures(v);
         if (h === null) return null;
         if (h < 0) return { text: "La déclaration précède l'AES : vérifier les dates.", severite: "error" };
-        const t = tranche(h, TRANCHES_DECLARATION)!;
-        return { text: `${t} (${formatDuree(h)})`, severite: h > 72 ? "error" : "info" };
+        const t = tranche(h, TRANCHES_DELAI)!;
+        const seuil = referentielDuContexte(ctx).seuils.delaiDeclarationHeures;
+        return { text: `${t} (${formatDuree(h)})`, severite: h > seuil ? "warning" : "info" };
       },
     },
     {
@@ -64,9 +70,12 @@ export const S1_CIRCONSTANCES: SectionDef = {
     },
     { kind: "text", id: "service", label: "Service" },
   ],
-  alerts: (v) => {
+  alerts: (v, ctx) => {
     const h = delaiDeclarationHeures(v);
-    return h !== null && h > 72 ? [{ severite: "error", message: "Délai AES → déclaration > 72 h." }] : [];
+    const seuil = referentielDuContexte(ctx).seuils.delaiDeclarationHeures;
+    return h !== null && h > seuil
+      ? [{ severite: "warning", message: `Délai AES → déclaration > ${seuil} h : la déclaration doit être faite dans les ${seuil} h.` }]
+      : [];
   },
 };
 
@@ -84,13 +93,14 @@ export const S2_GESTE: SectionDef = {
         ["PRELEVEMENT_VEINEUX", "Prélèvement veineux"],
         ["PRELEVEMENT_ARTERIEL", "Prélèvement artériel"],
         ["HEMOCULTURE", "Hémoculture"],
-        ["VVP", "Pose de voie veineuse périphérique"],
+        ["PRELEVEMENT_CAPILLAIRE", "Prélèvement capillaire (glycémie)"],
+        ["PRELEVEMENT_INTRA_TUBULAIRE", "Prélèvement intra-tubulaire"],
+        ["POSE_PERFUSION", "Pose ou dépose de perfusion"],
         ["VOIE_CENTRALE", "Pose ou retrait de voie centrale"],
         ["INJECTION_IV", "Injection IV"],
         ["INJECTION_IM_SC", "Injection IM ou SC"],
-        ["GLYCEMIE", "Glycémie capillaire"],
         ["SUTURE", "Suture"],
-        ["CHIRURGICAL", "Geste chirurgical"],
+        ["PLAIE_PEROPERATOIRE", "Plaie peropératoire (instrument chirurgical)"],
         ["PONCTION", "Ponction"],
         ["RECAPUCHONNAGE", "Recapuchonnage"],
         ["ELIMINATION", "Élimination du matériel"],
@@ -141,12 +151,15 @@ export const S3_EXPOSITION: SectionDef = {
       required: true,
       options: opts(
         ["SANG", "Sang"],
-        ["SOUILLE_SANG", "Liquide visiblement souillé de sang"],
-        ["AUTRE_LIQUIDE", "Autre liquide biologique (LCR, séreuses, amniotique)"],
+        ["SOUILLE_SANG", "Liquide biologique contenant du sang"],
+        ["AUTRE_LIQUIDE", "Autre liquide à risque possible (sperme, sécrétions vaginales, LCR, liquide d'ascite, liquide amniotique, LBA)"],
+        ["SALIVE_LARMES", "Salive ou larmes non souillées de sang (risque nul VIH et VHC ; salive : risque VHB possible)"],
+        ["URINES_SELLES", "Urines ou selles non souillées de sang (risque nul)"],
         ["INCONNU", "Inconnu"]
       ),
     },
   ],
+  alerts: (v) => alertePasDAes(v),
 };
 
 // ─── Section 4 – Description de la plaie ────────────────────────────────────────
@@ -300,19 +313,18 @@ export const S6_CONDUITE: SectionDef = {
         ["RINCAGE", "Rinçage eau ou sérum physiologique (muqueuse)"]
       ),
     },
-    { kind: "choice", id: "dureeLavage", label: "Durée du lavage ou rinçage", options: opts(["MOINS_5", "< 5 min"], ["CINQ", "5 min"], ["DIX_PLUS", "≥ 10 min"]) },
+    { kind: "choice", id: "dureeLavage", label: "Durée du lavage ou rinçage", options: opts(["MOINS_5", "< 5 min"], ["CINQ_PLUS", "≥ 5 min"]) },
     {
       kind: "select",
       id: "antisepsie",
       label: "Antisepsie",
-      help: "Masquée si projection sur muqueuse (pas d'antiseptique caustique)",
+      help: "Masquée si projection sur muqueuse (rinçage seul)",
       options: opts(
         ["NON_FAITE", "Non faite"],
         ["DAKIN", "Dakin"],
-        ["JAVEL", "Eau de Javel diluée"],
-        ["ALCOOL_70", "Alcool à 70°"],
-        ["POLYVIDONE", "Polyvidone iodée"],
-        ["CHLORHEXIDINE", "Chlorhexidine"],
+        ["JAVEL", "Eau de Javel diluée (12° au 1/10e ou 9° au 1/5e)"],
+        ["POLYVIDONE", "Polyvidone iodée en solution dermique"],
+        ["ALCOOL_70", "Alcool à 70° (à défaut)"],
         ["AUTRE", "Autre"]
       ),
       showIf: (v) => !estMuqueuse(v),
@@ -326,7 +338,7 @@ export const S6_CONDUITE: SectionDef = {
     },
     { kind: "choice", id: "pansement", label: "Pansement", options: OUI_NON, showIf: (v) => !estMuqueuse(v) },
   ],
-  alerts: (v) => alerteSaignementProvoque(v),
+  alerts: (v) => [...alerteSaignementProvoque(v), ...alertesDureesConduite(v)],
 };
 
 // ─── Section 7 – Patient source ─────────────────────────────────────────────────
@@ -377,15 +389,16 @@ export const S7_SOURCE: SectionDef = {
       label: "Facteurs de risque si statut inconnu",
       exclusive: "AUCUN",
       options: opts(
-        ["OPPORTUNISTE", "Affection opportuniste ou signes évocateurs"],
-        ["PARTENAIRES_HSH", "Partenaires multiples, HSH"],
+        ["OPPORTUNISTE", "Affection opportuniste majeure ou signes évocateurs (diarrhée chronique, amaigrissement > 10 %, fièvre au long cours)"],
+        ["PARTENAIRES_HSH", "Partenaires sexuels multiples, homo- ou bisexuel"],
         ["DROGUES_IV", "Usage de drogues IV"],
         ["POLYTRANSFUSION", "Polytransfusion"],
-        ["ZONE_ENDEMIE", "Zone d'endémie"],
+        ["ENFANT_MERE_VIH", "Enfant né de mère séropositive au VIH"],
+        ["ZONE_ENDEMIE", "Originaire d'une zone d'endémie VHB"],
         ["AUCUN", "Aucun connu"]
       ),
-      // « Prélevé, en attente » : statut encore inconnu
-      showIf: (v) => vih(v) === SOURCE.INCONNU || vih(v) === SOURCE.EN_ATTENTE,
+      // VIH ou Ag HBs inconnu (« Prélevé, en attente » : statut encore inconnu)
+      showIf: (v) => [vih(v), statutSource(v, "AG_HBS")].some((s) => s === SOURCE.INCONNU || s === SOURCE.EN_ATTENTE),
     },
     {
       kind: "checkboxes",
@@ -416,7 +429,7 @@ export const S7_SOURCE: SectionDef = {
         appliquer: { libelle: "Remplir « Inconnu »", valeurs: { statutSource: valeurs } },
       });
     }
-    return alertes;
+    return [...alertes, ...alerteSourceVhc(v)];
   },
 };
 
@@ -447,7 +460,11 @@ export const S8_VHB: SectionDef = {
       kind: "choice",
       id: "resultatAntiHbs",
       label: "Résultat",
-      options: opts(["REPONDEUR", "≥ 10 mUI/mL (répondeur)"], ["NON_REPONDEUR", "< 10 mUI/mL (non-répondeur)"], ["INCONNU", "Inconnu"]),
+      options: opts(
+        ["REPONDEUR", "Répondeur : > 10 mUI/mL, ou > 100 mUI/mL dans les antécédents"],
+        ["NON_REPONDEUR", "Non-répondeur : < 10 mUI/mL sans anti-HBc ni notion d'anti-HBs > 100 mUI/mL dans le passé"],
+        ["INCONNU", "Inconnu"]
+      ),
       showIf: serologieFaite,
     },
     { kind: "measure", id: "titreAntiHbs", label: "Titre anti-HBs", unit: "mUI/mL", min: 0, showIf: serologieFaite },
@@ -463,8 +480,9 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
     {
       kind: "choice",
       id: "consultationP23",
-      label: "Consultation au P23",
+      label: "Consultation du médecin référent (P23)",
       required: true,
+      help: "Au mieux dans les 4 h",
       options: opts(["FAITE", "Faite"], ["NON_FAITE", "Non faite"], ["PROGRAMMEE", "Programmée"]),
     },
     {
@@ -480,11 +498,15 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       label: "Délai AES → consultation P23",
       help: "renseignez la date et l'heure de la consultation",
       showIf: (v) => v.consultationP23 === "FAITE",
-      compute: (v) => {
+      compute: (v, ctx) => {
         const h = heuresEntre(combinerDateHeure(v.dateAes, v.heureAes), parseDateHeure(v.dateHeureP23));
         if (h === null) return null;
         if (h < 0) return { text: "La consultation précède l'AES : vérifier les dates.", severite: "error" };
-        return { text: `${tranche(h, TRANCHES_P23)} (${formatDuree(h)})`, severite: h > 72 ? "warning" : "info" };
+        const s = referentielDuContexte(ctx).seuils;
+        return {
+          text: `${tranche(h, TRANCHES_DELAI)} (${formatDuree(h)})`,
+          severite: h > s.delaiTpeHeures ? "error" : h > s.delaiOptimalHeures ? "warning" : "success",
+        };
       },
     },
     {
@@ -493,7 +515,7 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       label: "Niveau de risque retenu",
       required: true,
       aide: "A",
-      options: opts(["IMPORTANT", "Important"], ["INTERMEDIAIRE", "Intermédiaire"], ["MINIME", "Minime"], ["PAS_DE_RISQUE", "Pas de risque"]),
+      options: opts(["IMPORTANT", "Important"], ["INTERMEDIAIRE", "Intermédiaire"], ["MINIME", "Minime"], ["PAS_D_AES", "Pas d'AES"]),
     },
     {
       kind: "grid",
@@ -526,11 +548,12 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       label: "Délai AES → première prise",
       help: "renseignez la date et l'heure de la première prise",
       showIf: tpeAccepte,
-      compute: (v) => {
+      compute: (v, ctx) => {
         const h = heuresEntre(combinerDateHeure(v.dateAes, v.heureAes), parseDateHeure(v.dateHeurePremierePrise));
         if (h === null) return null;
         if (h < 0) return { text: "La première prise précède l'AES : vérifier les dates.", severite: "error" };
-        return { text: formatDuree(h), severite: h > 72 ? "error" : h > 4 ? "warning" : "success" };
+        const s = referentielDuContexte(ctx).seuils;
+        return { text: formatDuree(h), severite: h > s.delaiTpeHeures ? "error" : h > s.delaiOptimalHeures ? "warning" : "success" };
       },
     },
     {
@@ -549,10 +572,9 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       aide: "C",
       options: opts(
         ["NON_INDIQUEE", "Non indiquée"],
-        ["IMMUNOGLOBULINES", "Immunoglobulines anti-HBs"],
+        ["IMMUNOGLOBULINES", "Immunoglobulines anti-VHB"],
         ["DOSE_VACCIN", "Dose de vaccin"],
-        ["SCHEMA_VACCINAL", "Schéma vaccinal à débuter"],
-        ["TENOFOVIR", "Ténofovir (si pas d'Ig et pas de TPE)"]
+        ["SCHEMA_VACCINAL", "Schéma vaccinal à débuter"]
       ),
     },
     {
@@ -560,6 +582,7 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       id: "declarationAT",
       label: "Déclaration en accident du travail",
       required: true,
+      help: "Dans les 24 h",
       options: opts(["FAITE", "Faite"], ["EN_COURS", "En cours"], ["NON_FAITE", "Non faite"]),
     },
     { kind: "choice", id: "certificatInitial", label: "Certificat médical initial", options: OUI_NON },
@@ -570,9 +593,10 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
       label: "Cause principale identifiée",
       options: opts(
         ["RECAPUCHONNAGE", "Recapuchonnage"],
+        ["NON_RESPECT_PS", "Non-respect des précautions standard"],
         ["COLLECTEUR", "Collecteur absent, éloigné ou plein"],
         ["MATERIEL_NON_SECURISE", "Absence de matériel sécurisé"],
-        ["ABSENCE_EPI", "Absence d'EPI"],
+        ["ABSENCE_EPI", "Absence de gants ou d'EPI"],
         ["URGENCE", "Urgence"],
         ["PATIENT_AGITE", "Patient agité"],
         ["CHARGE_TRAVAIL", "Charge de travail, fatigue"],
@@ -585,10 +609,15 @@ export const S9_PRISE_EN_CHARGE: SectionDef = {
   ],
   alerts: (v, ctx) => {
     const ref = referentielDuContexte(ctx);
-    const alertes: Alerte[] = [...alerteNiveauRisque(v), ...alertesTpe(v, ref), ...alertesVhb(v, ref)];
-    if (v.declarationAT && v.declarationAT !== "FAITE") {
-      alertes.push({ severite: "warning", message: "Déclaration en accident du travail non faite : rappel à chaque visite jusqu'à la clôture." });
-    }
+    const maintenant = (ctx.extra?.maintenant as Date | undefined) ?? new Date();
+    const alertes: Alerte[] = [
+      ...alertePasDAes(v),
+      ...alertesDelaiPriseEnCharge(v, ref, maintenant),
+      ...alerteNiveauRisque(v),
+      ...alertesTpe(v),
+      ...alertesVhb(v, ref),
+      ...alerteDeclarationAt(v, ref, maintenant),
+    ];
     return alertes;
   },
 };

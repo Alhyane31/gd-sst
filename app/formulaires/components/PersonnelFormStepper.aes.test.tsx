@@ -66,7 +66,7 @@ describe("annexes pendant la saisie AES", () => {
     monter();
     fireEvent.click(screen.getByText("AES – Prise en charge"));
     fireEvent.click(screen.getByText("Voir l'annexe B"));
-    expect(await screen.findByText("Annexe B – Indication du TPE VIH (délai < 72 h)")).toBeTruthy();
+    expect(await screen.findByText("Annexe B – Indication du TPE VIH (au mieux < 4 h, au plus tard 48 h)")).toBeTruthy();
     expect(screen.getByText("Schémas de TPE VIH (protocole du P23, paramétrable)")).toBeTruthy();
   });
 
