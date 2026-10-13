@@ -18,7 +18,7 @@ export async function PATCH(
 
   const visite = await prisma.visite.findUnique({
     where: { id },
-    select: { id: true, statut: true, convocationId: true },
+    select: { id: true, statut: true, convocationId: true, type: true },
   });
 
   if (!visite) {
@@ -29,6 +29,13 @@ export async function PATCH(
     return NextResponse.json({ message: "Visite déjà clôturée" }, { status: 400 });
   }
 
+  // visite AES : clôture uniquement depuis le dossier AES (après S12 ou arrêt justifié du suivi)
+  if (visite.type === "AES") {
+    return NextResponse.json(
+      { message: "Visite AES : la clôture se fait depuis le dossier AES, après la visite S12 ou un arrêt justifié du suivi." },
+      { status: 409 }
+    );
+  }
   if (visite.statut === "ANNULEE") {
     return NextResponse.json({ message: "Impossible de clôturer une visite annulée" }, { status: 400 });
   }
