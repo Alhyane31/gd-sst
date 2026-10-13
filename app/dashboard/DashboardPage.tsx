@@ -6,6 +6,7 @@ import OverviewPanel from "./components/OverviewPanel";
 import EffectifsPanel from "./components/EffectifsPanel";
 import MatricePosteFormationPanel from "./components/MatricePosteFormationPanel";
 import ConvocationsEvolutionPanel from "./components/ConvocationsEvolutionPanel";
+import AesPanel from "./components/AesPanel";
 
 export default function DashboardPage() {
   const [tab, setTab] = useState(0);
@@ -19,12 +20,14 @@ export default function DashboardPage() {
         <Tab label="Effectifs" />
         <Tab label="Matrice Poste × Formation" />
         <Tab label="Convocations vs Présence" />
+        <Tab label="AES" />
       </Tabs>
 
       {tab === 0 && <OverviewPanel />}
       {tab === 1 && <EffectifsPanel />}
       {tab === 2 && <MatricePosteFormationPanel />}
       {tab === 3 && <ConvocationsEvolutionPanel />}
+      {tab === 4 && <AesPanel />}
     </Box>
   );
 }
