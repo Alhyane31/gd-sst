@@ -222,3 +222,17 @@ describe("section 11 : consultations et clôture", () => {
     expect(prochaineVisite(suivis, "2026-10-19")).toEqual(suivis[2]);
   });
 });
+
+describe("rappels (point d'extension)", () => {
+  it("visites prévues dans les n prochains jours, statut « Prévue » uniquement", async () => {
+    const { visitesARappeler, canalNotification } = await import("./rappels");
+    const suivis = [
+      { code: "J1_J7", statut: "PREVUE", datePrevue: "2026-10-15" },
+      { code: "S2", statut: "PREVUE", datePrevue: "2026-10-20" },
+      { code: "S6", statut: "FAITE", datePrevue: "2026-10-14" },
+      { code: "S12", statut: "PREVUE", datePrevue: "2026-10-12" },
+    ];
+    expect(visitesARappeler(suivis, "2026-10-13", 3).map((s) => s.code)).toEqual(["J1_J7"]);
+    expect(canalNotification).toBeNull(); // aucun envoi tant qu'aucun canal n'est configuré
+  });
+});

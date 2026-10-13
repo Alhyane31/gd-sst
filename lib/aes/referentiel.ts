@@ -43,6 +43,8 @@ export type ReferentielAes = {
     delaiTpeHeures: number;
     /** anti-HBs : répondeur si ≥ seuil (mUI/mL) */
     antiHbsRepondeur: number;
+    /** rappel à la victime n jours avant chaque visite (point d'extension, voir lib/aes/rappels.ts) */
+    rappelJoursAvant: number;
   };
   /** textes d'aide affichés tels quels (annexes A à G) */
   annexes: Record<"A" | "B" | "C" | "D" | "E" | "F" | "G", { titre: string; entetes: string[]; lignes: LigneAnnexe[]; notes?: string[] }>;
@@ -107,7 +109,7 @@ export const REFERENTIEL_AES_DEFAUT: ReferentielAes = {
     },
   ],
 
-  seuils: { delaiTpeHeures: 72, antiHbsRepondeur: 10 },
+  seuils: { delaiTpeHeures: 72, antiHbsRepondeur: 10, rappelJoursAvant: 3 },
 
   annexes: {
     A: {
