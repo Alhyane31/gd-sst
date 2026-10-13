@@ -26,6 +26,10 @@ import type { ExamCtx, FieldDef, SectionDef, SectionValues } from "../types";
 
 const WIDE_KINDS = new Set(["grid", "mobility", "textarea", "checkboxes", "choice", "heading", "attachment", "eva"]);
 
+// Champs courts (mesures, listes, textes, dates…) : deux par ligne, un seul sur écran étroit.
+// La largeur laisse la place au libellé et à l'unité sans chevauchement.
+const DEMI_LIGNE = { width: { xs: "100%", md: "calc(50% - 8px)" } };
+
 export default function SectionRenderer({
   section,
   values,
@@ -96,6 +100,7 @@ export default function SectionRenderer({
       case "measure":
         return (
           <MeasureInput
+            width="100%"
             label={libelle(f)}
             unit={f.unit}
             min={f.min}
@@ -194,7 +199,7 @@ export default function SectionRenderer({
             select
             size="small"
             label={libelle(f)}
-            sx={{ width: 280 }}
+            fullWidth
             disabled={readOnly}
             error={manquant(f.id)}
             helperText={manquant(f.id) ? "Obligatoire" : f.help}
@@ -220,7 +225,7 @@ export default function SectionRenderer({
             size="small"
             type={type}
             label={libelle(f)}
-            sx={{ width: { text: 320, date: 200, time: 150, datetime: 240 }[f.kind] }}
+            fullWidth
             disabled={readOnly}
             error={manquant(f.id)}
             helperText={manquant(f.id) ? "Obligatoire" : f.help}
@@ -263,7 +268,7 @@ export default function SectionRenderer({
       case "computed": {
         const result = f.compute(v, ctx);
         return (
-          <Box sx={{ minWidth: 240 }}>
+          <Box>
             <Typography variant="caption" color="text.secondary">
               {f.label}
             </Typography>
@@ -294,7 +299,7 @@ export default function SectionRenderer({
         {section.fields
           .filter((f) => isVisible(f, v, ctx))
           .map((f) => (
-            <Box key={f.id} sx={WIDE_KINDS.has(f.kind) ? { flexBasis: "100%" } : undefined}>
+            <Box key={f.id} sx={WIDE_KINDS.has(f.kind) ? { flexBasis: "100%" } : DEMI_LIGNE}>
               {renderField(f)}
               {f.kind !== "heading" && f.aide && ctx.onAide && (
                 <Link component="button" type="button" variant="caption" onClick={() => ctx.onAide!(f.aide!)} sx={{ display: "block", mt: 0.25 }}>
